@@ -1,0 +1,25 @@
+{
+  "messaging_product": "whatsapp",
+  "recipient_type": "individual",
+  "to": "5493416717398",
+  "type": "template",
+  "template": {
+    "name": "recordatorio_turno",
+    "language": {
+      "code": "es_AR"
+    },
+    "components": [
+      {
+        "type": "body",
+        "parameters": [
+          { "type": "text", "text": "Pedro" },
+          { "type": "text", "text": "Hospital Alberdi" },
+          { "type": "text", "text": "20/05/2026" },
+          { "type": "text", "text": "16:00" },
+          { "type": "text", "text": "Fernando Lopez" },
+          { "type": "text", "text": "Cardiologia" }
+        ]
+      }
+    ]
+  }
+}
