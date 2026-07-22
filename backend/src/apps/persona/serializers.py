@@ -1,44 +1,40 @@
 from rest_framework import serializers
-from .models import Persona, Escolaridad, ObraSocial, Menor, CCB
-from src.apps.domicilio.serializers import DomicilioSerializer, EfectorSerializer
+from .models import Adolescente, Solicitante, Familiar, Vinculo, Hermano
+from src.apps.domicilio.serializers import DomicilioSerializer
 
-class PersonaSerializer(serializers.ModelSerializer):
+class AdolescenteSerializer(serializers.ModelSerializer):
     domicilio = DomicilioSerializer(read_only=True)
     
     class Meta:
-        models = Persona
-        fields = ['id', 'nombre']
+        models = Adolescente
+        fields = '__all__'
 
 
-class EscolaridadSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        models = Escolaridad
-        fields = ['id', 'nombre']
-
-
-class ObraSocialSerializer(serializers.ModelSerializer):
+class SolicitanteSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = ObraSocial
-        fields = ['id', 'nombre']
+        model = Solicitante
+        fields = '__all__'
 
 
-class CCBSerializer(serializers.ModelSerializer):
-    
+class HermanoSerializer(serializers.ModelSerializer):
+    adolescente = AdolescenteSerializer(read_only=True)
+    hermano = AdolescenteSerializer(read_only=True)
+
     class Meta:
-        models = CCB 
-        fields = ['id', 'nombre']
+        model = Hermano 
+        fields = '__all__'
 
 
-class MenorSerializer(serializers.ModelSerializer):
-    persona = PersonaSerializer(read_only=True)
-    escolaridad = EscolaridadSerializer(read_only=True)
-    efector_ref = EfectorSerializer(read_only=True)
-    ccb_ref = CCBSerializer(read_only=True)
-    obra_social = ObraSocialSerializer(read_only=True)
-    
+class VinculoSerializer(serializers.ModelSerializer):
+
     class Meta:
-        models = Menor
-        fields = ['id', 'nombre']
+        model = Vinculo
+        fields = '__all__'
 
+
+class FamiliarSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Familiar
+        fields = '__all__'

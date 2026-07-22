@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Domicilio, TipoEfector, Efector, Institucion
+from .models import Domicilio, TipoInstitucion, Institucion
 
 class DomicilioSerializer(serializers.ModelSerializer):
     
@@ -8,24 +8,19 @@ class DomicilioSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class TipoEfectorSerializer(serializers.ModelSerializer):
+class TipoInstitucionSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = TipoEfector
+        model = TipoInstitucion
         fields = ['id', 'nombre']
 
-
-class EfectorSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Efector
-        fields = ['id', 'nombre']
 
 class InstitucionSerializer(serializers.ModelSerializer):
-    
+    tipo = TipoInstitucionSerializer(read_only=True)
+
     class Meta:
         model = Institucion
-        fields = ['id', 'nombre']
+        fields = ['id', 'nombre', 'tipo']
 
 
 

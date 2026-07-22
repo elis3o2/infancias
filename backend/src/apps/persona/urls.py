@@ -1,15 +1,15 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import (PersonaViewSet, MenorViewSet, EscolaridaViewSet, CCBViewSet,
-                    ObraSocialViewSet, HistoriaClinicaView, CiudadanoDataViewSet)
+from .views import (AdolescenteViewSet, SolicitanteViewSet, FamiliarViewSet, VinculoViewSer,
+                                HermanoViewSet, HistoriaClinicaView, CiudadanoDataViewSet)
 
 router = DefaultRouter()
-router.register("persona", PersonaViewSet, basename="persona")
-router.register("menor", MenorViewSet, basename="menor")
-router.register("escolaridad", EscolaridaViewSet, basename="escolaridad")
-router.register("ccb", CCBViewSet, basename="ccb")
-router.register("obra_social", ObraSocialViewSet, basename="obra_social")
+router.register("adolescente", AdolescenteViewSet)
+router.register("solicitante", SolicitanteViewSet)
+router.register("familiar", FamiliarViewSet)
+router.register("hermano", HermanoViewSet)
+router.register("vinculo", VinculoViewSer)
 
 urlpatterns = [
     path("", include(router.urls)),

@@ -7,26 +7,20 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.viewsets import ViewSet
 from rest_framework.exceptions import NotFound, APIException
-from .models import Institucion, TipoEfector, Efector, Domicilio
-from .serializers import InstitucionSerializer, TipoEfectorSerializer, EfectorSerializer, DomicilioSerializer
+from .models import Institucion, TipoInstitucion, Domicilio
+from .serializers import InstitucionSerializer, TipoInstitucionSerializer, DomicilioSerializer
 from src.permissions import ReadOnly
+
+
+class TipoInstitucionViewSet(viewsets.ModelViewSet):
+    queryset = TipoInstitucion.objects.all()
+    serializer_class = TipoInstitucionSerializer
+    permission_classes = [ReadOnly]
 
 
 class InstitucionViewSet(viewsets.ModelViewSet):
     queryset = Institucion.objects.all()
     serializer_class = InstitucionSerializer
-    permission_classes = [ReadOnly]
-
-
-class TipoEfector(viewsets.ModelViewSet):
-    queryset = TipoEfector.objects.all()
-    serializer_class = TipoEfectorSerializer
-    permission_classes = [ReadOnly]
-
-
-class Efector(viewsets.ModelViewSet):
-    queryset = Efector.objects.all()
-    serializer_class = EfectorSerializer
     permission_classes = [ReadOnly]
 
     def get_queryset(self):
@@ -37,8 +31,8 @@ class Efector(viewsets.ModelViewSet):
         return qs
 
 
-class DomicilioSerializer(viewsets.ModelViewSet):
-    queryset = Domicilio
+class DomicilioViewSet(viewsets.ModelViewSet):
+    queryset = Domicilio.objects.all()
     serializer_class = DomicilioSerializer
 
 

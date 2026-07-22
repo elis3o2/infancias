@@ -1,48 +1,43 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.exceptions import NotFound, APIException
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from decouple import config
-from .models import Persona, Escolaridad, CCB, ObraSocial, Menor
-from .serializers import PersonaSerializer, EscolaridadSerializer, CCBSerializer, ObraSocialSerializer, MenorSerializer
+from .models import Adolescente, Solicitante, Familiar, Hermano, Vinculo
+from .serializers import AdolescenteSerializer, SolicitanteSerializer, FamiliarSerializer, HermanoSerializer, VinculoSerializer
 from src.permissions import ReadOnly
-from typing import Any
+from typing import Any, cast
 import requests
 
-class PersonaViewSet(viewsets.ModelViewSet):
-    queryset = Persona.objects.all()
-    serializer_class = PersonaSerializer
+class AdolescenteViewSet(viewsets.ModelViewSet):
+    queryset = Adolescente.objects.all()
+    serializer_class = AdolescenteSerializer
 
 
-class EscolaridaViewSet(viewsets.ModelViewSet):
-    queryset = Escolaridad.objects.all()
-    serializer_class = EscolaridadSerializer
-    permission_classes = [ReadOnly]
+class SolicitanteViewSet(viewsets.ModelViewSet):
+    queryset = Solicitante.objects.all()
+    serializer_class = SolicitanteSerializer
 
 
-class CCBViewSet(viewsets.ModelViewSet):
-    queryset = CCB.objects.all()
-    serializer_class = CCBSerializer
-    permission_classes = [ReadOnly]
+class FamiliarViewSet(viewsets.ModelViewSet):
+    queryset = Familiar.objects.all()
+    serializer_class = FamiliarSerializer
 
 
-class ObraSocialViewSet(viewsets.ModelViewSet):
-    queryset = ObraSocial.objects.all()
-    serializer_class = ObraSocialSerializer
-    permission_classes = [ReadOnly]
+class HermanoViewSet(viewsets.ModelViewSet):
+    queryset = Hermano.objects.all()
+    serializer_class = HermanoSerializer
 
 
-class MenorViewSet(viewsets.ModelViewSet):
-    queryset = Menor.objects.all()
-    serializer_class = MenorSerializer
-    
-
+class VinculoViewSer(viewsets.ModelViewSet):
+    queryset = Vinculo.objects.all()
+    serializer_class = VinculoSerializer
 
 
 class HistoriaClinicaView(APIView):
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        documento = request.query_params.get("documento")
+        documento = request.query_params.get("dni")
         sexo = request.query_params.get("sexo")
 
         if not documento or not sexo:
@@ -51,20 +46,52 @@ class HistoriaClinicaView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        BASE_URL = cast(str, config("API_HC"))
-        url = f"{BASE_URL}&documento={documento}&sexo={sexo}"
+
+        url = cast(str, config("API_HC"))
 
         try:
-            response = requests.get(
+            session = requests.Session()
+            session.trust_env = False
+
+            response = session.get(
                 url,
+                params={
+                    "api_key": config("KEY_HC"),
+                    "documento": documento,
+                    "sexo": sexo,
+                },
                 timeout=10,
             )
 
             response.raise_for_status()
 
-            return Response(response.json(), status=status.HTTP_200_OK)
+            data = response.json()
+            resultado = {
+                "adscripcion": [
+                    item["adscripcion"]
+                    for item in data.get("results_query1", [])
+                    if item.get("adscripcion")
+                ],
+                "efectores": list(
+                    dict.fromkeys(
+                        item.get("efector")
+                        for item in data.get("results_query2", [])
+                        if item.get("efector")
+                    )
+                ),
+                "obra_social": list(
+                    dict.fromkeys(
+                        item.get("nombreObraSocial")
+                        for item in data.get("sisa_data", {}).get("coberturas", [])
+                        if item.get("nombreObraSocial")
+                    )
+                )
+            }
+            print(resultado)
+            return Response(resultado, status=status.HTTP_200_OK)
 
         except Exception as exc:
+            print(str(exc))
             return Response(
                 {"detail": str(exc)},
                 status=status.HTTP_502_BAD_GATEWAY,

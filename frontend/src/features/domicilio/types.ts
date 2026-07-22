@@ -1,4 +1,4 @@
-export type Domicilio = {
+export type DomicilioValidado = {
     id: number,
     calle: string,
     codigo_calle: number,
@@ -19,6 +19,14 @@ export type Domicilio = {
     readio_censal: string
 }
 
+
+export type Domicilio = {
+    id: number,
+    nombre: string,
+    domicilio_validado: DomicilioValidado
+}
+
+
 export type Geolocalizacion = {
     properties : {
         altura: number
@@ -36,20 +44,15 @@ export type Geolocalizacion = {
 }
 
 
-export type TipoEfector = {
+export type TipoInstitucion = {
     id: number,
     nombre: string
 }
 
 
-export type Efector = {
-    id: number,
-    tipo: TipoEfector,
-    direccion: Domicilio
-}
-
-
 export type Institucion = {
     id: number,
+    tipo: TipoInstitucion,
+    direccion: Domicilio,
     nombre: string
 }

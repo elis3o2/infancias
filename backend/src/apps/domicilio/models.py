@@ -1,8 +1,7 @@
 from django.db import models
 
-class Domicilio(models.Model):
+class DomicilioValidado(models.Model):
     id = models.AutoField(primary_key=True)
-    calle = models.CharField(max_length=256)
     codigo_calle = models.IntegerField(blank=True, null=True)
     altura = models.IntegerField()
     bis = models.IntegerField()
@@ -22,30 +21,27 @@ class Domicilio(models.Model):
 
     class Meta:
         managed = False
+        db_table = "domicilio_validado"
+
+
+class Domicilio(models.Model):
+    id = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=128)
+    domicilio_validado = models.ForeignKey(
+        DomicilioValidado, models.DO_NOTHING, db_column='id_domicilio_validado', blank=True, null=True)
+
+    class Meta:
+        managed = False
         db_table = "domicilio"
 
 
-class TipoEfector(models.Model):
+class TipoInstitucion(models.Model):
     id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=16)
+    nombre = models.CharField(max_length=32)
 
     class Meta:
         managed = False
-        db_table = "tipo_efector"
-
-
-class Efector(models.Model):
-    id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=128)
-    tipo = models.ForeignKey(
-        TipoEfector, models.DO_NOTHING, db_column='id_tipo_efector')
-    direccion = models.ForeignKey(
-        Domicilio, models.DO_NOTHING, db_column='id_domicilio')
-
-    class Meta:
-        managed = False
-        db_table = "efector"
-
+        db_table = "tipo_institucion"
 
 
 class Institucion(models.Model):
@@ -53,6 +49,9 @@ class Institucion(models.Model):
     nombre = models.CharField(max_length=64)
     domicilio = models.ForeignKey(
         Domicilio, models.DO_NOTHING, db_column='id_domicilio')
+    tipo = models.ForeignKey(
+        TipoInstitucion, models.DO_NOTHING, db_column='id_tipo')
+    telefono = models.CharField(max_length=16)
 
     class Meta:
         managed = False

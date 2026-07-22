@@ -1,65 +1,85 @@
 from django.db import models
-from src.apps.domicilio.models import Domicilio, Efector
+from src.apps.domicilio.models import Domicilio, Institucion
 
-class Persona(models.Model):
+class Adolescente(models.Model):
     id = models.AutoField(primary_key=True)
+    dni = models.CharField(max_length=10)
+    sexo = models.CharField(max_length=1)
     nombre = models.CharField(max_length=32)
     apellido = models.CharField(max_length=32)
     domicilio = models.ForeignKey(
         Domicilio, models.DO_NOTHING, db_column='id_domicilio')
-    telefono = models.CharField(max_length=16)
     fecha_nacimiento = models.DateField()
+    escolarizado = models.BooleanField()
+    redes = models.ManyToManyField(
+        'Institucion', through='AdolescenteRed', related_name='adolescentes')
 
     class Meta:
         managed = False
-        db_table = "persona"
+        db_table = "adolescente"
 
 
-class Escolaridad(models.Model):
+class Solicitante(models.Model):
     id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=16)
+    dni = models.CharField(max_length=10)
+    sexo = models.CharField(max_length=1)
+    nombre = models.CharField(max_length=32)
+    apellido = models.CharField(max_length=32)
+    domicilio = models.ForeignKey(
+        Domicilio, models.DO_NOTHING, db_column='id_domicilio', blank=True, null=True)
+    telefono = models.CharField(max_length=16)
+    correo = models.CharField(max_length=32)
 
     class Meta:
         managed = False
-        db_table = "escolaridad" 
+        db_table = "adolescente"
 
 
-class CCB(models.Model):
+class Hermano(models.Model):
     id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=128)
+    adolescente = models.ForeignKey(
+        Adolescente, models.DO_NOTHING, db_column='id_adolescente', related_name='hermanos')
+    hermano = models.ForeignKey(Adolescente, models.DO_NOTHING, db_column='id_hermano', related_name='es_hermano_de')
 
     class Meta:
         managed = False
-        db_table = "ccb"
+        db_table = 'hermano'
 
 
-class ObraSocial(models.Model):
+
+class Vinculo(models.Model):
     id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=128)
+    nombre = models.CharField(max_length=64)
 
     class Meta:
         managed = False
-        db_table = "obra_social"
+        db_table = 'vinculo'
 
 
-class Menor(models.Model):
+
+class Familiar(models.Model):
     id = models.AutoField(primary_key=True)
-    persona = models.ForeignKey(
-        Persona, models.DO_NOTHING, db_column='id_persona')
-    escolaridad_actual = models.BooleanField()
-    escolaridad = models.ForeignKey(
-        Escolaridad, models.DO_NOTHING, db_column='id_escolaridad_actual')
-    efector_ref = models.ForeignKey(
-        Efector, models.DO_NOTHING, db_column='id_efector_ref')
-    ccb_ref = models.ForeignKey(
-        CCB, models.DO_NOTHING, db_column='id_ccb_ref')
-    obra_social = models.ForeignKey(
-        ObraSocial, models.DO_NOTHING, db_column='id_obra_social')
-    
+    nombre = models.CharField(max_length=64)
+    apellido = models.CharField(max_length=64) 
+    adolescente = models.ForeignKey(
+        Adolescente, models.DO_NOTHING, db_column='id_adolescente')
+    vinculo = models.ForeignKey(
+        Vinculo, models.DO_NOTHING, db_column='id_vinculo')
+    telefono = models.CharField(max_length=16)
+
     class Meta:
         managed = False
-        db_table = "menor"
+        db_table = 'familiar'
 
 
 
+class AdolescenteRed(models.Model):
+    id = models.AutoField(primary_key=True)
+    adolescete = models.ForeignKey(
+        Adolescente, models.DO_NOTHING, db_column='id_adolescente')
+    institucion = models.ForeignKey(
+        Institucion, models.DO_NOTHING, db_column='id_institucion')
 
+    class Meta:
+        managed = False 
+        db_table = 'adolescente_red'
