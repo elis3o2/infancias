@@ -3,17 +3,13 @@ import {Typography, Stack, TextField, Button, Box} from "@mui/material";
 import type { Setter } from "@/common/types";
 
 type Props = {
-    setNuevaDireccion: Setter<string>
-    setFinishNuevaDireccion: Setter<boolean>
-    setMostrarNuevaDireccion: Setter<boolean>
+    direccion: string
+    setDireccion: Setter<string>
+    setFinishDireccion: Setter<boolean>
 }
 
-export const NuevaDireccion = ({setNuevaDireccion, setFinishNuevaDireccion, setMostrarNuevaDireccion}: Props) => {
+export const DireccionForm = ({direccion, setDireccion, setFinishDireccion}: Props) => {
     
-    const [direccion, setDireccion] = useState("");
-    
-
-
     return (<Box>
         
         <Typography
@@ -62,28 +58,9 @@ export const NuevaDireccion = ({setNuevaDireccion, setFinishNuevaDireccion, setM
                 justifyContent="flex-end"
             >
                 <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() =>
-                        setMostrarNuevaDireccion(false)
-                    }
-                    sx={{
-                        textTransform: "none",
-                        borderColor: "#cbd5e1",
-                        color: "text.secondary",
-                        borderRadius: 2,
-                        "&:hover": {
-                            borderColor: "#94a3b8",
-                        },
-                    }}
-                >
-                    Cancelar
-                </Button>
-
-                <Button
                     variant="contained"
                     size="small"
-                    onClick={() => {setNuevaDireccion(direccion); setFinishNuevaDireccion(true)}}
+                    onClick={() => {setFinishDireccion(true)}}
                     disabled={direccion.trim() === ""}
                     sx={{
                         textTransform: "none",

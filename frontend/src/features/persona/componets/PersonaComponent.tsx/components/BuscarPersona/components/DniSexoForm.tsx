@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { Box } from "@mui/material";
 import type { Setter } from "@/common/types";
-import { SexoForm } from "./SexoForm";
-import { DniForm } from "./DniForm";
+import { SexoForm } from "../../../../SexoForm";
+import { DniForm } from "../../../../DniForm";
 
 type Props = {
     dni: string | null;

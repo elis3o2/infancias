@@ -5,12 +5,11 @@ import type { Setter } from '@/common/types';
 
 type Props = {
     setValidarDireccion: Setter<boolean>
-    mostrarNuevaDireccion: boolean
-    setMostrarNuevaDireccion: Setter<boolean>
+    setFinishDireccion: Setter<boolean>
 }
 
 
-export const DireccionButtons = ({setValidarDireccion, mostrarNuevaDireccion, setMostrarNuevaDireccion} : Props) => {
+export const DireccionButtons = ({setValidarDireccion, setFinishDireccion} : Props) => {
     return (
          <Stack direction="row" spacing={2}>
             <Button
@@ -32,14 +31,14 @@ export const DireccionButtons = ({setValidarDireccion, mostrarNuevaDireccion, se
               variant="outlined"
               fullWidth
               startIcon={<EditLocationAltIcon />}
-              onClick={() => setMostrarNuevaDireccion(true)}
+              onClick={() => setFinishDireccion(false)}
               sx={{
                 borderRadius: 2,
                 fontWeight: 600,
                 textTransform: "none",
                 py: 1.25,
-                borderColor: mostrarNuevaDireccion ? "primary.main" : "#cbd5e1",
-                color: mostrarNuevaDireccion ? "primary.main" : "text.secondary",
+                borderColor:  "primary.main",
+                color: "primary.main",
                 "&:hover": { borderColor: "primary.main", color: "primary.main" },
               }}
             >

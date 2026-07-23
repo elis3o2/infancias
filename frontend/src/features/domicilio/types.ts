@@ -1,9 +1,8 @@
 export type DomicilioValidado = {
     id: number,
-    calle: string,
     codigo_calle: number,
     altura: number,
-    bis: number,
+    bis: boolean,
     letra: string,
     piso: string,
     depto: string,
@@ -13,10 +12,10 @@ export type DomicilioValidado = {
     distrito: string,
     seccion_policial: string,
     localidad: string,
-    coordenada_x: string,
-    coordenada_y: string,
+    coordenada_x: number,
+    coordenada_y: number,
     fraccion_censal: string,
-    readio_censal: string
+    radio_censal: string
 }
 
 

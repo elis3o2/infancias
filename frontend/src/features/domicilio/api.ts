@@ -5,6 +5,10 @@ export const getGeo = (direccion: string) : Promise<Geolocalizacion[]> => {
     return http.get<Geolocalizacion[]>(`domicilio/geolocalizacion/features?domicilio=${direccion}`).then(res => res.data)
 }
 
+export const getDic = (direccion: string) : Promise<Geolocalizacion[]> => {
+    return http.get<Geolocalizacion[]>(`domicilio/geolocalizacion/features?domicilio=${direccion}`).then(res => res.data)
+}
+
 export const getTipoInstitucionAll = () : Promise<TipoInstitucion[]> => {
     return http.get<TipoInstitucion[]>(`domicilio/tipo_institucion/`).then(res => res.data)
 }

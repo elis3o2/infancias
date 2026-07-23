@@ -5,10 +5,10 @@ import type { Setter } from "@/common/types";
 
 type Props = {
   domicilio: string;
-  setFinishDireccion: Setter<boolean>;
+  setFinishDomicilio: Setter<boolean>;
 };
 
-export const VerDireccion = ({ domicilio, setFinishDireccion }: Props) => {
+export const DomicilioView = ({ domicilio, setFinishDomicilio }: Props) => {
   return (
     <Stack direction="row" spacing={1.5} alignItems="flex-start">
       <Box
@@ -48,7 +48,7 @@ export const VerDireccion = ({ domicilio, setFinishDireccion }: Props) => {
           size="small"
           variant="text"
           sx={{ mt: 0.5, px: 0 }}
-          onClick={() => setFinishDireccion(false)}
+          onClick={() => setFinishDomicilio(false)}
         >
           Editar domicilio
         </Button>

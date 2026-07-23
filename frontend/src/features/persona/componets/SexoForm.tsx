@@ -4,14 +4,11 @@ import {FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Typography,
 type Props = {
     sexo: "M" | "F" | ""
     setSexo: Setter<"M" | "F" | "">
-    submitted: boolean
 }
 
-export const SexoForm = ({sexo, setSexo, submitted}: Props) => {
+export const SexoForm = ({sexo, setSexo}: Props) => {
     return (
-        <FormControl
-            error={submitted && sexo === ""}
-        >
+        <FormControl>
         <FormLabel
             sx={{
                 color: "text.secondary",
@@ -64,7 +61,7 @@ export const SexoForm = ({sexo, setSexo, submitted}: Props) => {
             ))}
         </RadioGroup>
 
-        {submitted && sexo === "" && (
+        {sexo === "" && (
             <FormHelperText sx={{ color: "error.main" }}>
                 Seleccione el sexo
             </FormHelperText>

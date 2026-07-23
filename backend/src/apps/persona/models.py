@@ -25,8 +25,6 @@ class Solicitante(models.Model):
     sexo = models.CharField(max_length=1)
     nombre = models.CharField(max_length=32)
     apellido = models.CharField(max_length=32)
-    domicilio = models.ForeignKey(
-        Domicilio, models.DO_NOTHING, db_column='id_domicilio', blank=True, null=True)
     telefono = models.CharField(max_length=16)
     correo = models.CharField(max_length=32)
 

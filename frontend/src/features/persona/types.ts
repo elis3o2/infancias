@@ -1,14 +1,13 @@
-import type { Domicilio, Efector } from "../domicilio/types"
+import type { Domicilio, Institucion } from "../domicilio/types"
 
-export type Persona = {
+export type Solicitante = {
     id: number | null,
     dni: string,
     sexo: "M" | "F",
     nombre: string,
     apellido: string,
-    domicilio: Domicilio
     telefono: string,
-    fecha_nacimiento: string
+    correo: string
 }
 
 
@@ -30,14 +29,16 @@ export type ObraSocial = {
 }
 
 
-export type Menor = {
-    id: number,
-    persona: Persona,
-    escolaridad_actual: boolean,
-    escolaridad: Escolaridad,
-    efector_rer: Efector,
-    ccb_ref: CCB,
-    obra_social: ObraSocial
+export type Adolescente = {
+    id: number | null,
+    dni: string,
+    sexo: "M" | "F",
+    nombre: string,
+    apellido: string,
+    domicilio: Domicilio,
+    fecha_nacimiento: string
+    escolarizado: boolean
+    redes: Institucion[]
 }
 
 

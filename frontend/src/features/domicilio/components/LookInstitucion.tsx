@@ -18,17 +18,17 @@ import {
 } from "@mui/material"
 
 type Props = {
-  setInstitucion: Setter<Institucion>
+  institucion: Institucion | null
+  setInstitucion: Setter<Institucion | null>
 }
 
 type Modo = "seleccionar" | "cargar"
 
-export const LookInstitucion = ({ setInstitucion }: Props) => {
+export const LookInstitucion = ({ institucion, setInstitucion }: Props) => {
   const [tipos, setTipos] = useState<TipoInstitucion[]>([])
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoInstitucion | null>(null)
 
   const [instituciones, setInstituciones] = useState<Institucion[]>([])
-  const [institucionSeleccionada, setInstitucionSeleccionada] = useState<Institucion | null>(null)
   const [loadingInstituciones, setLoadingInstituciones] = useState(false)
 
   const [modo, setModo] = useState<Modo>("seleccionar")
@@ -45,7 +45,7 @@ export const LookInstitucion = ({ setInstitucion }: Props) => {
   useEffect(() => {
     if (!tipoSeleccionado) {
       setInstituciones([])
-      setInstitucionSeleccionada(null)
+      setInstitucion(null)
       return
     }
     setLoadingInstituciones(true)
@@ -54,17 +54,11 @@ export const LookInstitucion = ({ setInstitucion }: Props) => {
       .finally(() => setLoadingInstituciones(false))
   }, [tipoSeleccionado])
 
-  console.log(instituciones)
   const handleTipoChange = (id: number | string) => {
     const tipo = tipos.find((t) => t.id === id) ?? null
     setTipoSeleccionado(tipo)
-    setInstitucionSeleccionada(null)
+    setInstitucion(null)
     setModo("seleccionar")
-  }
-
-  const handleSeleccionarInstitucion = (institucion: Institucion | null) => {
-    setInstitucionSeleccionada(institucion)
-    if (institucion) setInstitucion(institucion)
   }
 
   const handleGuardarNueva = async () => {
@@ -77,7 +71,6 @@ export const LookInstitucion = ({ setInstitucion }: Props) => {
         tipoId: tipoSeleccionado.id,
       })
       setInstituciones((prev) => [...prev, nueva])
-      setInstitucionSeleccionada(nueva)
       setInstitucion(nueva)
       setNombre("")
       setDomicilio("")
@@ -123,23 +116,21 @@ export const LookInstitucion = ({ setInstitucion }: Props) => {
               options={instituciones}
               getOptionLabel={(option) => option.nombre}
               loading={loadingInstituciones}
-              value={institucionSeleccionada}
-              onChange={(_, value) => handleSeleccionarInstitucion(value)}
+              value={institucion}
+              onChange={(_, value) => setInstitucion(value)}
               isOptionEqualToValue={(option, value) => option.id === value.id}
               renderInput={(params) => (
                 <TextField
                   {...params}
                   label="Institución"
-                  slotProps={{
-                    input: {
-                      ...params.slotProps?.input,
-                      endAdornment: (
-                        <>
-                          {loadingInstituciones ? <CircularProgress size={18} /> : null}
-                          {params.slotProps?.input?.endAdornment}
-                        </>
-                      ),
-                    },
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {loadingInstituciones ? <CircularProgress size={18} /> : null}
+                        {params.InputProps?.endAdornment}
+                      </>
+                    ),
                   }}
                 />
               )}

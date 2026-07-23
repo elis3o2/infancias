@@ -4,21 +4,19 @@ import type { Setter } from '@/common/types';
 
 type Props = {
     canConfirm: boolean
+    setFinishDomicilio: Setter<boolean>
     setFinishDireccion: Setter<boolean>
-    setValidarDireccion: Setter<boolean>
-    setMostrarNuevaDireccion: Setter<boolean>
-    setFinishNuevaDireccion: Setter<boolean>
 }
 
 
-export const DireccionConfirmarButtons = ({canConfirm, setFinishDireccion, setValidarDireccion, setMostrarNuevaDireccion, setFinishNuevaDireccion} : Props) => {
+export const DireccionConfirmarButtons = ({canConfirm, setFinishDomicilio, setFinishDireccion } : Props) => {
     return (
          <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
               fullWidth
               startIcon={<CheckIcon />}
-              onClick={() => setFinishDireccion(true)}
+              onClick={() => setFinishDomicilio(true)}
               color="success"
               disabled={!canConfirm}
               sx={{
@@ -33,7 +31,7 @@ export const DireccionConfirmarButtons = ({canConfirm, setFinishDireccion, setVa
             <Button
               variant="outlined"
               fullWidth
-              onClick={() => {setMostrarNuevaDireccion(false); setValidarDireccion(false); setFinishNuevaDireccion(false)}}
+              onClick={() => {setFinishDireccion(false)}}
               sx={{
                 borderRadius: 2,
                 fontWeight: 600,

@@ -8,7 +8,6 @@ import { DatoItem } from "@/common/components/DatoItem"
 import { TelefonoComponent } from "../../TelefonoComponent"
 import type { Ciudadano } from "@/features/persona/types"
 import type { Setter } from "@/common/types"
-import { VerDireccion } from "./VerDireccion"
 import { formatFecha } from "@/common/utils"
 
 type Props = {

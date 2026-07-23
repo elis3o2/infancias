@@ -4,7 +4,6 @@ import type { Ciudadano, Persona } from "@/features/persona/types";
 import { PersonaForm } from "./components/PersonaForm";
 import { PersonaCard } from "./components/PersonaCard";
 import type { Geolocalizacion } from "@/features/domicilio/types";
-import { DireccionComponent } from "../../../domicilio/components/DireccionComponent";
 import { BuscarPersona } from "./components/BuscarPersona/BuscarPersona";
 import type { Setter } from "@/common/types";
 
