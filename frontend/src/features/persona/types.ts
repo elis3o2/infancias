@@ -11,24 +11,6 @@ export type Solicitante = {
 }
 
 
-export type Escolaridad = {
-    id: number,
-    nombre: string
-}
-
-
-export type CCB = {
-    id: number,
-    nombre: string
-}
-
-
-export type ObraSocial = {
-    id: number,
-    nombre: string
-}
-
-
 export type Adolescente = {
     id: number | null,
     dni: string,
@@ -39,6 +21,30 @@ export type Adolescente = {
     fecha_nacimiento: string
     escolarizado: boolean
     redes: Institucion[]
+}
+
+
+export type Vinculo = {
+    id: number,
+    nombre: string
+}
+
+
+export type Familiar = {
+    id: number | null
+    nombre: string
+    apellido: string
+    vinculo: Vinculo
+    telefono: string
+}
+
+
+export type Hermano = {
+    id: number | null
+    dni: string
+    sexo: "M" | "F"
+    nombre: string
+    apellido: string
 }
 
 

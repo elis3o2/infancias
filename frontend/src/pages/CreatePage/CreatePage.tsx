@@ -1,7 +1,7 @@
 import { useState } from "react"
 import {Box} from '@mui/material'
 import { PersonaComponent } from "../../features/persona/componets/PersonaComponent.tsx/PersonaComponent"
-import type { Adolescente, CCB, Escolaridad, Salud, Solicitante } from "@/features/persona/types"
+import type { Adolescente, CCB, Escolaridad, Familiar, Salud, Solicitante } from "@/features/persona/types"
 import type { Geolocalizacion, Institucion} from "@/features/domicilio/types"
 import { EscolaridadComponent } from "../../features/persona/componets/EscolaridadComponet/EscolaridadComponent"
 import type { DatosProgenitor } from "@/features/persona/types"
@@ -9,6 +9,7 @@ import type { DatosProgenitor } from "@/features/persona/types"
 import { LookInstitucion } from "@/features/domicilio/components/LookInstitucion"
 import { SolicitanteComponent } from "@/features/persona/componets/Solicitante/SolicitanteComponent"
 import { AdolescenteComponent } from "@/features/persona/componets/Adolescente/AdolescenteComponent"
+import { FamiliaresComponent } from "@/features/persona/componets/Familiar/FamiliarComponent"
 
 export const CreatePage = () => {
   const [finishPersona, setFinishPersona] = useState(false)
@@ -27,6 +28,7 @@ export const CreatePage = () => {
   const [institucion, setInstitucion] = useState<Institucion | null>(null)
   const [adolescente, setAdolescente] = useState<Adolescente | null>(null)
   const [finishAdolescente, setFinishAdolescente] = useState(false)
+  const [familiares, setFamiliares] = useState<Familiar[]>([])
   return (
     <Box
       sx={{
@@ -59,6 +61,12 @@ export const CreatePage = () => {
         finishAdolescente={finishAdolescente}
         setFinishAdolescente={setFinishAdolescente}
       />
+
+      <FamiliaresComponent
+        familiares={familiares}
+        setFamiliares={setFamiliares}
+      />
+
       {(finishPersona || finishEscolaridad) && (
         <EscolaridadComponent
           escolarizado={escolarizado}

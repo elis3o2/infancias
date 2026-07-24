@@ -16,6 +16,7 @@ import {
   Switch,
 } from "@mui/material"
 import { DomicilioComponent } from "@/features/domicilio/components/DomicilioComponent"
+import { NombreForm } from "../NombreForm"
 
 type Props = {
   setAdolescente: Setter<Adolescente | null>
@@ -62,17 +63,15 @@ export const AdolescenteForm = ({ setAdolescente, setFinishAdolescente }: Props)
           Datos del adolescente
         </Typography>
         <Stack spacing={2}>
-          <TextField
+          <NombreForm
             label="Nombre"
             value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            fullWidth
+            setNombre={setNombre}
           />
-          <TextField
+          <NombreForm
             label="Apellido"
             value={apellido}
-            onChange={(e) => setApellido(e.target.value)}
-            fullWidth
+            setNombre={setApellido}
           />
           <DniForm dni={dni} setDni={setDni} />
           <SexoForm sexo={sexo} setSexo={setSexo} />

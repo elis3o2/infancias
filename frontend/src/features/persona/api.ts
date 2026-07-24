@@ -1,5 +1,5 @@
 import http from '@/common/api/client'
-import type { CCB, Ciudadano, Escolaridad, Salud } from './types'
+import type { Ciudadano, Salud, Vinculo } from './types'
 import type { Institucion } from '../domicilio/types'
 
 
@@ -23,6 +23,6 @@ export const getInstitucion = (): Promise<Institucion[]> => {
 }
 
 
-export const getCCB = (): Promise<CCB[]> => {
-  return http.get<CCB[]>('persona/ccb/').then(res => res.data)
+export const getVinculos = (): Promise<Vinculo[]> => {
+  return http.get<Vinculo[]>('persona/vinculo/').then(res => res.data)
 }

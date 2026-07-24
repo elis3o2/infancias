@@ -10,10 +10,10 @@ import {
   CardContent,
   CardActions,
   Stack,
-  TextField,
   Button,
   Typography,
 } from "@mui/material"
+import { NombreForm } from "../NombreForm"
 
 type Props = {
   setSolicitante: Setter<Solicitante | null>
@@ -34,7 +34,7 @@ export const SolicitanteForm = ({setSolicitante, setFinishSolicitante}: Props) =
     apellido.trim() !== "" &&
     dni.trim() !== "" &&
     sexo !== "" &&
-    telefono.trim() !== "" &&
+    telefono.length == 10 &&
     correo.trim() !== "" &&
     correoValido
 
@@ -60,17 +60,15 @@ export const SolicitanteForm = ({setSolicitante, setFinishSolicitante}: Props) =
                 Datos del solicitante
             </Typography>
             <Stack spacing={2}>
-                <TextField
+                <NombreForm
                     label="Nombre"
                     value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
-                    fullWidth
+                    setNombre={setNombre}
                 />
-                <TextField
+                <NombreForm
                     label="Apellido"
                     value={apellido}
-                    onChange={(e) => setApellido(e.target.value)}
-                    fullWidth
+                    setNombre={setApellido}
                 />
                 <DniForm dni={dni} setDni={setDni} />
                 <SexoForm sexo={sexo} setSexo={setSexo} />

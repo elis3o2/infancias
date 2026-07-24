@@ -278,3 +278,37 @@ INSERT INTO institucion (nombre, id_domicilio, id_tipo) VALUES
 ('Club Náutico Sportivo Avellaneda', 78, 4) ,
 ('Club Residentes Parquefield', 79, 4) ,
 ('Club Atlético El Torito', 80, 4);
+
+
+
+
+
+INSERT INTO motivo_solicitud (nombre) VALUES
+("Abuso Sexual hacia las Infancias"),
+("Adulto Responsable detenido"),
+("Ausencia de Adulto Responsable"),
+("Conductas sexuales inapropiadas entre niñxs"),
+("Consumo Problemático del niñe"),
+("Desvinculo (Protocolo de desvinculo provincial - hospitales)"),
+("Educación"),
+("Grooming"),
+("Identidad"),
+("Negligencia"),
+("Negligencia por Consumo Problematico de adulto"),
+("Negligencia por sit. de violencia de genero"),
+("Negligencia por salud mental adulto"),
+("Niños en situación de calle"),
+("Niñxs o adolescentes en situación penal"),
+("Pornografia Infantil"),
+("Prostitucion Infantil"),
+("Salud"),
+("Salud Mental del niñe"),
+("Trabajo Infantil"),
+("Violencia"),
+("Trata de Personas");
+
+
+INSERT INTO prioridad_solicitud (id,nombre) VALUES
+(1, "Urgente"),
+(2, "Prioritaria"),
+(3, "Preventiva");

@@ -51,7 +51,10 @@ export const TelefonoComponent = ({ telefono, setTelefono }: Props) => {
           size="small"
           placeholder="341XXXXXXX"
           value={telefono}
-          onChange={(e) => setTelefono(e.target.value)}
+          onChange={(e) => {
+            const valor = e.target.value.replace(/\D/g, "")
+            setTelefono(valor)
+          }}
           slotProps={{
             input: {
               endAdornment: iconoEstado ? (

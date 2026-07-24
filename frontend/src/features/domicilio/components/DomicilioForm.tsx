@@ -18,8 +18,6 @@ export const DomicilioForm = ({finishDomicilio, setFinishDomicilio, setGeoSelecc
     const [canConfirm, setCanConfirm] = useState(false);
     const [direccion, setDireccion] = useState("");
 
-    
-      
     return (
     <Box>
         {!finishDireccion && ( 
