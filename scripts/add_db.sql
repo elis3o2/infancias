@@ -280,9 +280,6 @@ INSERT INTO institucion (nombre, id_domicilio, id_tipo) VALUES
 ('Club Atlético El Torito', 80, 4);
 
 
-
-
-
 INSERT INTO motivo_solicitud (nombre) VALUES
 ("Abuso Sexual hacia las Infancias"),
 ("Adulto Responsable detenido"),
@@ -312,3 +309,57 @@ INSERT INTO prioridad_solicitud (id,nombre) VALUES
 (1, "Urgente"),
 (2, "Prioritaria"),
 (3, "Preventiva");
+
+
+INSERT INTO domicilio_validado (
+    id,
+    codigo_calle,
+    altura,
+    bis,
+    letra,
+    piso,
+    depto,
+    monoblock,
+    barrio,
+    vecinal,
+    distrito,
+    seccional_policial,
+    localidad,
+    coordenada_x,
+    coordenada_y,
+    fraccion_censal,
+    radio_censal
+) VALUES (
+    999,
+    87300,
+    3480,
+    FALSE,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    'Rosario',
+    5436218.829344424,
+    6350468.38954316,
+    NULL,
+    NULL
+);
+
+INSERT INTO domicilio (id, nombre, id_domicilio_validado) VALUES 
+(999, "SARMIENTO 3480", 1);
+
+INSERT INTO solicitante (id, sexo, dni, nombre, apellido, telefono, correo) VALUES
+(999, "M", "26355146", "Ramiro", "Delfa", "123456789", "correo@gmail.com");
+
+INSERT INTO adolescente (id, dni, sexo, nombre, apellido,id_domicilio, fecha_nacimiento, escolarizado) VALUES
+(999, "44523692","M", "Eliseo", "Feuli", 999, "2003-02-18", True);
+
+INSERT INTO familiar (id, nombre, apellido, id_adolescente, id_vinculo, telefono) VALUES
+(999, "Pedro", "Perez", 999, 2, "333333333");
+
+INSERT INTO solicitud (id, id_institucion, id_solicitante, id_adolescente, id_motivo, id_prioridad, descripcion, fecha_hora_creacion, validado, rechazado)
+VALUES (999, 81, 999, 999, 48, 1, "Esta es la descripción de la solicitud", "2026-07-20", false, false);

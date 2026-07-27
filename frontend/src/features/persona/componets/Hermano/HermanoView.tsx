@@ -12,7 +12,7 @@ import {
 
 type Props = {
   hermano: Hermano
-  onEditar: () => void
+  onEliminar: () => void
 }
 
 const Campo = ({ label, valor }: { label: string; valor: string }) => (
@@ -28,7 +28,7 @@ const Campo = ({ label, valor }: { label: string; valor: string }) => (
 
 
 
-export const HermanoView = ({ hermano, onEditar }: Props) => {
+export const HermanoView = ({ hermano, onEliminar }: Props) => {
   const sexoLabel = hermano.sexo === "M" ? "Masculino" : "Femenino"
 
   return (
@@ -46,7 +46,9 @@ export const HermanoView = ({ hermano, onEditar }: Props) => {
         </Stack>
       </CardContent>
       <CardActions>
-        <Button onClick={onEditar}>Editar</Button>
+        <Button color="error" onClick={onEliminar} fullWidth>
+          Eliminar
+        </Button>
       </CardActions>
     </Card>
   )

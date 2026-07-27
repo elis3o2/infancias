@@ -71,7 +71,6 @@ CREATE TABLE IF NOT EXISTS adolescente (
     FOREIGN KEY (id_domicilio) REFERENCES domicilio (id)
 );
 
-
 CREATE TABLE IF NOT EXISTS hermano (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_adolescente INT NOT NULL,
@@ -119,6 +118,8 @@ CREATE TABLE IF NOT EXISTS solicitud (
     id_prioridad INT NOT NULL,
     descripcion VARCHAR(256) NULL,
     fecha_hora_creacion DATETIME NOT NULL,
+    validado BOOLEAN DEFAULT false,
+    rechazado BOOLEAN DEFAULT false, 
     FOREIGN KEY (id_institucion) REFERENCES institucion(id),
     FOREIGN KEY (id_solicitante) REFERENCES solicitante(id),
     FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
@@ -134,3 +135,14 @@ CREATE TABLE IF NOT EXISTS adolescente_red(
     FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
     FOREIGN KEY (id_institucion) REFERENCES institucion(id)
 )
+
+
+CREATE TABLE archivo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_solicitud INT NOT NULL,
+    nombre VARCHAR(255) NOT NULL,
+    tipo_mime VARCHAR(100),
+    contenido LONGBLOB NOT NULL,
+
+    FOREIGN KEY (id_solicitud) REFERENCES solicitud(id)
+);

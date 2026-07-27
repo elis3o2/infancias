@@ -28,7 +28,7 @@ export const HermanosComponent = ({ hermanos, setHermanos }: Props) => {
 
   return (
     <Stack spacing={2}>
-      <Typography variant="h6">Hermanos / referentes</Typography>
+      <Typography variant="h6">Hermanos menores de 18 años</Typography>
 
       {hermanos.map((hermano, index) => (
         <HermanoView
@@ -49,11 +49,6 @@ export const HermanosComponent = ({ hermanos, setHermanos }: Props) => {
         </Button>
       )}
 
-      {hermanos.length === 0 && !mostrarForm && (
-        <Typography color="error" variant="caption">
-          Debe cargar al menos un hermano o referente
-        </Typography>
-      )}
     </Stack>
   )
 }

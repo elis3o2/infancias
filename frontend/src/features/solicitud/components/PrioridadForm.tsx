@@ -14,16 +14,16 @@ export const PrioridadForm = ({prioridadSeleccionada, setPrioridadSeleccionada}:
     const [prioridades, setPrioridades] = useState<PrioridadSolicitud[]>([])
     const [cargando, setCargando] = useState(true)
 
-
+    console.log(prioridades)
     useEffect(() => {
+        console.log("EFFECT")
         let activo = true
     
         const cargarOpciones = async () => {
           try {
-            const [dataPrioridades] = await Promise.all([
-              getPrioridades(),
-            ])
+            const dataPrioridades = await getPrioridades()
             if (activo) {
+              console.log(dataPrioridades)
               setPrioridades(dataPrioridades)
             }
           } finally {
