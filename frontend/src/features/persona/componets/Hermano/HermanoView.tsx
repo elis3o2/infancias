@@ -32,7 +32,7 @@ export const HermanoView = ({ hermano, onEliminar }: Props) => {
   const sexoLabel = hermano.sexo === "M" ? "Masculino" : "Femenino"
 
   return (
-    <Card sx={{ maxWidth: 500 }}>
+    <Card sx={{ minWidth: 1028 }}>
       <CardContent>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
           <Typography variant="h6">

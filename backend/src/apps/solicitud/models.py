@@ -34,7 +34,7 @@ class Solicitud(models.Model):
     prioridad = models.ForeignKey(
         PrioridadSolicitud, models.DO_NOTHING, db_column='id_prioridad')
     descripcion = models.CharField(max_length=256)
-    fecha_hora_creacion = models.DateField()
+    fecha_hora_creacion = models.DateTimeField()
     validado = models.BooleanField()
     rechazado = models.BooleanField()
 

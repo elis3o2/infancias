@@ -1,23 +1,21 @@
-import { useState } from "react";
 import { ArchivoForm } from "./ArchivoForm";
 import { ArchivoView } from "./ArchivoView";
+import type { Archivo } from "../../types";
+import type { Setter } from "@/common/types";
 
 type Props = {
-    archivos
+  archivos: Archivo[]
+  setArchivos: Setter<Archivo[]>
 }
 
-export const ArchivoComponent() {
-  const [archivos, setArchivos] = useState([]);
-
-  const handleAdd = (nuevos) =>
-    setArchivos((prev) => [...prev, ...nuevos]);
+export const ArchivoComponent = ({archivos, setArchivos} : Props) =>{
 
   const handleRemove = (id) =>
     setArchivos((prev) => prev.filter((a) => a.id !== id));
 
   return (
     <div>
-      <ArchivoForm onAdd={handleAdd} />
+      <ArchivoForm setArchivos={setArchivos} />
       <ArchivoView archivos={archivos} onRemove={handleRemove} />
     </div>
   );

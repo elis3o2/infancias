@@ -11,70 +11,69 @@ import {
   CardActions,
   Stack,
   Button,
-  Typography,
 } from "@mui/material"
 import { NombreForm } from "../NombreForm"
 
 type Props = {
+  solicitante: Solicitante
   setSolicitante: Setter<Solicitante | null>
   setFinishSolicitante: Setter<boolean>
 }
 
-export const SolicitanteForm = ({setSolicitante, setFinishSolicitante}: Props) => {
-  const [nombre, setNombre] = useState("")
-  const [apellido, setApellido] = useState("")
-  const [dni, setDni] = useState("")
-  const [sexo, setSexo] = useState<"M" | "F" | "">("")
-  const [telefono, setTelefono] = useState("")
-  const [correo, setCorreo] = useState("")
-  const [correoValido, setCorreoValido] = useState(true)
-
+export const SolicitanteForm = ({ solicitante, setSolicitante, setFinishSolicitante}: Props) => {
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const [correoValido, setCorreoValido] = useState(EMAIL_REGEX.test(solicitante.correo.trim()))
+  
+  function setNombre (nombre) { 
+    setSolicitante({ ...solicitante, nombre })
+  }  
+  function setApellido (apellido) {
+    setSolicitante({ ...solicitante, apellido })
+  } 
+  function setDni (dni) {
+    setSolicitante({ ...solicitante, dni })
+  }
+  function setSexo (sexo) {
+    setSolicitante({ ...solicitante, sexo })
+  }
+  function setCorreo (correo) {
+    setSolicitante({ ...solicitante, correo })
+  }
+  function setTelefono (telefono) {
+    setSolicitante({ ...solicitante, telefono })
+  }
   const formCompleto =
-    nombre.trim() !== "" &&
-    apellido.trim() !== "" &&
-    dni.trim() !== "" &&
-    sexo !== "" &&
-    telefono.length == 10 &&
-    correo.trim() !== "" &&
+    solicitante.nombre.trim() !== "" &&
+    solicitante.apellido.trim() !== "" &&
+    solicitante.sexo !== "" &&
+    solicitante.telefono.length == 10 &&
+    solicitante.correo.trim() !== "" &&
     correoValido
 
   const handleCargar = () => {
     if (!formCompleto) return
-
-    setSolicitante({
-        id: null,
-        nombre: nombre.trim(),
-        apellido: apellido.trim(),
-        dni: dni.trim(),
-        sexo,
-        telefono: telefono.trim(),
-        correo: correo.trim(),
-    })
     setFinishSolicitante(true)
   }
 
   return (
-    <Card sx={{ maxWidth: 500 }}>
+    <Card  sx={{ minWidth: 1028 }}>
         <CardContent>
-            <Typography variant="h6" gutterBottom>
-                Datos del solicitante
-            </Typography>
             <Stack spacing={2}>
                 <NombreForm
                     label="Nombre"
-                    value={nombre}
+                    value={solicitante.nombre}
                     setNombre={setNombre}
                 />
                 <NombreForm
                     label="Apellido"
-                    value={apellido}
+                    value={solicitante.apellido}
                     setNombre={setApellido}
                 />
-                <DniForm dni={dni} setDni={setDni} />
-                <SexoForm sexo={sexo} setSexo={setSexo} />
-                <TelefonoComponent telefono={telefono} setTelefono={setTelefono} />
+                <DniForm dni={solicitante.dni} setDni={setDni} />
+                <SexoForm sexo={solicitante.sexo} setSexo={setSexo} />
+                <TelefonoComponent telefono={solicitante.telefono} setTelefono={setTelefono} />
                 <CorreoForm
-                    correo={correo}
+                    correo={solicitante.correo}
                     setCorreo={setCorreo}
                     onValidChange={setCorreoValido}
                 />

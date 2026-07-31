@@ -1,9 +1,12 @@
+import json
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
+from django.db import transaction
 from .models import PrioridadSolicitud, MotivoSolicitud, Solicitud, Archivo
-from .serializers import PrioridadSolicitudSerializer, MotivoSolicitudSerializer, SolicitudSerializer
+from .serializers import PrioridadSolicitudSerializer, MotivoSolicitudSerializer, SolicitudSerializer, ArchivoSerializer
 from src.permissions import ReadOnly
 
 
@@ -20,37 +23,30 @@ class MotivoSolicitudViewSet(viewsets.ModelViewSet):
 class SolicitudViewSet(viewsets.ModelViewSet):
     queryset = Solicitud.objects.all()
     serializer_class = SolicitudSerializer
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
 
-class SubirArchivoView(APIView):
+        for campo in ("adolescente", "solicitante", "institucion"):
+            if campo in data:
+                data[campo] = json.loads(data[campo])
+        serializer = self.get_serializer(data=data)
+        #serializer.is_valid(raise_exception=True)
 
-    def post(self, request):
-        archivo = request.FILES.get("archivo")
-        id_solicitud = request.data.get("id_solicitud")
+        if not serializer.is_valid():
+            print(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        solicitud = serializer.save()
 
-        if not archivo:
-            return Response(
-                {"error": "No se envió archivo"},
-                status=status.HTTP_400_BAD_REQUEST
+        for file in request.FILES.getlist("archivos"):
+            Archivo.objects.create(
+                solicitud=solicitud,
+                nombre=file.name,
+                tipo_mime=file.content_type,
+                contenido=file.read(),
             )
-
-        if not id_solicitud:
-            return Response(
-                {"error": "Falta id_solicitud"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        nuevo_archivo = Archivo.objects.create(
-            solicitud_id=id_solicitud,
-            nombre=archivo.name,
-            tipo_mime=archivo.content_type,
-            contenido=archivo.read()
-        )
 
         return Response(
-            {
-                "id": nuevo_archivo.id,
-                "nombre": nuevo_archivo.nombre,
-                "tipo_mime": nuevo_archivo.tipo_mime,
-            },
-            status=status.HTTP_201_CREATED
+            self.get_serializer(solicitud).data,
+            status=status.HTTP_201_CREATED,
         )

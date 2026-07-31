@@ -41,7 +41,7 @@ export const SolicitudForm = ({ prioridadSeleccionada, setPrioridadSeleccionada,
 
 
   return (
-    <Card sx={{ maxWidth: 500 }}>
+    <Card sx={{ minWidth: 1028 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           Datos de la solicitud
@@ -68,7 +68,7 @@ export const SolicitudForm = ({ prioridadSeleccionada, setPrioridadSeleccionada,
           disabled={!formCompleto}
           fullWidth
         >
-          Cargar solicitud
+          Cargar
         </Button>
       </CardActions>
     </Card>

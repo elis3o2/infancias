@@ -37,7 +37,7 @@ export const AdolescenteView = ({ adolescente, onEditar }: Props) => {
   const sexoLabel = adolescente.sexo === "M" ? "Masculino" : "Femenino"
 
   return (
-    <Card sx={{ maxWidth: 500 }}>
+    <Card  sx={{ minWidth: 1028 }}>
       <CardContent>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
           <Typography variant="h6">
@@ -54,7 +54,7 @@ export const AdolescenteView = ({ adolescente, onEditar }: Props) => {
             <Campo label="DNI" valor={adolescente.dni} />
             <Campo label="Sexo" valor={sexoLabel} />
             <Campo label="Fecha de nacimiento" valor={formatFecha(adolescente.fecha_nacimiento)} />
-            <Campo label="Domicilio" valor={adolescente.domicilio.nombre} />
+           {/* <Campo label="Domicilio" valor={adolescente.domicilio.nombre} />*/}
         </Stack>
       </CardContent>
       <CardActions>

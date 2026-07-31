@@ -1,4 +1,4 @@
-import type { Institucion } from "../domicilio/types"
+import type { Institucion, InstitucionCreate } from "../domicilio/types"
 import type { Adolescente, Hermano, Solicitante } from "../persona/types"
 
 export type MotivoSolicitud = {
@@ -15,7 +15,7 @@ export type Archivo = {
     id: number 
     nombre: string
     tipo_mime: string
-    contenido: Blob
+    contenido: File
 }
 
 export type Solicitud = {
@@ -36,4 +36,16 @@ export type Solicitud = {
             educacion: Institucion[],
             cultural: Institucion[], 
             otros: Institucion[]}
+}
+
+
+export type SolicitudCreate = {
+    id_institucion?: number
+    institucion?: InstitucionCreate
+    solicitante: Solicitante
+    adolescente: Adolescente
+    id_motivo: number
+    id_prioridad: number
+    descripcion: string
+    archivos: File[]
 }

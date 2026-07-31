@@ -15,7 +15,7 @@ type Props = {
 
 export const FamiliarView = ({ familiar, onEliminar }: Props) => {
   return (
-    <Card sx={{ maxWidth: 500 }}>
+    <Card  sx={{ minWidth: 1028 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           {familiar.nombre} {familiar.apellido}

@@ -1,4 +1,4 @@
-import type { Familiar, Vinculo } from "../../types"
+import type { Familiar, FamiliarCreate, Vinculo } from "../../types"
 import type { Setter } from "@/common/types"
 import { TelefonoComponent } from "../TelefonoComponent"
 import { useState } from "react"
@@ -14,7 +14,7 @@ import { NombreForm } from "../NombreForm"
 import { VinculoForm } from "../VinculoForm"
 
 type Props = {
-  setFamiliar: Setter<Familiar | null>
+  setFamiliar: Setter<FamiliarCreate | null>
   setFinishFamiliar: Setter<boolean>
 }
 
@@ -35,18 +35,17 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
     if (!formCompleto) return
 
     setFamiliar({
-      id: null,
       nombre,
       apellido,
       telefono,
-      vinculo: vinculoSeleccionado,
+      id_vinculo: vinculoSeleccionado.id,
     })
 
     setFinishFamiliar(true)
   }
 
   return (
-    <Card sx={{ maxWidth: 500 }}>
+    <Card  sx={{ minWidth: 1028 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           Datos del familiar / referente

@@ -30,6 +30,18 @@ class InstitucionViewSet(viewsets.ModelViewSet):
             qs = qs.filter(tipo_id=id_tipo)
         return qs
 
+    @action(detail=False, methods=["get"], url_path="educacion")
+    def educacion(self, request):
+        qs = self.get_queryset().filter(tipo__educacion=True)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"], url_path="territorial")
+    def territorial(self, request):
+        qs = self.get_queryset().filter(tipo__territorial=True)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
+
 
 class DomicilioViewSet(viewsets.ModelViewSet):
     queryset = Domicilio.objects.all()

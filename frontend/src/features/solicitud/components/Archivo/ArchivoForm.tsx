@@ -1,24 +1,20 @@
 import { useState, useRef, useCallback } from "react";
+import type { Archivo } from "../../types";
+import type { Setter } from "@/common/types";
 
-/**
- * @typedef {Object} Archivo
- * @property {number} id
- * @property {string} nombre
- * @property {string} tipo_mime
- * @property {Blob} contenido
- */
 
-/**
- * @param {{ onAdd: (archivos: Archivo[]) => void }} props
- */
-export function ArchivoForm({ onAdd }) {
+type Props ={
+  setArchivos: Setter<Archivo[]>
+}
+
+export function ArchivoForm({ setArchivos }: Props) {
   const [dragging, setDragging] = useState(false);
   const [preview, setPreview]   = useState(/** @type {Archivo[]} */ ([]));
   const [nextId, setNextId]     = useState(1);
   const inputRef = useRef(null);
 
   const filesToArchivos = useCallback(
-    (files) => {
+    (files: File[]) => {
       let id = nextId;
       const archivos = Array.from(files).map((file) => ({
         id:        id++,
@@ -58,7 +54,7 @@ export function ArchivoForm({ onAdd }) {
 
   const confirmar = () => {
     if (preview.length === 0) return;
-    onAdd(preview);
+    setArchivos((prev) => [...prev, ...preview]);
     setPreview([]);
     if (inputRef.current) inputRef.current.value = "";
   };

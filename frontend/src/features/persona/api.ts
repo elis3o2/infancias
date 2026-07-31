@@ -9,9 +9,7 @@ export const getCiudadano = (dni: string, sexo: string) : Promise<Ciudadano> => 
   return http.get<Ciudadano>(`persona/ciudadano?dni=${dni}&sexo=${sexo}`).then(res => res.data)
 }
 
-export const getEscolaridad = (): Promise<Escolaridad[]> =>{
-  return http.get<Escolaridad[]>('persona/escolaridad/').then(res => res.data)
-}
+
 
 export const getSalud = (dni: string, sexo: string) : Promise<Salud> => {
   return http.get<Salud>(`persona/historia-clinica?dni=${dni}&sexo=${sexo}`).then(res => res.data)

@@ -1,12 +1,9 @@
 backend/.env
 backend/src/__pycache__
 backend/src/apps/__pycache__
-backend/src/apps/atencion/__pycache__
-backend/src/apps/domicilio/__pycache__
-backend/src/apps/grupo_familiar/__pycache__
-backend/src/apps/habitat/__pycache__
 backend/src/apps/persona/__pycache__
-backend/src/apps/relacion/__pycache__
+backend/src/apps/domicilio/__pycache__
+backend/src/apps/solicitud/__pycache__
 backend/src/migrations
 backend/core/__pycache__
 

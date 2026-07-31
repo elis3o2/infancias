@@ -1,18 +1,11 @@
-/**
- * @typedef {Object} Archivo
- * @property {number} id
- * @property {string} nombre
- * @property {string} tipo_mime
- * @property {Blob} contenido
- */
+import type { Archivo } from "../../types";
 
-/**
- * @param {{
- *   archivos: Archivo[],
- *   onRemove?: (id: number) => void
- * }} props
- */
-export function ArchivoView({ archivos, onRemove }) {
+type Props = {
+  archivos: Archivo[]
+  onRemove: (id: number) => void 
+}
+
+export function ArchivoView({ archivos, onRemove }: Props) {
   if (archivos.length === 0) {
     return (
       <div style={styles.empty}>

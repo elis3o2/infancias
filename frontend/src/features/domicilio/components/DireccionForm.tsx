@@ -1,6 +1,6 @@
-import { useState } from "react";
-import {Typography, Stack, TextField, Button, Box} from "@mui/material";
+import { Stack, TextField, Button, Box} from "@mui/material";
 import type { Setter } from "@/common/types";
+import { useState } from "react";
 
 type Props = {
     direccion: string
@@ -9,24 +9,21 @@ type Props = {
 }
 
 export const DireccionForm = ({direccion, setDireccion, setFinishDireccion}: Props) => {
-    
+    const [escribiendo, setEscribiendo] = useState(direccion)
+
+    function  handleBuscar() {
+        setDireccion(escribiendo)
+        setFinishDireccion(true)
+    } 
+
     return (<Box>
-        
-        <Typography
-            variant="subtitle2"
-            fontWeight={600}
-            color="text.primary"
-            sx={{ mb: 1.5 }}
-        >
-            Nueva dirección
-        </Typography>
 
         <Stack spacing={2}>
             <TextField
                 label="Dirección"
                 placeholder="Ej: Av. Pellegrini 1234"
-                value={direccion}
-                onChange={(e) => setDireccion(e.target.value)}
+                value={escribiendo}
+                onChange={(e) => setEscribiendo(e.target.value)}
                 fullWidth
                 variant="outlined"
                 size="small"
@@ -60,8 +57,8 @@ export const DireccionForm = ({direccion, setDireccion, setFinishDireccion}: Pro
                 <Button
                     variant="contained"
                     size="small"
-                    onClick={() => {setFinishDireccion(true)}}
-                    disabled={direccion.trim() === ""}
+                    onClick={() => {handleBuscar()}}
+                    disabled={escribiendo.trim() === ""}
                     sx={{
                         textTransform: "none",
                         borderRadius: 2,

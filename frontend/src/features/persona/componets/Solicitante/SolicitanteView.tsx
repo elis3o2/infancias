@@ -21,7 +21,7 @@ export const SolicitanteView = ({ solicitante, onEditar }: Props) => {
   const sexoLabel = solicitante.sexo === "M" ? "Masculino" : "Femenino"
 
   return (
-    <Card sx={{ maxWidth: 500 }}>
+    <Card  sx={{ minWidth: 1028 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           {solicitante.nombre} {solicitante.apellido}

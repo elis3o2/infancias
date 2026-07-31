@@ -22,7 +22,7 @@ export type DomicilioValidado = {
 export type Domicilio = {
     id: number,
     nombre: string,
-    domicilio_validado: DomicilioValidado
+    domicilio_validado: DomicilioValidado | null
 }
 
 
@@ -49,9 +49,18 @@ export type TipoInstitucion = {
 }
 
 
+export type InstitucionCreate = {
+    id_tipo: number
+    domicilio: { nombre: string }
+    nombre: string
+    telefono: string
+}
+
+
 export type Institucion = {
     id: number,
     tipo: TipoInstitucion,
-    direccion: Domicilio,
+    domicilio: Domicilio,
     nombre: string
+    telefono: string
 }

@@ -8,7 +8,7 @@ class Adolescente(models.Model):
     nombre = models.CharField(max_length=32)
     apellido = models.CharField(max_length=32)
     domicilio = models.ForeignKey(
-        Domicilio, models.DO_NOTHING, db_column='id_domicilio')
+        Domicilio, models.DO_NOTHING, db_column='id_domicilio', blank=True, null=True)
     fecha_nacimiento = models.DateField()
     escolarizado = models.BooleanField()
     redes = models.ManyToManyField(
@@ -17,6 +17,20 @@ class Adolescente(models.Model):
     class Meta:
         managed = False
         db_table = "adolescente"
+
+
+class AdolescenteValidado(models.Model):
+    id = models.AutoField(primary_key=True)
+    dni = models.CharField(max_length=10)
+    sexo = models.CharField(max_length=1)
+    nombre = models.CharField(max_length=32)
+    apellido = models.CharField(max_length=32)
+    fecha_nacimiento = models.DateField()
+    adolescente = models.ForeignKey(
+        Adolescente, models.DO_NOTHING, db_column="id_adolecente")
+    class Meta:
+        managed = False
+        db_table = "adolescente_validado"
 
 
 class Solicitante(models.Model):
@@ -30,19 +44,37 @@ class Solicitante(models.Model):
 
     class Meta:
         managed = False
-        db_table = "adolescente"
+        db_table = "solicitante"
 
 
 class Hermano(models.Model):
     id = models.AutoField(primary_key=True)
+    dni = models.CharField(max_length=10)
+    sexo = models.CharField(max_length=1)
+    nombre = models.CharField(max_length=32)
+    apellido = models.CharField(max_length=32)
+    fecha_nacimiento = models.DateField()
     adolescente = models.ForeignKey(
-        Adolescente, models.DO_NOTHING, db_column='id_adolescente', related_name='hermanos')
-    hermano = models.ForeignKey(Adolescente, models.DO_NOTHING, db_column='id_hermano', related_name='es_hermano_de')
+        Adolescente, models.DO_NOTHING, db_column="id_adolescente")
 
     class Meta:
-        managed = False
-        db_table = 'hermano'
+        managed = False 
+        db_table = "hermano"
 
+
+class HermanoValidado(models.Model):
+    id = models.AutoField(primary_key=True)
+    dni = models.CharField(max_length=10)
+    sexo = models.CharField(max_length=1)
+    nombre = models.CharField(max_length=32)
+    apellido = models.CharField(max_length=32)
+    fecha_nacimiento = models.DateField()
+    hemano = models.ForeignKey(
+        Hermano, models.DO_NOTHING, db_column="id_hermano")
+
+    class Meta:
+        managed = False 
+        db_table = "hermano"
 
 
 class Vinculo(models.Model):
@@ -54,13 +86,12 @@ class Vinculo(models.Model):
         db_table = 'vinculo'
 
 
-
 class Familiar(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=64)
     apellido = models.CharField(max_length=64) 
     adolescente = models.ForeignKey(
-        Adolescente, models.DO_NOTHING, db_column='id_adolescente')
+        Adolescente, models.DO_NOTHING, db_column="id_adolescente", related_name="familiares")
     vinculo = models.ForeignKey(
         Vinculo, models.DO_NOTHING, db_column='id_vinculo')
     telefono = models.CharField(max_length=16)
@@ -68,7 +99,6 @@ class Familiar(models.Model):
     class Meta:
         managed = False
         db_table = 'familiar'
-
 
 
 class AdolescenteRed(models.Model):

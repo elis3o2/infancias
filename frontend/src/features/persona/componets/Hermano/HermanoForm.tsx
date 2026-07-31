@@ -9,7 +9,7 @@ import {
   CardActions,
   Stack,
   Button,
-  Typography,
+  TextField
 } from "@mui/material"
 import { NombreForm } from "../NombreForm"
 
@@ -23,6 +23,7 @@ export const HermanoForm = ({ setHermano, setFinishHermano }: Props) => {
   const [apellido, setApellido] = useState("")
   const [dni, setDni] = useState("")
   const [sexo, setSexo] = useState<"M" | "F" | "">("")
+  const [fechaNacimiento, setFechaNacimiento] = useState("")
 
   const formCompleto =
     nombre.trim() !== "" &&
@@ -39,16 +40,14 @@ export const HermanoForm = ({ setHermano, setFinishHermano }: Props) => {
       apellido: apellido.trim(),
       dni: dni.trim(),
       sexo,
+      fecha_nacimiento: fechaNacimiento
     })
     setFinishHermano(true)
   }
 
   return (
-    <Card sx={{ maxWidth: 500 }}>
+    <Card  sx={{ minWidth: 1028 }}>
       <CardContent>
-        <Typography variant="h6" gutterBottom>
-          Datos del hermano
-        </Typography>
         <Stack spacing={2}>
           <NombreForm
             label="Nombre"
@@ -62,6 +61,14 @@ export const HermanoForm = ({ setHermano, setFinishHermano }: Props) => {
           />
           <DniForm dni={dni} setDni={setDni} />
           <SexoForm sexo={sexo} setSexo={setSexo} />
+          <TextField
+            label="Fecha de nacimiento"
+            type="date"
+            value={fechaNacimiento}
+            onChange={(e) => setFechaNacimiento(e.target.value)}
+            slotProps={{ inputLabel: { shrink: true } }}
+            fullWidth
+          />
         </Stack>
       </CardContent>
       <CardActions>

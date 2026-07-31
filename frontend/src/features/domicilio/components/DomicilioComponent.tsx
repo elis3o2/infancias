@@ -7,11 +7,12 @@ import { useEffect, useState } from "react"
 type Props = {
   domicilio: Domicilio | null
   setDomicilio: Setter<Domicilio | null>
+  finishDomicilio: boolean
+  setFinishDomicilio: Setter<boolean>
 }
 
-export const DomicilioComponent = ({ domicilio, setDomicilio }: Props) => {
+export const DomicilioComponent = ({ domicilio, setDomicilio, finishDomicilio, setFinishDomicilio }: Props) => {
   const [geoSeleccionada, setGeoSeleccionada] = useState<Geolocalizacion | null>(null)
-  const [finishDomicilio, setFinishDomicilio] = useState(false)
 
   useEffect(() => {
     if (geoSeleccionada == null) {
@@ -31,7 +32,7 @@ export const DomicilioComponent = ({ domicilio, setDomicilio }: Props) => {
       vecinal: null,
       distrito: null,
       seccion_policial: null,
-      localidad: null,
+      localidad: "ROSARIO",
       coordenada_x: geoSeleccionada.geometry.coordinates[0],
       coordenada_y: geoSeleccionada.geometry.coordinates[1],
       fraccion_censal: null,
@@ -43,7 +44,7 @@ export const DomicilioComponent = ({ domicilio, setDomicilio }: Props) => {
       nombre: geoSeleccionada.properties.name,
       domicilio_validado: domicilioValidado,
     })
-  }, [geoSeleccionada, setDomicilio])
+  }, [geoSeleccionada])
 
   return (
     <>

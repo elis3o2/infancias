@@ -4,81 +4,75 @@ import type { Setter } from "@/common/types"
 import { DniForm } from "../DniForm"
 import { SexoForm } from "../SexoForm"
 import { useState } from "react"
-import {
-  Card,
-  CardContent,
-  CardActions,
-  Stack,
-  TextField,
-  Button,
-  Typography,
-  FormControlLabel,
-  Switch,
-} from "@mui/material"
+import { Card, CardContent, CardActions, Stack, TextField, Button, FormControlLabel, Switch } from "@mui/material"
 import { DomicilioComponent } from "@/features/domicilio/components/DomicilioComponent"
 import { NombreForm } from "../NombreForm"
 
 type Props = {
+  adolescente: Adolescente | null
   setAdolescente: Setter<Adolescente | null>
   setFinishAdolescente: Setter<boolean>
 }
 
-export const AdolescenteForm = ({ setAdolescente, setFinishAdolescente }: Props) => {
-  const [nombre, setNombre] = useState("")
-  const [apellido, setApellido] = useState("")
-  const [dni, setDni] = useState("")
-  const [sexo, setSexo] = useState<"M" | "F" | "">("")
-  const [fechaNacimiento, setFechaNacimiento] = useState("")
-  const [escolarizado, setEscolarizado] = useState(false)
-  const [domicilio, setDomicilio] = useState<Domicilio | null>(null)
+export const AdolescenteForm = ({ adolescente, setAdolescente, setFinishAdolescente }: Props) => {
+  const [finishDomicilio, setFinishDomicilio] = useState(false)
+
+  function setNombre (nombre) { 
+    setAdolescente({ ...adolescente, nombre })
+  }  
+  function setApellido (apellido) {
+    setAdolescente({ ...adolescente, apellido })
+  } 
+  function setDni (dni) {
+    setAdolescente({ ...adolescente, dni })
+  }
+  function setSexo (sexo) {
+    setAdolescente({ ...adolescente, sexo })
+  }
+  function setFechaNacimiento (fecha_nacimiento) {
+    setAdolescente({ ...adolescente, fecha_nacimiento })
+  }
+  function setEscolarizado (escolarizado) {
+    setAdolescente({ ...adolescente, escolarizado })
+  }
+  function setDomicilio (domicilio) {
+    setAdolescente({ ...adolescente, domicilio })
+  }
 
   const formCompleto =
-    nombre.trim() !== "" &&
-    apellido.trim() !== "" &&
-    dni.trim() !== "" &&
-    sexo !== "" &&
-    fechaNacimiento.trim() !== ""
+    adolescente.nombre.trim() !== "" &&
+    adolescente.apellido.trim() !== "" &&
+    (adolescente.dni.length == 7 || adolescente.dni.length == 8) &&
+    adolescente.sexo !== "" &&
+    adolescente.fecha_nacimiento.trim() !== "" &&
+    finishDomicilio
+
 
   const handleCargar = () => {
     if (!formCompleto) return
-
-    setAdolescente({
-      id: null,
-      nombre: nombre.trim(),
-      apellido: apellido.trim(),
-      dni: dni.trim(),
-      sexo,
-      fecha_nacimiento: fechaNacimiento.trim(),
-      escolarizado,
-      domicilio,
-      redes: [],
-    })
     setFinishAdolescente(true)
   }
 
   return (
-    <Card sx={{ maxWidth: 500 }}>
+    <Card  sx={{ minWidth: 1028 }}>
       <CardContent>
-        <Typography variant="h6" gutterBottom>
-          Datos del adolescente
-        </Typography>
         <Stack spacing={2}>
           <NombreForm
             label="Nombre"
-            value={nombre}
+            value={adolescente.nombre}
             setNombre={setNombre}
           />
           <NombreForm
             label="Apellido"
-            value={apellido}
+            value={adolescente.apellido}
             setNombre={setApellido}
           />
-          <DniForm dni={dni} setDni={setDni} />
-          <SexoForm sexo={sexo} setSexo={setSexo} />
+          <DniForm dni={adolescente.dni} setDni={setDni} />
+          <SexoForm sexo={adolescente.sexo} setSexo={setSexo} />
           <TextField
             label="Fecha de nacimiento"
             type="date"
-            value={fechaNacimiento}
+            value={adolescente.fecha_nacimiento}
             onChange={(e) => setFechaNacimiento(e.target.value)}
             slotProps={{ inputLabel: { shrink: true } }}
             fullWidth
@@ -86,13 +80,19 @@ export const AdolescenteForm = ({ setAdolescente, setFinishAdolescente }: Props)
           <FormControlLabel
             control={
               <Switch
-                checked={escolarizado}
+                checked={adolescente.escolarizado}
                 onChange={(e) => setEscolarizado(e.target.checked)}
               />
             }
             label="Actualmente escolarizado"
           />
-          <DomicilioComponent domicilio={domicilio} setDomicilio={setDomicilio} />
+          
+          <DomicilioComponent 
+            domicilio={adolescente.domicilio}
+            setDomicilio={setDomicilio}
+            finishDomicilio={finishDomicilio}
+            setFinishDomicilio={setFinishDomicilio}
+          />   
         </Stack>
       </CardContent>
       <CardActions>

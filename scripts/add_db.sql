@@ -197,6 +197,7 @@ INSERT INTO domicilio (id_domicilio_validado, nombre) VALUES
 (79, 'BOEDO MARIANO') ,
 (80, 'PERON PTE. JUAN DOMINGO');
 
+
 INSERT INTO institucion (nombre, id_domicilio, id_tipo) VALUES
 ('CS Alicia Moreau de Justo', 1, 1) ,
 ('CS 1º de Mayo', 2, 1) ,
@@ -262,9 +263,9 @@ INSERT INTO institucion (nombre, id_domicilio, id_tipo) VALUES
 ('Vecinal Hostal del Sol', 62, 6) ,
 ('Club Atlético Tucumán', 63, 4) ,
 ('Distrito Noroeste', 64, 7) ,
-('Escuela N° 1027', 65, 8) ,
+('Escuela N° 1027', 65, 7) ,
 ('Estadio Mundialista de Hockey "Luciana Aymar"', 66, 4) ,
-('Móvil Biblioteca Empalme Norte', 67, 9) ,
+('Móvil Biblioteca Empalme Norte', 67, 7) ,
 ('Vecinal Belgrano', 68, 6) ,
 ('Vecinal Bicentenario', 69, 6) ,
 ('Vecinal María Duboe', 70, 6) ,
@@ -362,4 +363,4 @@ INSERT INTO familiar (id, nombre, apellido, id_adolescente, id_vinculo, telefono
 (999, "Pedro", "Perez", 999, 2, "333333333");
 
 INSERT INTO solicitud (id, id_institucion, id_solicitante, id_adolescente, id_motivo, id_prioridad, descripcion, fecha_hora_creacion, validado, rechazado)
-VALUES (999, 81, 999, 999, 48, 1, "Esta es la descripción de la solicitud", "2026-07-20", false, false);
+VALUES (999, 4, 999, 999, 27, 1, "Esta es la descripción de la solicitud", "2026-07-20", false, false);

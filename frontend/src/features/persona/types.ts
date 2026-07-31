@@ -1,28 +1,50 @@
 import type { Domicilio, Institucion } from "../domicilio/types"
 
 export type Solicitante = {
-    id: number | null,
+    id?: number,
     dni: string,
-    sexo: "M" | "F",
+    sexo: "M" | "F" | "",
     nombre: string,
     apellido: string,
     telefono: string,
     correo: string
 }
 
+export const SolicitanteInicial : Solicitante = {
+    dni: "",
+    sexo: "",
+    nombre: "",
+    apellido: "",
+    telefono:"",
+    correo: ""
+}
 
 export type Adolescente = {
-    id: number | null,
+    id?: number,
     dni: string,
-    sexo: "M" | "F",
+    sexo: "M" | "F" | "",
     nombre: string,
     apellido: string,
-    domicilio: Domicilio,
+    domicilio: Domicilio | null,
     fecha_nacimiento: string
     escolarizado: boolean
+    hermanos: Hermano[]
+    familiares: Familiar[]
     redes: Institucion[]
 }
 
+export const AdolescenteInicial : Adolescente = {
+    dni: "",
+    sexo: "",
+    nombre: "",
+    apellido: "",
+    domicilio: null,
+    fecha_nacimiento: "",
+    escolarizado: false,
+    hermanos: [],
+    familiares: [],
+    redes: []
+}
 
 export type Vinculo = {
     id: number,
@@ -31,20 +53,22 @@ export type Vinculo = {
 
 
 export type Familiar = {
-    id: number | null
+    id?: null
     nombre: string
     apellido: string
-    vinculo: Vinculo
+    id_vinculo?: number
+    vinculo?: Vinculo
     telefono: string
 }
 
 
 export type Hermano = {
-    id: number | null
+    id?: null
     dni: string
     sexo: "M" | "F"
     nombre: string
     apellido: string
+    fecha_nacimiento: string
 }
 
 
@@ -66,11 +90,4 @@ export type Salud = {
     adscripcion: string[]
     efectores: string[]
     obra_social: string[]
-}
-
-
-export type DatosProgenitor = {
-  persona: Persona | null
-  vivo: boolean
-  convive: boolean
 }

@@ -18,7 +18,7 @@ type Props = {
 
 export const SolicitudView = ({ prioridad, motivo, descripcion, setFinishSolicitudSection}: Props) => {
   return (
-    <Card sx={{ maxWidth: 500 }}>
+    <Card sx={{ minWidth: 1028 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           Datos de la solicitud

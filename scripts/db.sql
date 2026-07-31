@@ -34,7 +34,9 @@ CREATE TABLE IF NOT EXISTS domicilio (
 
 CREATE TABLE IF NOT EXISTS tipo_institucion (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(32) NOT NULL
+    nombre VARCHAR(32) NOT NULL,
+    educacion BOOLEAN,
+    territorial BOOLEAN
 );
 
 CREATE TABLE IF NOT EXISTS institucion (
@@ -71,12 +73,40 @@ CREATE TABLE IF NOT EXISTS adolescente (
     FOREIGN KEY (id_domicilio) REFERENCES domicilio (id)
 );
 
+
+CREATE TABLE IF NOT EXISTS adolescente_validado (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    dni VARCHAR(9) NOT NULL,
+    sexo  CHAR NOT NULL,
+    nombre VARCHAR(32) NOT NULL,
+    apellido VARCHAR(32) NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
+    id_adolescente INT NOT NULL,
+    FOREIGN KEY (id_adolescente) REFERENCES adolescente(id)
+);
+
+
 CREATE TABLE IF NOT EXISTS hermano (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    dni VARCHAR(9) NOT NULL,
+    sexo  CHAR NOT NULL,
+    nombre VARCHAR(32) NOT NULL,
+    apellido VARCHAR(32) NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
     id_adolescente INT NOT NULL,
+    FOREIGN KEY (id_adolescente) REFERENCES adolescente(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS hermano_validado (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    dni VARCHAR(9) NOT NULL,
+    sexo  CHAR NOT NULL,
+    nombre VARCHAR(32) NOT NULL,
+    apellido VARCHAR(32) NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
     id_hermano INT NOT NULL,
-    FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
-    FOREIGN KEY (id_hermano) REFERENCES adolescente(id)
+    FOREIGN KEY (id_hermano) REFERENCES hermano(id)
 );
 
 
@@ -109,6 +139,7 @@ CREATE TABLE IF NOT EXISTS prioridad_solicitud (
     nombre VARCHAR(32) NOT NULL
 );
 
+
 CREATE TABLE IF NOT EXISTS solicitud (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_institucion INT NOT NULL,
@@ -137,7 +168,7 @@ CREATE TABLE IF NOT EXISTS adolescente_red(
 )
 
 
-CREATE TABLE archivo (
+CREATE TABLE  IF NOT EXISTS archivo (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_solicitud INT NOT NULL,
     nombre VARCHAR(255) NOT NULL,

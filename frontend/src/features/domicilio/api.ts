@@ -16,3 +16,11 @@ export const getTipoInstitucionAll = () : Promise<TipoInstitucion[]> => {
 export const getInstitucionByTipo = (id_tipo: number) : Promise<Institucion[]> => {
     return http.get<Institucion[]>(`domicilio/institucion/?id_tipo=${id_tipo}`).then(res => res.data)
 }
+
+export const getInstitucionEducacion = () : Promise<Institucion[]> => {
+    return http.get<Institucion[]>(`domicilio/institucion/educacion/`).then(res => res.data)
+}
+
+export const getInstitucionTerritorial = () : Promise<Institucion[]> => {
+    return http.get<Institucion[]>(`domicilio/institucion/territorial/`).then(res => res.data)
+}

@@ -4,7 +4,7 @@ class DomicilioValidado(models.Model):
     id = models.AutoField(primary_key=True)
     codigo_calle = models.IntegerField(blank=True, null=True)
     altura = models.IntegerField()
-    bis = models.IntegerField()
+    bis = models.BooleanField()
     letra = models.CharField(max_length=1, blank=True, null=True)
     piso = models.IntegerField(blank=True, null=True)
     depto = models.CharField(max_length=10, blank=True, null=True)
@@ -38,6 +38,8 @@ class Domicilio(models.Model):
 class TipoInstitucion(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=32)
+    territorial = models.BooleanField()
+    educacion = models.BooleanField()
 
     class Meta:
         managed = False
