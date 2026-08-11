@@ -16,7 +16,7 @@ export const InstitucionComponent = ({ institucion, setInstitucion, finishInstit
   return (
     <Card variant="outlined" sx={{ borderRadius: 2 }}>
       <CardHeader
-        title="Institución"
+        title="Institución solicitante"
         titleTypographyProps={{ variant: 'h6', fontWeight: 600 }}
       />
       <CardContent>

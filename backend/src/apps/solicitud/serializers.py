@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.utils import timezone
-from .models import MotivoSolicitud, PrioridadSolicitud, Solicitud, Archivo
+from .models import MotivoSolicitud, PrioridadSolicitud, Solicitud, Archivo, Derivacion
 from src.apps.persona.serializers import AdolescenteSerializer, SolicitanteSerializer
 from src.apps.domicilio.serializers import InstitucionSerializer
 from src.apps.domicilio.models import Institucion
@@ -18,6 +18,33 @@ class PrioridadSolicitudSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ArchivoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Archivo
+        fields = ("id", "nombre", "tipo_mime")
+
+
+class DerivacionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Derivacion
+        fields = '__all__'
+
+
+class SolicitudListSerializer(serializers.ModelSerializer):
+    motivo      = MotivoSolicitudSerializer(read_only=True)
+    prioridad   = PrioridadSolicitudSerializer(read_only=True)
+    derivacion  = DerivacionSerializer(read_only=True)
+    fecha_hora_creacion = serializers.DateTimeField(read_only=True)
+    fecha_hora_modificacion = serializers.DateTimeField(read_only=True)
+    validado = serializers.BooleanField(read_only=True)
+    rechazado = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Solicitud
+        fields = ['id', 'motivo', 'prioridad', 'derivacion', 'fecha_hora_creacion', 'fecha_hora_modificacion',
+                    'validado', 'rechazado']
+
 class SolicitudSerializer(serializers.ModelSerializer):
     adolescente = AdolescenteSerializer()
     solicitante = SolicitanteSerializer()
@@ -25,6 +52,7 @@ class SolicitudSerializer(serializers.ModelSerializer):
 
     motivo      = MotivoSolicitudSerializer(read_only=True)
     prioridad   = PrioridadSolicitudSerializer(read_only=True)
+    derivacion  = DerivacionSerializer(read_only=True)
 
     id_institucion = serializers.PrimaryKeyRelatedField(
         queryset=Institucion.objects.all(),
@@ -46,8 +74,11 @@ class SolicitudSerializer(serializers.ModelSerializer):
     )
 
     fecha_hora_creacion = serializers.DateTimeField(read_only=True)
+    fecha_hora_modificacion = serializers.DateTimeField(read_only=True)
     validado = serializers.BooleanField(read_only=True)
     rechazado = serializers.BooleanField(read_only=True)
+
+    archivos = ArchivoSerializer(many=True, read_only=True, source="archivo_set")
 
     def create(self, validated_data):
         adolescente_data = validated_data.pop("adolescente")
@@ -78,19 +109,3 @@ class SolicitudSerializer(serializers.ModelSerializer):
         model = Solicitud
         fields = '__all__'
 
-
-class SolicituCreatedSerializer(serializers.ModelSerializer):
-    adolescente = AdolescenteSerializer()
-    solicitante = SolicitanteSerializer()
-    institucion = InstitucionSerializer()
-
-    class Meta:
-        model = Solicitud
-        fields = '__all__'
-
-
-
-class ArchivoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Archivo
-        fields = "__all__"

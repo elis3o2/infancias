@@ -1,5 +1,5 @@
 import http from '@/common/api/client'
-import type { MotivoSolicitud, PrioridadSolicitud, Solicitud, SolicitudCreate } from './types'
+import type { Derivacion, MotivoSolicitud, PrioridadSolicitud, Solicitud, SolicitudCreate, SolicitudSimple } from './types'
 
 
 export const getMotivos = (): Promise<MotivoSolicitud[]> => {
@@ -42,5 +42,34 @@ export const postSolicitud = (solicitud: SolicitudCreate) => {
     formData.append("archivos", archivo);
   });
 
-  return http.post("solicitud/solicitud/", formData);
+  return http.post("solicitud/solicitud/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+});};
+
+
+export const getArchivoById = (id: number) => {
+  return http.get(`solicitud/archivo/${id}/descargar/`, {
+    responseType: "blob",
+  });
 };
+
+
+export const getDerivaciones = (): Promise<Derivacion[]> => {
+  return http.get<Derivacion[]>(`solicitud/derivacion/`).then(res => res.data)
+}
+
+export const validarSolicitud = (id: number, id_derivacion: number) => {
+  return http.put(`solicitud/solicitud/${id}/validar/?id_derivacion=${id_derivacion}`).then(res => res.data)
+}
+
+
+export const rechazarSolicitud = (id: number, motivo: string) => {
+  return http.put(`solicitud/solicitud/${id}/rechazar/?motivo=${motivo}`).then(res => res.data)
+}
+
+
+export const getSolicitudSimple = (): Promise<SolicitudSimple[]> => {
+  return http.get<SolicitudSimple[]>(`solicitud/solicitud/`).then(res => res.data)
+}

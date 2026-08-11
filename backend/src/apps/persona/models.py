@@ -1,5 +1,7 @@
 from django.db import models
-from src.apps.domicilio.models import Domicilio, Institucion
+from src.apps.domicilio.models import Domicilio, Institucion, ReferenciaGubernamental, ReferenciaNoGubernamental
+
+
 
 class Adolescente(models.Model):
     id = models.AutoField(primary_key=True)
@@ -11,8 +13,18 @@ class Adolescente(models.Model):
         Domicilio, models.DO_NOTHING, db_column='id_domicilio', blank=True, null=True)
     fecha_nacimiento = models.DateField()
     escolarizado = models.BooleanField()
-    redes = models.ManyToManyField(
-        'Institucion', through='AdolescenteRed', related_name='adolescentes')
+
+    referencias_gubernamentales = models.ManyToManyField(
+        "ReferenciaGubernamental",
+        through="AdolescenteGubernamental",
+        related_name="adolescentes"
+    )
+    
+    referencias_no_gubernamentales = models.ManyToManyField(
+        "ReferenciaNoGubernamental",
+        through="AdolescenteNoGubernamental",
+        related_name="adolescentes"
+    )
 
     class Meta:
         managed = False
@@ -27,7 +39,8 @@ class AdolescenteValidado(models.Model):
     apellido = models.CharField(max_length=32)
     fecha_nacimiento = models.DateField()
     adolescente = models.ForeignKey(
-        Adolescente, models.DO_NOTHING, db_column="id_adolecente")
+        Adolescente, models.DO_NOTHING, db_column="id_adolescente")
+
     class Meta:
         managed = False
         db_table = "adolescente_validado"
@@ -35,8 +48,7 @@ class AdolescenteValidado(models.Model):
 
 class Solicitante(models.Model):
     id = models.AutoField(primary_key=True)
-    dni = models.CharField(max_length=10)
-    sexo = models.CharField(max_length=1)
+    dni = models.CharField(max_length=10, blank=True, null=True)
     nombre = models.CharField(max_length=32)
     apellido = models.CharField(max_length=32)
     telefono = models.CharField(max_length=16)
@@ -55,7 +67,7 @@ class Hermano(models.Model):
     apellido = models.CharField(max_length=32)
     fecha_nacimiento = models.DateField()
     adolescente = models.ForeignKey(
-        Adolescente, models.DO_NOTHING, db_column="id_adolescente")
+        Adolescente, models.DO_NOTHING, db_column="id_adolescente", related_name="hermanos", unique=True)
 
     class Meta:
         managed = False 
@@ -69,12 +81,12 @@ class HermanoValidado(models.Model):
     nombre = models.CharField(max_length=32)
     apellido = models.CharField(max_length=32)
     fecha_nacimiento = models.DateField()
-    hemano = models.ForeignKey(
-        Hermano, models.DO_NOTHING, db_column="id_hermano")
+    hermano = models.ForeignKey(
+        Hermano, models.DO_NOTHING, db_column="id_hermano",unique=True)
 
     class Meta:
         managed = False 
-        db_table = "hermano"
+        db_table = "hermano_validado"
 
 
 class Vinculo(models.Model):
@@ -101,13 +113,27 @@ class Familiar(models.Model):
         db_table = 'familiar'
 
 
-class AdolescenteRed(models.Model):
+
+
+
+class AdolescenteGubernamental(models.Model):
     id = models.AutoField(primary_key=True)
-    adolescete = models.ForeignKey(
-        Adolescente, models.DO_NOTHING, db_column='id_adolescente')
-    institucion = models.ForeignKey(
-        Institucion, models.DO_NOTHING, db_column='id_institucion')
+    adolescente = models.ForeignKey(
+        Adolescente, models.DO_NOTHING, db_column="id_adolescente")
+    gubernamental = models.ForeignKey(
+        ReferenciaGubernamental, models.DO_NOTHING, db_column="id_gubernamental")
+    class Meta:
+        managed = False
+        db_table = "adolescente_gubernamental"
+
+
+class AdolescenteNoGubernamental(models.Model):
+    id = models.AutoField(primary_key=True)
+    adolescente = models.ForeignKey(
+        Adolescente, models.DO_NOTHING, db_column="id_adolescente")
+    no_gubernamental = models.ForeignKey(
+        ReferenciaNoGubernamental, models.DO_NOTHING, db_column="id_no_gubernamental")
 
     class Meta:
-        managed = False 
-        db_table = 'adolescente_red'
+        managed = False
+        db_table = "adolescente_no_gubernamental"

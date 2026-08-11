@@ -2,34 +2,33 @@ import { useState } from "react"
 import { Box, Button, Stack, TextField, Typography, IconButton } from "@mui/material"
 import DeleteIcon from "@mui/icons-material/Delete"
 import type { Setter } from "@/common/types"
-import type { Domicilio, Institucion } from "@/features/domicilio/types"
+import type { Domicilio, Referencia } from "@/features/domicilio/types"
 import { TelefonoComponent } from "@/features/persona/componets/TelefonoComponent"
 
 type Props = {
-  otros: Institucion[]
-  setOtros: Setter<Institucion[]>
+  otros: Referencia[]
+  setOtros: Setter<Referencia[]>
+  texto: string
 }
 
-export const OtrosComponent = ({ otros, setOtros }: Props) => {
+export const OtrosComponent = ({ otros, setOtros, texto }: Props) => {
   const [nombre, setNombre] = useState("")
-  const [domicilio, setDomicilio] = useState("")
+  const [direccion, setDireccion] = useState("")
   const [telefono, setTelefono] = useState("")
 
   const handleAgregar = () => {
     if (!nombre.trim()) return
 
-    const direccion = {id: 0, nombre: domicilio, domicilio_validado: null } as Domicilio
-    const nuevo: Institucion = {
-      id: Date.now(),
+    const domicilio = {nombre: direccion, domicilio_validado: null } as Domicilio
+    const nuevo = {
       nombre,
-      direccion,
+      domicilio,
       telefono,
-      tipo: null,
-    } as Institucion
+    } as Referencia
 
     setOtros([...otros, nuevo])
     setNombre("")
-    setDomicilio("")
+    setDireccion("")
     setTelefono("")
   }
 
@@ -39,7 +38,7 @@ export const OtrosComponent = ({ otros, setOtros }: Props) => {
 
   return (
     <Box>
-      <Typography variant="h6">Otros</Typography>
+      <Typography variant="h6">{texto}</Typography>
 
       <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
         <TextField
@@ -49,8 +48,8 @@ export const OtrosComponent = ({ otros, setOtros }: Props) => {
         />
         <TextField
           label="Domicilio"
-          value={domicilio}
-          onChange={(e) => setDomicilio(e.target.value)}
+          value={direccion}
+          onChange={(e) => setDireccion(e.target.value)}
         />
         <TelefonoComponent telefono={telefono} setTelefono={setTelefono}/>
         <Button variant="contained" onClick={handleAgregar}>
@@ -67,7 +66,7 @@ export const OtrosComponent = ({ otros, setOtros }: Props) => {
             alignItems="center"
           >
             <Typography>
-              {o.nombre} — {(o as any).direccion.nombre} — {(o as any).telefono}
+              {o.nombre} — {(o as any).domicilio.nombre} — {(o as any).telefono}
             </Typography>
             <IconButton onClick={() => handleEliminar(o.id)}>
               <DeleteIcon />

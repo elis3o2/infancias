@@ -20,6 +20,13 @@ class PrioridadSolicitud(models.Model):
         managed = False
         db_table = 'prioridad_solicitud'
 
+class Derivacion(models.Model):
+    id = models.AutoField
+    nombre = models.CharField(max_length=32)
+
+    class Meta: 
+        managed = False
+        db_table = 'derivacion'
 
 class Solicitud(models.Model):
     id = models.AutoField(primary_key=True)
@@ -35,8 +42,12 @@ class Solicitud(models.Model):
         PrioridadSolicitud, models.DO_NOTHING, db_column='id_prioridad')
     descripcion = models.CharField(max_length=256)
     fecha_hora_creacion = models.DateTimeField()
+    fecha_hora_modificacion = models.DateTimeField(blank=True, null=True)
     validado = models.BooleanField()
     rechazado = models.BooleanField()
+    motivo_rechazo = models.CharField(max_length=256, null=True, blank=True)
+    derivacion = models.ForeignKey(
+        Derivacion, models.DO_NOTHING, db_column="id_derivacion", null=True, blank=True)
 
     class Meta:
         managed = False

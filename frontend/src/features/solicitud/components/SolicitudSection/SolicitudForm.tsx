@@ -47,7 +47,9 @@ export const SolicitudForm = ({ prioridadSeleccionada, setPrioridadSeleccionada,
           Datos de la solicitud
         </Typography>
         <Stack spacing={2}>
-          <TextField
+            <MotivodForm motivoSeleccionado={motivoSeleccionado} setMotivoSeleccionado={setMotivoSeleccionado}/>
+            <PrioridadForm prioridadSeleccionada={prioridadSeleccionada} setPrioridadSeleccionada={setPrioridadSeleccionada}/>
+            <TextField
             label="Breve descripción"
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value.slice(0, MAX_DESCRIPCION))}
@@ -57,8 +59,6 @@ export const SolicitudForm = ({ prioridadSeleccionada, setPrioridadSeleccionada,
             helperText={`${descripcion.length}/${MAX_DESCRIPCION}`}
           />
 
-            <PrioridadForm prioridadSeleccionada={prioridadSeleccionada} setPrioridadSeleccionada={setPrioridadSeleccionada}/>
-            <MotivodForm motivoSeleccionado={motivoSeleccionado} setMotivoSeleccionado={setMotivoSeleccionado}/>
         </Stack>
       </CardContent>
       <CardActions>

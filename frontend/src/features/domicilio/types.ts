@@ -1,3 +1,14 @@
+export type Provincia = {
+    id: number,
+    nombre: string
+}
+
+export type Departamento = {
+    id: number
+    nombre: string
+    provincia: Provincia
+}
+
 export type DomicilioValidado = {
     id: number,
     codigo_calle: number,
@@ -64,3 +75,13 @@ export type Institucion = {
     nombre: string
     telefono: string
 }
+
+
+export type Referencia = {
+    id?: number,
+    nombre: string
+    telefono: string
+    domicilio: Domicilio
+}
+
+

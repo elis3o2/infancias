@@ -1,4 +1,4 @@
-import type { Domicilio, Institucion } from "../domicilio/types"
+import type { Domicilio, Institucion, Referencia } from "../domicilio/types"
 
 export type Solicitante = {
     id?: number,
@@ -20,7 +20,23 @@ export const SolicitanteInicial : Solicitante = {
 }
 
 export type Adolescente = {
-    id?: number,
+    id: number,
+    dni: string,
+    sexo: "M" | "F",
+    nombre: string,
+    apellido: string,
+    domicilio: Domicilio,
+    fecha_nacimiento: string
+    escolarizado: boolean
+    hermanos: Hermano[]
+    familiares: Familiar[]
+    adolescente_validado: AdolescenteValidado | null
+    hermanos_validados: Hermano[]
+    referencias_gubernamentales: Referencia[]
+    referencias_no_gubernamentales: Referencia[]
+}
+
+export type AdolescenteCreate = {
     dni: string,
     sexo: "M" | "F" | "",
     nombre: string,
@@ -30,10 +46,21 @@ export type Adolescente = {
     escolarizado: boolean
     hermanos: Hermano[]
     familiares: Familiar[]
-    redes: Institucion[]
+    referencias_gubernamentales_data: (Referencia | number)[]
+    referencias_no_gubernamentales_data: (Referencia | number)[]
 }
 
-export const AdolescenteInicial : Adolescente = {
+
+export type AdolescenteValidado = {
+    id: number,
+    dni: string,
+    sexo: "M" | "F",
+    nombre: string,
+    apellido: string,
+    fecha_nacimiento: string
+}
+
+export const AdolescenteInicial : AdolescenteCreate = {
     dni: "",
     sexo: "",
     nombre: "",
@@ -43,7 +70,8 @@ export const AdolescenteInicial : Adolescente = {
     escolarizado: false,
     hermanos: [],
     familiares: [],
-    redes: []
+    referencias_gubernamentales_data: [],
+    referencias_no_gubernamentales_data:  []
 }
 
 export type Vinculo = {
@@ -63,7 +91,7 @@ export type Familiar = {
 
 
 export type Hermano = {
-    id?: null
+    id?: number
     dni: string
     sexo: "M" | "F"
     nombre: string
@@ -75,7 +103,6 @@ export type Hermano = {
 export type Ciudadano = {
     nombre: string,
     apellido: string,
-    dni: string,
     departamento: string,
     localidad: string,
     domicilio: string,

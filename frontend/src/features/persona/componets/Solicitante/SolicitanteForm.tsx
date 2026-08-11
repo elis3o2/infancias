@@ -1,7 +1,6 @@
 import type { Solicitante } from "../../types"
 import type { Setter } from "@/common/types"
 import { DniForm } from "../DniForm"
-import { SexoForm } from "../SexoForm"
 import { TelefonoComponent } from "../TelefonoComponent"
 import { CorreoForm } from "../CorreoForm"
 import { useState } from "react"
@@ -33,9 +32,6 @@ export const SolicitanteForm = ({ solicitante, setSolicitante, setFinishSolicita
   function setDni (dni) {
     setSolicitante({ ...solicitante, dni })
   }
-  function setSexo (sexo) {
-    setSolicitante({ ...solicitante, sexo })
-  }
   function setCorreo (correo) {
     setSolicitante({ ...solicitante, correo })
   }
@@ -45,7 +41,6 @@ export const SolicitanteForm = ({ solicitante, setSolicitante, setFinishSolicita
   const formCompleto =
     solicitante.nombre.trim() !== "" &&
     solicitante.apellido.trim() !== "" &&
-    solicitante.sexo !== "" &&
     solicitante.telefono.length == 10 &&
     solicitante.correo.trim() !== "" &&
     correoValido
@@ -70,7 +65,6 @@ export const SolicitanteForm = ({ solicitante, setSolicitante, setFinishSolicita
                     setNombre={setApellido}
                 />
                 <DniForm dni={solicitante.dni} setDni={setDni} />
-                <SexoForm sexo={solicitante.sexo} setSexo={setSexo} />
                 <TelefonoComponent telefono={solicitante.telefono} setTelefono={setTelefono} />
                 <CorreoForm
                     correo={solicitante.correo}

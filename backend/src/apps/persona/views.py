@@ -4,11 +4,18 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from decouple import config
-from .models import Adolescente, Solicitante, Familiar, Hermano, Vinculo
-from .serializers import AdolescenteSerializer, SolicitanteSerializer, FamiliarSerializer, HermanoSerializer, VinculoSerializer
+from .models import Adolescente, Solicitante, Familiar, Hermano, Vinculo, AdolescenteValidado, HermanoValidado
+from .serializers import (AdolescenteSerializer, SolicitanteSerializer, FamiliarSerializer, HermanoSerializer,
+                                VinculoSerializer, AdolescenteValidadoSerializer, HermanoValidadoSerializer)
 from src.permissions import ReadOnly
 from typing import Any, cast
 import requests
+
+
+class AdolescenteValidadoViewSet(viewsets.ModelViewSet):
+    queryset = AdolescenteValidado.objects.all()
+    serializer_class = AdolescenteValidadoSerializer
+
 
 class AdolescenteViewSet(viewsets.ModelViewSet):
     queryset = Adolescente.objects.all()
@@ -23,6 +30,11 @@ class SolicitanteViewSet(viewsets.ModelViewSet):
 class FamiliarViewSet(viewsets.ModelViewSet):
     queryset = Familiar.objects.all()
     serializer_class = FamiliarSerializer
+
+
+class HermanoValidadoViewSet(viewsets.ModelViewSet):
+    queryset = HermanoValidado.objects.all()
+    serializer_class = HermanoValidadoSerializer
 
 
 class HermanoViewSet(viewsets.ModelViewSet):
@@ -45,8 +57,6 @@ class HistoriaClinicaView(APIView):
                 {"error": "Falta documento y/o sexo"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-
         url = cast(str, config("API_HC"))
 
         try:

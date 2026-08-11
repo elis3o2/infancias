@@ -1,57 +1,60 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, Stack, Typography } from "@mui/material"
-import type { Institucion } from "@/features/domicilio/types"
+import type { Referencia } from "@/features/domicilio/types"
 import { OtrosComponent } from "./OtrosComponent"
-import { TerritorialComponent } from "./TerrirtorialComponent"
-import { EducacionComponent } from "./EducacionComponent"
+import { ReferenciaComponent } from "./ReferenciaComponent"
+import type { Setter } from "@/common/types"
+import { getReferenciaGubernamental, getReferenciaNoGubernamental } from "@/features/domicilio/api"
 
 type Props = {
-  redes: {
-    educacion: Institucion | null
-    territorial: Institucion[]
-    otros: Institucion[]
-  }
+  gubernamentales: (Referencia | number)[]
+  setGubernamentales: Setter<(Referencia | number)[]>
+  noGubernamentales: (Referencia | number)[]
+  setNoGubernamentales: Setter<(Referencia | number)[]>
 }
 
-export const RedComponent = ({ redes }: Props) => {
-  const [educacion, setEducacion] = useState<Institucion | null>(redes.educacion)
-  const [finishEducacion, setFinishEducacion] = useState(false)
-  const [territoriales, setTerritoriales] = useState<Institucion[]>(redes.territorial)
-  const [otros, setOtros] = useState<Institucion[]>(redes.otros)
+export const RedComponent = ({ gubernamentales,noGubernamentales, setGubernamentales, setNoGubernamentales }: Props) => {
+  const [copyGubernamentales, setCopyGubernamentales] = useState<Referencia[]>(gubernamentales.filter((g): g is Referencia => typeof g !== "number"))
+  const [copyNoGubernamentales, setCopyNoGubernamentales] = useState<Referencia[]>(noGubernamentales.filter((g): g is Referencia => typeof g !== "number"))
+  const [otrosGubernamentales, setOtrosGubernamentales] = useState<Referencia[]>([])
+  const [otrosNoGubernamentales, setOtrosNoGubernamentales] = useState<Referencia[]>([])
+
+  console.log()
+  useEffect(() => {
+    setGubernamentales([
+      ...copyGubernamentales.map((g) => g.id),
+      ...otrosGubernamentales,
+    ])
+  }, [copyGubernamentales, otrosGubernamentales, setGubernamentales])
 
   useEffect(() => {
-    setEducacion(redes.educacion)
-  }, [redes.educacion])
+    setNoGubernamentales([
+      ...copyNoGubernamentales.map((g) => g.id),
+      ...otrosNoGubernamentales,
+    ])
+  }, [copyNoGubernamentales, otrosNoGubernamentales, setNoGubernamentales])
 
-  useEffect(() => {
-    setTerritoriales(redes.territorial)
-  }, [redes.territorial])
 
-  useEffect(() => {
-    setOtros(redes.otros)
-  }, [redes.otros])
 
   return (
     <Card>
       <CardContent>
         <Typography variant="h5" gutterBottom>
-          Redes
+          Intituciones de referencia
         </Typography>
 
         <Stack spacing={3}>
-          <EducacionComponent
-            educacion={educacion}
-            setEducacion={setEducacion}
-            finishEducacion={finishEducacion}
-            setFinishEducacion={setFinishEducacion}
-          />
 
-          <TerritorialComponent
-            territoriales={territoriales}
-            setTerritorials={setTerritoriales}
+          <ReferenciaComponent
+            referencias={copyGubernamentales}
+            setReferencias={setCopyGubernamentales}
+            api={getReferenciaGubernamental}
+            nombre="Instituciones Gubernamentales"
           />
+          <OtrosComponent otros={otrosGubernamentales} setOtros={setOtrosGubernamentales}  texto="Otros"/>
 
-          <OtrosComponent otros={otros} setOtros={setOtros} />
+          <OtrosComponent otros={otrosNoGubernamentales} setOtros={setOtrosNoGubernamentales} texto="Instituciones no Gubernamentales"/>
+
         </Stack>
       </CardContent>
     </Card>

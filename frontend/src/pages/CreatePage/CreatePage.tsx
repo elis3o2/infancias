@@ -1,8 +1,8 @@
 import { useState } from "react"
-import { Box, Button} from '@mui/material'
-import type { Adolescente, Familiar, Hermano, Solicitante } from "@/features/persona/types"
+import { Box, Button, Typography} from '@mui/material'
+import type { AdolescenteCreate, Familiar, Hermano, Solicitante } from "@/features/persona/types"
 import { AdolescenteInicial, SolicitanteInicial } from "@/features/persona/types"
-import type { Institucion, InstitucionCreate } from "@/features/domicilio/types"
+import type { Institucion, InstitucionCreate, Referencia } from "@/features/domicilio/types"
 import type { Archivo, MotivoSolicitud, PrioridadSolicitud, SolicitudCreate } from "@/features/solicitud/types"
 import { SolicitanteComponent } from "@/features/persona/componets/Solicitante/SolicitanteComponent"
 import { AdolescenteComponent } from "@/features/persona/componets/Adolescente/AdolescenteComponent"
@@ -13,15 +13,15 @@ import { ArchivoComponent } from "@/features/solicitud/components/Archivo/Archiv
 import { RedComponent } from "@/features/solicitud/components/Redes/RedComponent"
 import { InstitucionComponent } from "@/features/domicilio/components/Institucion/InstitucionComponent"
 import { postSolicitud } from "@/features/solicitud/api"
-
-
+import { AlertMessage } from "@/common/components"
+import type { AlertSeverity } from "@/common/types"
 
 export const CreatePage = () => {
   const [solicitante, setSolicitante] = useState<Solicitante>(SolicitanteInicial)
   const [finishSolicitante, setFinishSolicitante] = useState(false)
   const [institucion, setInstitucion] = useState<Institucion | InstitucionCreate | null>(null)
   const [finishInstitucion, setFinishInstitucion] = useState(false)
-  const [adolescente, setAdolescente] = useState<Adolescente>(AdolescenteInicial)
+  const [adolescente, setAdolescente] = useState<AdolescenteCreate>(AdolescenteInicial)
   const [familiares, setFamiliares] = useState<Familiar[]>([])
   const [finishFamiliar, setFinishFamiliar] = useState(false)
   const [hermanos, setHermanos] = useState<Hermano[]>([])
@@ -31,109 +31,150 @@ export const CreatePage = () => {
   const [motivoSeleccionado, setMotivoSeleccionado] = useState<MotivoSolicitud | null>(null)
   const [descripcion, setDescripcion] = useState("")
   const [archivos, setArchivos] = useState<Archivo[]>([])
-  const [redes, setRedes] = useState<{educacion: Institucion | null;
-                                    territorial: Institucion[];
-                                    otros: Institucion[];
-                                  }>({ educacion: null,
-                                       territorial: [],
-                                       otros: [] });
-
-  console.log(!finishInstitucion)
-  console.log(!finishSolicitante)
-  console.log(!finishAdolescente)
-  console.log(!finishHermano)
-  console.log(!finishFamiliar)
-  console.log("GI")
-  console.log(hermanos)
-  function handleEnviar() {
-    let id_institucion: number | null = null;
-    let institucionNueva: InstitucionCreate | null = null;
+  const [gubernamentales, setGubernamentales] = useState<(Referencia | number)[]>([])
+  const [noGubernamentales, setNoGubernamentales] = useState<(Referencia | number)[]>([])
+  const [alertOpen, setAlertOpen] = useState(false)
+  const [alertMessage, setAlertMessage] = useState("")
+  const [alertSeverity, setAlertSeverity] = useState<AlertSeverity>("success")
+  const [enviado, setEnviado] = useState(false)
+  
+  async function handleEnviar() {
+    let id_institucion: number | null = null
+    let institucionNueva: InstitucionCreate | null = null
 
     if (institucion) {
       if ("id" in institucion) {
-        id_institucion = institucion.id;
+        id_institucion = institucion.id
       } else {
-        institucionNueva = institucion;
+        institucionNueva = institucion
       }
     }
 
-    let solicitud: SolicitudCreate = { 
+    const solicitud: SolicitudCreate = {
       id_institucion,
       institucion: institucionNueva,
-      adolescente: {...adolescente, hermanos, familiares},
+      adolescente: {
+        ...adolescente,
+        hermanos,
+        familiares,
+        referencias_gubernamentales_data: gubernamentales,
+        referencias_no_gubernamentales_data: noGubernamentales,
+      },
       solicitante,
-      id_motivo: motivoSeleccionado.id,
-      id_prioridad: prioridadSeleccionada.id,
+      id_motivo: motivoSeleccionado!.id,
+      id_prioridad: prioridadSeleccionada!.id,
       descripcion,
-      archivos: archivos.map((archivo)=> archivo.contenido)
+      archivos: archivos.map((archivo) => archivo.contenido),
     }
 
-    console.log("SOLICITUD", solicitud)
-  postSolicitud(solicitud)
+    try {
+      await postSolicitud(solicitud)
+
+      setAlertMessage("El formulario fue enviado correctamente")
+      setAlertSeverity("success")
+      setAlertOpen(true)
+
+      // Espera un momento para que se vea el alert, y recién ahí oculta el formulario
+      setTimeout(() => {
+        setEnviado(true)
+      }, 2500)
+
+    } catch (error) {
+      console.error(error)
+
+      setAlertMessage("Ocurrió un error al enviar el formulario")
+      setAlertSeverity("error")
+      setAlertOpen(true)
+    }
   }
 
-
-  return (
+return (
+  <>
     <Box
       sx={{
-      background: "linear-gradient(90deg, #eff6ff 0%, #f8fafc 100%)",
-      px: 1,
-      py: 2.5,
-      gap: 2,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
+        background: "linear-gradient(90deg, #eff6ff 0%, #f8fafc 100%)",
+        px: 1,
+        py: 2.5,
+        gap: 2,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
       }}>
-        <InstitucionComponent
-          institucion={institucion}
-          setInstitucion={setInstitucion}
-          finishInstitucion={finishInstitucion}
-          setFinishInstitucion={setFinishInstitucion}
-        />
-        <SolicitanteComponent
-          solicitante={solicitante}
-          setSolicitante={setSolicitante}
-          finishSolicitante={finishSolicitante}
-          setFinishSolicitante={setFinishSolicitante}
-        />
-        <AdolescenteComponent
-          adolescente={adolescente}
-          setAdolescente={setAdolescente}
-          finishAdolescente={finishAdolescente}
-          setFinishAdolescente={setFinishAdolescente}
-        />
-        <FamiliaresComponent
-          familiares={familiares}
-          setFamiliares={setFamiliares}
-          finishFamiliar={finishFamiliar}
-          setFinishFamiliar={setFinishFamiliar}
-        />
-        <HermanosComponent
-          hermanos={hermanos}
-          setHermanos={setHermanos}
-          finishHermano={finishHermano}
-          setFinishHermano={setFinishHermano}
-        />
-        <SolicitudComponent
-          prioridadSeleccionada={prioridadSeleccionada}
-          setPrioridadSeleccionada={setPrioridadSeleccionada}
-          motivoSeleccionado={motivoSeleccionado}
-          setMotivoSeleccionado={setMotivoSeleccionado}
-          descripcion={descripcion}
-          setDescripcion={setDescripcion}
-        />
-        <ArchivoComponent archivos={archivos} setArchivos={setArchivos}/>
-        <RedComponent redes={redes}/>
-        <Button 
-        variant="outlined" 
-        onClick={() => handleEnviar()}
-        disabled={!finishInstitucion || !finishSolicitante ||
-          !finishAdolescente || !finishHermano || !finishFamiliar
-         }>
-          Enviar
-        </Button>      
+      {enviado ? (
+        <Box sx={{ textAlign: "center", py: 6 }}>
+          <Typography variant="h6">
+            ¡Gracias! Tu solicitud fue enviada correctamente.
+          </Typography>
+        </Box>
+      ) : (
+        <>
+          <SolicitanteComponent
+            solicitante={solicitante}
+            setSolicitante={setSolicitante}
+            finishSolicitante={finishSolicitante}
+            setFinishSolicitante={setFinishSolicitante}
+          />
+          <InstitucionComponent
+            institucion={institucion}
+            setInstitucion={setInstitucion}
+            finishInstitucion={finishInstitucion}
+            setFinishInstitucion={setFinishInstitucion}
+          />
+          <AdolescenteComponent
+            adolescente={adolescente}
+            setAdolescente={setAdolescente}
+            finishAdolescente={finishAdolescente}
+            setFinishAdolescente={setFinishAdolescente}
+          />
+          <SolicitudComponent
+            prioridadSeleccionada={prioridadSeleccionada}
+            setPrioridadSeleccionada={setPrioridadSeleccionada}
+            motivoSeleccionado={motivoSeleccionado}
+            setMotivoSeleccionado={setMotivoSeleccionado}
+            descripcion={descripcion}
+            setDescripcion={setDescripcion}
+          />
+          <FamiliaresComponent
+            familiares={familiares}
+            setFamiliares={setFamiliares}
+            finishFamiliar={finishFamiliar}
+            setFinishFamiliar={setFinishFamiliar}
+          />
+          <HermanosComponent
+            hermanos={hermanos}
+            setHermanos={setHermanos}
+            finishHermano={finishHermano}
+            setFinishHermano={setFinishHermano}
+          />
+          <RedComponent
+            gubernamentales={gubernamentales}
+            setGubernamentales={setGubernamentales}
+            noGubernamentales={noGubernamentales}
+            setNoGubernamentales={setNoGubernamentales}
+          />
+          <ArchivoComponent archivos={archivos} setArchivos={setArchivos} />
 
-    </Box>)
+          <Button
+            variant="outlined"
+            onClick={() => handleEnviar()}
+            disabled={
+              !finishInstitucion || !finishSolicitante ||
+              !finishAdolescente || !finishHermano || !finishFamiliar
+            }>
+            Enviar
+          </Button>
+        </>
+      )}
+
+      <AlertMessage
+        open={alertOpen}
+        handleClose={() => setAlertOpen(false)}
+        message={alertMessage}
+        severity={alertSeverity}
+      />
+    </Box>
+  </>
+)
 }
 
 export default CreatePage

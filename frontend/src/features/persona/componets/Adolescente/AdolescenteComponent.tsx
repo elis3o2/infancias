@@ -1,12 +1,12 @@
 import type { Setter } from "@/common/types"
-import type { Adolescente } from "../../types"
+import type { AdolescenteCreate } from "../../types"
 import { AdolescenteForm } from "./AdolescenteForm"
 import { AdolescenteView } from "./AdolescenteView"
 import { Card, CardHeader, CardContent} from "@mui/material"
 
 type Props = {
-  adolescente: Adolescente | null
-  setAdolescente: Setter<Adolescente | null>
+  adolescente: AdolescenteCreate
+  setAdolescente: Setter<AdolescenteCreate>
   finishAdolescente: boolean
   setFinishAdolescente: Setter<boolean>
 }

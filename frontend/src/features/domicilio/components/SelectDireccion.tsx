@@ -1,28 +1,10 @@
 import { useState, useEffect } from "react";
-import { useMap, MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { Box, List, ListItemButton, ListItemText, Alert } from "@mui/material";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 import type { Geolocalizacion } from "@/features/domicilio/types";
 import { getGeo } from "@/features/domicilio/api";
 import type { Setter } from "@/common/types";
+import { Mapa } from "./Mapa";
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
-
-type RecenterMapProps = { lat: number; lon: number };
-
-function RecenterMap({ lat, lon }: RecenterMapProps) {
-    const map = useMap();
-    useEffect(() => {
-        map.setView([lat, lon], 17, { animate: true });
-    }, [lat, lon, map]);
-    return null;
-}
 
 type Props = {
     direccion: string;
@@ -93,34 +75,11 @@ export const SelectDireccion = ({ direccion, setCanConfirm, setGeoSeleccionada }
             )}
 
             {ubicacionSeleccionada && (
-                <Box sx={{ height: 400, borderRadius: 2, overflow: "hidden" }}>
-                    <MapContainer
-                        center={[
-                            ubicacionSeleccionada.geometry.coordinates[0], // lat
-                            ubicacionSeleccionada.geometry.coordinates[1], // lon
-                        ]}
-                        zoom={17}
-                        style={{ height: "100%", width: "100%" }}
-                    >
-                        <TileLayer
-                            attribution="&copy; OpenStreetMap contributors"
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <RecenterMap
-                            lat={ubicacionSeleccionada.geometry.coordinates[0]}
-                            lon={ubicacionSeleccionada.geometry.coordinates[1]}
-                        />
-                        <Marker position={[
-                            ubicacionSeleccionada.geometry.coordinates[0],
-                            ubicacionSeleccionada.geometry.coordinates[1],
-                        ]}>
-                            <Popup>
-                                <strong>{ubicacionSeleccionada.properties.name}</strong>
-                                <br />Dirección seleccionada
-                            </Popup>
-                        </Marker>
-                    </MapContainer>
-                </Box>
+                <Mapa
+                    latitud={ubicacionSeleccionada.geometry.coordinates[0]}
+                    longitud={ubicacionSeleccionada.geometry.coordinates[1]}
+                    nombre={ubicacionSeleccionada.properties.name}
+                />
             )}
             {buscado && resultados.length === 0 && (
             <Alert severity="warning" sx={{ borderRadius: 2 }}>

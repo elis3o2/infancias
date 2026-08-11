@@ -16,6 +16,10 @@ INSERT INTO tipo_institucion (nombre) VALUES
 ('Otro');
 
 
+INSERT INTO derivacion (nombre) VALUES
+("Derivacion1"), 
+("Derivacion2"), 
+("Derivacion3");
 
 INSERT INTO domicilio_validado (id,
 codigo_calle,

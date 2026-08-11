@@ -1,4 +1,4 @@
-import type { Adolescente } from "../../types"
+import type { AdolescenteCreate } from "../../types"
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import {
 } from "@mui/material"
 
 type Props = {
-  adolescente: Adolescente
+  adolescente: AdolescenteCreate
   onEditar: () => void
 }
 

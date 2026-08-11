@@ -2,8 +2,9 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
 import { PrivateRoute } from '../common/components';
 import BuscarCiudadano from '../pages/CreatePage/CreatePage';
-import { ValidarSolicitud } from '@/features/solicitud/components/Cargados/ValidarSolicitud';
+import { ValidarSolicitud } from '@/features/solicitud/components/Cargados/Solicitud';
 import type Layout from '@/common/layouts/Layout';
+import SolicitudListPage from '@/features/solicitud/components/Cargados/SolicitudPage';
 
 export const AppRoutes = () => {
   return (
@@ -16,6 +17,14 @@ export const AppRoutes = () => {
         element={
           <PrivateRoute>
             <ValidarSolicitud />
+          </PrivateRoute>
+        }
+    />
+          <Route
+        path="/solicitud/"
+        element={
+          <PrivateRoute>
+            <SolicitudListPage />
           </PrivateRoute>
         }
     />

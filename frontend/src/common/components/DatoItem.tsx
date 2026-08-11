@@ -1,25 +1,27 @@
 // DatoItem.tsx
-import { Stack, Box, Typography } from "@mui/material"
+import { ListItem, ListItemIcon, ListItemText, Typography } from "@mui/material"
 import type { ReactNode } from "react"
 
 type Props = {
   icon: ReactNode
   label: string
-  value: string
+  valor: string
 }
 
-export const DatoItem = ({ icon, label, value }: Props) => (
-  <Stack direction="row" spacing={1.5} alignItems="flex-start">
-    <Box sx={{ color: "primary.main", mt: "2px", flexShrink: 0, opacity: 0.7 }}>
-      {icon}
-    </Box>
-    <Box>
-      <Typography variant="caption" color="text.disabled" textTransform="uppercase" letterSpacing={0.8} display="block">
-        {label}
-      </Typography>
-      <Typography color="text.primary" fontWeight={500}>
-        {value}
-      </Typography>
-    </Box>
-  </Stack>
+export const DatoItem = ({ icon, label, valor }:Props) => (
+  <ListItem disableGutters sx={{ py: 0.75, px: 0 }}>
+    <ListItemIcon sx={{ minWidth: 36, color: "text.secondary" }}>{icon}</ListItemIcon>
+    <ListItemText
+      primary={
+        <Typography variant="caption" color="text.secondary">
+          {label}
+        </Typography>
+      }
+      secondary={
+        <Typography variant="body1" fontWeight={600}>
+          {String(valor ?? "").trim() || "—"}
+        </Typography>
+      }
+    />
+  </ListItem>
 )

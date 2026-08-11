@@ -1,5 +1,4 @@
-import type { Adolescente } from "../../types"
-import type { Domicilio } from "@/features/domicilio/types"
+import type { AdolescenteCreate } from "../../types"
 import type { Setter } from "@/common/types"
 import { DniForm } from "../DniForm"
 import { SexoForm } from "../SexoForm"
@@ -9,8 +8,8 @@ import { DomicilioComponent } from "@/features/domicilio/components/DomicilioCom
 import { NombreForm } from "../NombreForm"
 
 type Props = {
-  adolescente: Adolescente | null
-  setAdolescente: Setter<Adolescente | null>
+  adolescente: AdolescenteCreate
+  setAdolescente: Setter<AdolescenteCreate>
   setFinishAdolescente: Setter<boolean>
 }
 

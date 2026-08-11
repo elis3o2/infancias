@@ -1,5 +1,24 @@
 from django.db import models
 
+class Provincia(models.Model):
+    id = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=64)
+
+    class Meta:
+        managed = False
+        db_table = 'provincia'
+
+class Departamento(models.Model):
+    id = models.AutoField
+    nombre = models.CharField(max_length=64)
+    provincia = models.ForeignKey(
+        Provincia, models.DO_NOTHING, db_column='id_provincia')
+
+    class Meta:
+        managed = False
+        db_table = 'departamento'
+
+
 class DomicilioValidado(models.Model):
     id = models.AutoField(primary_key=True)
     codigo_calle = models.IntegerField(blank=True, null=True)
@@ -29,6 +48,8 @@ class Domicilio(models.Model):
     nombre = models.CharField(max_length=128)
     domicilio_validado = models.ForeignKey(
         DomicilioValidado, models.DO_NOTHING, db_column='id_domicilio_validado', blank=True, null=True)
+    departamento = models.ForeignKey(
+        Departamento, models.DO_NOTHING, db_column='id_departamento')
 
     class Meta:
         managed = False
@@ -58,3 +79,27 @@ class Institucion(models.Model):
     class Meta:
         managed = False
         db_table = "institucion"
+
+
+class ReferenciaGubernamental(models.Model):
+    id = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=64)
+    domicilio = models.ForeignKey(
+        Domicilio, models.DO_NOTHING, db_column='id_domicilio')
+    telefono = models.CharField(max_length=16)
+
+    class Meta:
+        managed = False
+        db_table = "referencia_gubernamental"
+
+
+class ReferenciaNoGubernamental(models.Model):
+    id = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=64)
+    domicilio = models.ForeignKey(
+        Domicilio, models.DO_NOTHING, db_column='id_domicilio')
+    telefono = models.CharField(max_length=16)
+
+    class Meta:
+        managed = False
+        db_table = "referencia_no_gubernamental"

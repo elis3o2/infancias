@@ -7,9 +7,27 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.viewsets import ViewSet
 from rest_framework.exceptions import NotFound, APIException
-from .models import Institucion, TipoInstitucion, Domicilio
-from .serializers import InstitucionSerializer, TipoInstitucionSerializer, DomicilioSerializer
+from .models import Institucion, TipoInstitucion, Provincia, Departamento, Domicilio, ReferenciaGubernamental, ReferenciaNoGubernamental
+from .serializers import (ProvinciaSerializer, DepartamentoSerializer, InstitucionSerializer, TipoInstitucionSerializer,
+                        DomicilioSerializer, ReferenciaGubernamentalSerializer, ReferenciaNoGubernamentalSerializer)
 from src.permissions import ReadOnly
+
+class ProvinciaViewSet(viewsets.ModelViewSet):
+    queryset = Provincia.objects.all()
+    serializer_class = ProvinciaSerializer
+    permission_classes = [ReadOnly]
+
+
+class DepartamentoViewSet(viewsets.ModelViewSet):
+    serializer_class = DepartamentoSerializer
+    permission_classes = [ReadOnly]
+
+    def get_queryset(self):
+        queryset = Departamento.objects.all()
+        id_provincia = self.request.query_params.get("id_provincia")
+
+        if id_provincia:
+            queryset = queryset.filter(provincia__id=id_provincia)
 
 
 class TipoInstitucionViewSet(viewsets.ModelViewSet):
@@ -47,6 +65,15 @@ class DomicilioViewSet(viewsets.ModelViewSet):
     queryset = Domicilio.objects.all()
     serializer_class = DomicilioSerializer
 
+
+class ReferenciaGubernamentalViewSet(viewsets.ModelViewSet):
+    queryset = ReferenciaGubernamental.objects.all()
+    serializer_class = ReferenciaGubernamentalSerializer
+
+
+class ReferenciaNoGubernamentalViewSet(viewsets.ModelViewSet):
+    queryset = ReferenciaNoGubernamental.objects.all()
+    serializer_class = ReferenciaNoGubernamentalSerializer
 
 
 class GeoDataViewSet(ViewSet):
