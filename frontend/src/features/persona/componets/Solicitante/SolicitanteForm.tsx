@@ -1,9 +1,6 @@
 import type { Solicitante } from "../../types"
 import type { Setter } from "@/common/types"
 import { DniForm } from "../DniForm"
-import { TelefonoComponent } from "../TelefonoComponent"
-import { CorreoForm } from "../CorreoForm"
-import { useState } from "react"
 import {
   Card,
   CardContent,
@@ -19,10 +16,7 @@ type Props = {
   setFinishSolicitante: Setter<boolean>
 }
 
-export const SolicitanteForm = ({ solicitante, setSolicitante, setFinishSolicitante}: Props) => {
-  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  const [correoValido, setCorreoValido] = useState(EMAIL_REGEX.test(solicitante.correo.trim()))
-  
+export const SolicitanteForm = ({ solicitante, setSolicitante, setFinishSolicitante}: Props) => {  
   function setNombre (nombre) { 
     setSolicitante({ ...solicitante, nombre })
   }  
@@ -32,18 +26,10 @@ export const SolicitanteForm = ({ solicitante, setSolicitante, setFinishSolicita
   function setDni (dni) {
     setSolicitante({ ...solicitante, dni })
   }
-  function setCorreo (correo) {
-    setSolicitante({ ...solicitante, correo })
-  }
-  function setTelefono (telefono) {
-    setSolicitante({ ...solicitante, telefono })
-  }
+
   const formCompleto =
     solicitante.nombre.trim() !== "" &&
-    solicitante.apellido.trim() !== "" &&
-    solicitante.telefono.length == 10 &&
-    solicitante.correo.trim() !== "" &&
-    correoValido
+    solicitante.apellido.trim() !== "" 
 
   const handleCargar = () => {
     if (!formCompleto) return
@@ -65,12 +51,6 @@ export const SolicitanteForm = ({ solicitante, setSolicitante, setFinishSolicita
                     setNombre={setApellido}
                 />
                 <DniForm dni={solicitante.dni} setDni={setDni} />
-                <TelefonoComponent telefono={solicitante.telefono} setTelefono={setTelefono} />
-                <CorreoForm
-                    correo={solicitante.correo}
-                    setCorreo={setCorreo}
-                    onValidChange={setCorreoValido}
-                />
             </Stack>
         </CardContent>
         <CardActions>

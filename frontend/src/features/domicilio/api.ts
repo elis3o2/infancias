@@ -37,6 +37,6 @@ export const getProvincias = () : Promise<Provincia[]> => {
     return http.get<Provincia[]>(`domicilio/provincia/`).then(res => res.data)
 }
 
-export const getDepartamento = (id_provincia: number) : Promise<Departamento[]> => {
+export const getDepartamentos = (id_provincia: number) : Promise<Departamento[]> => {
     return http.get<Departamento[]>(`domicilio/departamento/?id_provincia=${id_provincia}`).then(res => res.data)
 }

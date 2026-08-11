@@ -4,35 +4,38 @@ import type { TipoInstitucion } from "../types"
 import { getTipoInstitucionAll } from "../api"
 import type { Setter } from "@/common/types"
 
-
 type Props = {
-    tipoSeleccionado: number | null
-    setTipoSeleccionado: Setter<number | null>
+  tipoSeleccionado: TipoInstitucion | null
+  setTipoSeleccionado: Setter<TipoInstitucion | null>
 }
 
-export const TipoInstitucionComponent = ({tipoSeleccionado, setTipoSeleccionado} : Props) => {
-    const [tipos, setTipos] = useState<TipoInstitucion[]>([])
-    
-    // Cargar tipos al montar
-    useEffect(() => {
-        getTipoInstitucionAll().then(setTipos)
-    }, [])
+export const TipoInstitucionComponent = ({ tipoSeleccionado, setTipoSeleccionado }: Props) => {
+  const [tipos, setTipos] = useState<TipoInstitucion[]>([])
 
-    return (
+  useEffect(() => {
+    getTipoInstitucionAll().then(setTipos)
+  }, [])
+
+  const handleChange = (id: number) => {
+    const tipo = tipos.find((t) => t.id === id) ?? null
+    setTipoSeleccionado(tipo)
+  }
+
+  return (
     <FormControl fullWidth>
-        <InputLabel id="tipo-institucion-label">Tipo de institución</InputLabel>
-        <Select
+      <InputLabel id="tipo-institucion-label">Tipo de institución</InputLabel>
+      <Select
         labelId="tipo-institucion-label"
         label="Tipo de institución"
-        value={tipoSeleccionado ?? ""}
-        onChange={(e) => { setTipoSeleccionado(Number(e.target.value)) }}
-        >
+        value={tipoSeleccionado?.id ?? ""}
+        onChange={(e) => handleChange(Number(e.target.value))}
+      >
         {tipos.map((tipo) => (
-            <MenuItem key={tipo.id} value={tipo.id}>
+          <MenuItem key={tipo.id} value={tipo.id}>
             {tipo.nombre}
-            </MenuItem>
+          </MenuItem>
         ))}
-        </Select>
+      </Select>
     </FormControl>
-    )
+  )
 }

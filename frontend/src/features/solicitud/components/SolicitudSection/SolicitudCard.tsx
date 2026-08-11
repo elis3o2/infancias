@@ -1,17 +1,38 @@
-import { Box, Card, CardContent, Stack, Typography } from "@mui/material"
+import { Box, Card, CardContent, Stack, Typography, Chip, Button } from "@mui/material"
+import type { MotivoSolicitud, PrioridadSolicitud } from "../../types"
 
 type Props = {
-  descripcion: string
+  motivo?: MotivoSolicitud
+  prioridad?: PrioridadSolicitud
+  descripcion?: string
+  onEditar?: () => void
 }
 
-export const DescripcionCard = ({ descripcion }: Props) => {
+const PRIORIDAD_COLOR: Record<string, "error" | "warning" | "success" | "default"> = {
+  Urgente: "error",
+  Prioritaria: "warning",
+  Preventiva: "success",
+}
+
+export const SolicitudCard = ({ motivo, prioridad, descripcion, onEditar }: Props) => {
   return (
     <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
       <CardContent>
         <Stack spacing={2}>
-          <Typography variant="h6">
-            Descripción
-          </Typography>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="h6">Descripción</Typography>
+              {motivo && <Chip label={motivo.nombre} size="small" variant="outlined" />}
+              {prioridad && (
+                <Chip
+                  label={prioridad.nombre}
+                  size="small"
+                  color={PRIORIDAD_COLOR[prioridad.nombre] ?? "default"}
+                />
+              )}
+            </Stack>
+
+          </Stack>
 
           <Box
             sx={{
@@ -32,7 +53,13 @@ export const DescripcionCard = ({ descripcion }: Props) => {
             </Typography>
           </Box>
         </Stack>
+      {onEditar && (
+      <Button size="small" onClick={onEditar}>
+        Editar
+      </Button>
+    )}
       </CardContent>
     </Card>
+    
   )
 }

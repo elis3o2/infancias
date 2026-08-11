@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Provincia, Departamento, Domicilio, DomicilioValidado, TipoInstitucion, Institucion, ReferenciaGubernamental, ReferenciaNoGubernamental
+from .models import Provincia, Departamento, Domicilio, DomicilioValidado, TipoInstitucion, Institucion
 
 
 class ProvinciaSerializer(serializers.ModelSerializer):
@@ -82,49 +82,11 @@ class InstitucionSerializer(serializers.ModelSerializer):
         )
 
 
-class ReferenciaGubernamentalSerializer(serializers.ModelSerializer):
-    domicilio = DomicilioSerializer()
-
-    class Meta:
-        model = ReferenciaGubernamental
-        fields = "__all__"
-
-    def create(self, validated_data):
-        domicilio_data = validated_data.pop("domicilio")
-        domicilio = DomicilioSerializer().create(domicilio_data)
-
-        return ReferenciaGubernamental.objects.create(
-            domicilio=domicilio,
-            **validated_data
-        )
-
-
-class ReferenciaNoGubernamentalSerializer(serializers.ModelSerializer):
-    domicilio = DomicilioSerializer()
-
-    class Meta:
-        model = ReferenciaNoGubernamental
-        fields = "__all__"
-    
-    def create(self, validated_data):
-        domicilio_data = validated_data.pop("domicilio")
-        domicilio = DomicilioSerializer().create(domicilio_data)
-
-        return ReferenciaNoGubernamental.objects.create(
-            domicilio=domicilio,
-            **validated_data
-        )
-
-
-class ReferenciaGubernamentalInputSerializer(serializers.Serializer):
+class ReferenciaInstitucionInputSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False)
     nombre = serializers.CharField(required=False)
-    telefono = serializers.CharField(required=False)
-    domicilio = DomicilioSerializer(required=False)
-
-
-class ReferenciaNoGubernamentalInputSerializer(serializers.Serializer):
-    id = serializers.IntegerField(required=False)
-    nombre = serializers.CharField(required=False)
-    telefono = serializers.CharField(required=False)
+    id_tipo = serializers.PrimaryKeyRelatedField(
+        queryset=TipoInstitucion.objects.all(),
+        required=False
+    )
     domicilio = DomicilioSerializer(required=False)

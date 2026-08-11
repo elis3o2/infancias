@@ -75,31 +75,10 @@ class Institucion(models.Model):
     tipo = models.ForeignKey(
         TipoInstitucion, models.DO_NOTHING, db_column='id_tipo')
     telefono = models.CharField(max_length=16)
+    correo = models.CharField(max_length=32)
 
     class Meta:
         managed = False
         db_table = "institucion"
 
 
-class ReferenciaGubernamental(models.Model):
-    id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=64)
-    domicilio = models.ForeignKey(
-        Domicilio, models.DO_NOTHING, db_column='id_domicilio')
-    telefono = models.CharField(max_length=16)
-
-    class Meta:
-        managed = False
-        db_table = "referencia_gubernamental"
-
-
-class ReferenciaNoGubernamental(models.Model):
-    id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=64)
-    domicilio = models.ForeignKey(
-        Domicilio, models.DO_NOTHING, db_column='id_domicilio')
-    telefono = models.CharField(max_length=16)
-
-    class Meta:
-        managed = False
-        db_table = "referencia_no_gubernamental"

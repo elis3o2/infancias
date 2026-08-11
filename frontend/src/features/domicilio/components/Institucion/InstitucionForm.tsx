@@ -1,69 +1,63 @@
 import type { Setter } from "@/common/types"
-import type { Institucion, InstitucionCreate } from "../../types"
-import { getInstitucionByTipo } from '../../api'
+import type { Institucion, TipoInstitucion } from "../../types"
+import { InstitucionInicial } from "../../types"
 import { useEffect, useState } from "react"
-import {  Autocomplete, TextField, ToggleButtonGroup, ToggleButton, Stack, CircularProgress, Button } from "@mui/material"
+import { ToggleButtonGroup, ToggleButton, Stack, Button } from "@mui/material"
 import { TipoInstitucionComponent } from "../TipoInstitucionComponent"
 import { TelefonoComponent } from "@/features/persona/componets/TelefonoComponent"
+import { CorreoForm } from "@/features/persona/componets/CorreoForm"
+import { InstitucionCargaForm } from "./InstitucionCargaForm"
+import { InstitucionSelectForm } from "./InstitucionSelectForm"
 
 type Props = {
-  setInstitucion: Setter<Institucion | InstitucionCreate | null>
+  institucion: Institucion
+  setInstitucion: Setter<Institucion>
   setFinshInstitucion: Setter<boolean>
+  correo: string
+  setCorreo: Setter<string>
+  telefono: string
+  setTelefono: Setter<string>
 }
+
 type Modo = "seleccionar" | "cargar"
 
-export const InstitucionForm = ({ setInstitucion, setFinshInstitucion }: Props) => {
-  const [tipoSeleccionado, setTipoSeleccionado] = useState<number | null>(null)
-
-  const [instituciones, setInstituciones] = useState<Institucion[]>([])
-  const [loadingInstituciones, setLoadingInstituciones] = useState(false)
-
+export const InstitucionForm = ({ institucion, setInstitucion, setFinshInstitucion, correo, setCorreo, telefono, setTelefono }: Props) => {
+  const [tipo, setTipo] = useState<TipoInstitucion | null>(null)
   const [modo, setModo] = useState<Modo>("seleccionar")
-  const [nombre, setNombre] = useState("")
-  const [domicilio, setDomicilio] = useState("")
-  const [institucionSeleccionada, setInstitucionSeleccionada] = useState<Institucion | null>(null)
-  const [telefono, setTelefono] = useState("")
-  
-  const formCompleto = (modo == "seleccionar" && institucionSeleccionada) || 
-                      (modo == "cargar" && domicilio != "" && nombre != "" && telefono.length == 10 && tipoSeleccionado != null)
-  
+  const [correoValido, setCorreoValido] = useState(false)
+  const [institucionValida, setInstitucionValida] = useState(false)
 
-  function handleCargar () {
-    if ( modo == "cargar"){
-      const ins : InstitucionCreate = {nombre, domicilio: { nombre: domicilio }, id_tipo: tipoSeleccionado, telefono}
-      setInstitucion(ins)
+  const modoValido = modo === "seleccionar"
+    ? Boolean(institucion.id && institucion.id !== -1)
+    : institucionValida
+
+  const formCompleto = Boolean(telefono) && telefono.length === 10 && correoValido && modoValido
+
+  // Sincroniza correo/telefono desde la institución elegida, solo en modo "seleccionar"
+  useEffect(() => {
+    if (modo === "seleccionar" && institucion.id !== -1) {
+      setCorreo(institucion.correo ?? "")
+      setTelefono(institucion.telefono ?? "")
     }
-    else{
-      console.log(institucionSeleccionada)
-      setInstitucion(institucionSeleccionada)
-    }
+  }, [institucion.id, modo])
+
+  // Al cambiar de modo, arranca todo limpio
+  useEffect(() => {
+    setInstitucion(InstitucionInicial)
+    setCorreo("")
+    setTelefono("")
+  }, [modo])
+
+  function handleCargar() {
+    setInstitucion((prev) => ({ ...prev, correo, telefono }))
     setFinshInstitucion(true)
   }
 
-  // Cargar instituciones cuando cambia el tipo
-  useEffect(() => {
-    if (!tipoSeleccionado) {
-      setInstituciones([])
-      setInstitucion(null)
-      return
-    }
-    setLoadingInstituciones(true)
-    getInstitucionByTipo(tipoSeleccionado)
-      .then(setInstituciones)
-      .finally(() => setLoadingInstituciones(false))
-    setInstitucion(null)
-    setInstitucionSeleccionada(null)
-  }, [tipoSeleccionado])
-
-
   return (
     <Stack spacing={2} sx={{ minWidth: 1028 }}>
-      <TipoInstitucionComponent
-        tipoSeleccionado={tipoSeleccionado}
-        setTipoSeleccionado={setTipoSeleccionado}
-      />
+      <TipoInstitucionComponent tipoSeleccionado={tipo} setTipoSeleccionado={setTipo} />
 
-      {tipoSeleccionado && (
+      {tipo && (
         <>
           <ToggleButtonGroup
             value={modo}
@@ -76,55 +70,14 @@ export const InstitucionForm = ({ setInstitucion, setFinshInstitucion }: Props) 
           </ToggleButtonGroup>
 
           {modo === "seleccionar" && (
-            <Autocomplete
-              key={tipoSeleccionado ?? "none"}
-              options={instituciones}
-              getOptionLabel={(option) => option.nombre}
-              loading={loadingInstituciones}
-              value={institucionSeleccionada}
-              onChange={(_, value) => setInstitucionSeleccionada(value)}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Institución"
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {loadingInstituciones ? <CircularProgress size={18} /> : null}
-                        {params.InputProps?.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-            />
+            <InstitucionSelectForm institucion={institucion} setInstitucion={setInstitucion} tipo={tipo} />
           )}
-
           {modo === "cargar" && (
-            <Stack spacing={2}>
-              <TextField
-                label="Nombre"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                fullWidth
-              />
-              <TextField
-                label="Domicilio"
-                value={domicilio}
-                onChange={(e) => setDomicilio(e.target.value)}
-                fullWidth
-              />
-              <TelefonoComponent telefono={telefono} setTelefono={setTelefono}/>
-            </Stack>
+            <InstitucionCargaForm institucion={institucion} setInstitucion={setInstitucion} tipo={tipo} onValidChange={setInstitucionValida} />
           )}
-          <Button
-            variant="contained"
-            onClick={handleCargar}
-            disabled={!formCompleto}
-            fullWidth
-          >
+          <TelefonoComponent telefono={telefono} setTelefono={setTelefono} />
+          <CorreoForm correo={correo} setCorreo={setCorreo} onValidChange={setCorreoValido} />
+          <Button variant="contained" onClick={handleCargar} disabled={!formCompleto} fullWidth>
             Guardar
           </Button>
         </>

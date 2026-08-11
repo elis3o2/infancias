@@ -1,8 +1,7 @@
 from rest_framework import serializers
-from .models import (Adolescente, Solicitante, Familiar, Vinculo, Hermano, AdolescenteValidado, HermanoValidado,
-                        AdolescenteGubernamental, AdolescenteNoGubernamental)
-from src.apps.domicilio.serializers import (DomicilioSerializer, ReferenciaGubernamentalSerializer, ReferenciaGubernamentalInputSerializer,
-                                            ReferenciaNoGubernamentalSerializer, ReferenciaNoGubernamentalInputSerializer)
+from .models import (Adolescente, Solicitante, Familiar, Vinculo, Hermano, AdolescenteValidado, HermanoValidado)
+from src.apps.domicilio.models import Institucion
+from src.apps.domicilio.serializers import (DomicilioSerializer, InstitucionSerializer, ReferenciaInstitucionInputSerializer)
 
 
 class HermanoValidadoSerializer(serializers.ModelSerializer):
@@ -91,16 +90,8 @@ class AdolescenteSerializer(serializers.ModelSerializer):
     adolescente_validado = serializers.SerializerMethodField()
     hermanos_validados = serializers.SerializerMethodField()
 
-
-    referencias_gubernamentales = ReferenciaGubernamentalSerializer(many=True, read_only=True)
-    referencias_no_gubernamentales = ReferenciaNoGubernamentalSerializer(many=True, read_only=True)
-    
-    referencias_gubernamentales_data = ReferenciaGubernamentalInputSerializer(
-        many=True,
-        write_only=True,
-        required=False
-    )
-    referencias_no_gubernamentales_data = ReferenciaNoGubernamentalInputSerializer(
+    referencias_intituciones = InstitucionSerializer(many=True, read_only=True)
+    referencias_intituciones_data = ReferenciaInstitucionInputSerializer(
         many=True,
         write_only=True,
         required=False
@@ -130,12 +121,14 @@ class AdolescenteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         domicilio_data = validated_data.pop("domicilio")
-        
+
         hermanos = validated_data.pop("hermanos", [])
         familiares = validated_data.pop("familiares", [])
 
-        refs_gub = validated_data.pop("referencias_gubernamentales_data", [])
-        refs_no_gub = validated_data.pop("referencias_no_gubernamentales_data", [])
+        refs_inst = validated_data.pop(
+            "referencias_intituciones_data",
+            []
+        )
 
         domicilio = DomicilioSerializer().create(domicilio_data)
 
@@ -143,7 +136,7 @@ class AdolescenteSerializer(serializers.ModelSerializer):
             domicilio=domicilio,
             **validated_data,
         )
-        
+
         for hermano_data in hermanos:
             Hermano.objects.create(
                 adolescente=adolescente,
@@ -156,27 +149,23 @@ class AdolescenteSerializer(serializers.ModelSerializer):
                 **familiar_data,
             )
 
-        for ref_data in refs_gub:
+        for ref_data in refs_inst:
             if "id" in ref_data:
-                referencia = ReferenciaGubernamental.objects.get(id=ref_data["id"])
+                institucion = Institucion.objects.get(
+                    id=ref_data["id"]
+                )
             else:
-                referencia = ReferenciaGubernamentalSerializer().create(ref_data)
-            AdolescenteGubernamental.objects.create(
-                adolescente=adolescente,
-                gubernamental=referencia
-            )
+                institucion = InstitucionSerializer().create(
+                    ref_data
+                )
 
-        for ref_data in refs_no_gub:
-            if "id" in ref_data:
-                referencia = ReferenciaNoGubernamental.objects.get(id=ref_data["id"])
-            else:
-                referencia = ReferenciaNoGubernamentalSerializer().create(ref_data)
-            AdolescenteNoGubernamental.objects.create(
+            AdolescenteInstitucion.objects.create(
                 adolescente=adolescente,
-                gubernamental=referencia
+                institucion=institucion
             )
 
         return adolescente
+
 
 
 class SolicitanteSerializer(serializers.ModelSerializer):

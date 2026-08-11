@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Box, Button, Typography} from '@mui/material'
 import type { AdolescenteCreate, Familiar, Hermano, Solicitante } from "@/features/persona/types"
 import { AdolescenteInicial, SolicitanteInicial } from "@/features/persona/types"
-import type { Institucion, InstitucionCreate, Referencia } from "@/features/domicilio/types"
+import { InstitucionInicial, type Institucion, type Referencia } from "@/features/domicilio/types"
 import type { Archivo, MotivoSolicitud, PrioridadSolicitud, SolicitudCreate } from "@/features/solicitud/types"
 import { SolicitanteComponent } from "@/features/persona/componets/Solicitante/SolicitanteComponent"
 import { AdolescenteComponent } from "@/features/persona/componets/Adolescente/AdolescenteComponent"
@@ -19,7 +19,7 @@ import type { AlertSeverity } from "@/common/types"
 export const CreatePage = () => {
   const [solicitante, setSolicitante] = useState<Solicitante>(SolicitanteInicial)
   const [finishSolicitante, setFinishSolicitante] = useState(false)
-  const [institucion, setInstitucion] = useState<Institucion | InstitucionCreate | null>(null)
+  const [institucion, setInstitucion] = useState<Institucion>(InstitucionInicial)
   const [finishInstitucion, setFinishInstitucion] = useState(false)
   const [adolescente, setAdolescente] = useState<AdolescenteCreate>(AdolescenteInicial)
   const [familiares, setFamiliares] = useState<Familiar[]>([])
@@ -30,6 +30,8 @@ export const CreatePage = () => {
   const [prioridadSeleccionada, setPrioridadSeleccionada] = useState<PrioridadSolicitud | null>(null)
   const [motivoSeleccionado, setMotivoSeleccionado] = useState<MotivoSolicitud | null>(null)
   const [descripcion, setDescripcion] = useState("")
+  const [correo, setCorreo] = useState("")
+  const [telefono, setTelefono] = useState("")
   const [archivos, setArchivos] = useState<Archivo[]>([])
   const [gubernamentales, setGubernamentales] = useState<(Referencia | number)[]>([])
   const [noGubernamentales, setNoGubernamentales] = useState<(Referencia | number)[]>([])
@@ -57,8 +59,6 @@ export const CreatePage = () => {
         ...adolescente,
         hermanos,
         familiares,
-        referencias_gubernamentales_data: gubernamentales,
-        referencias_no_gubernamentales_data: noGubernamentales,
       },
       solicitante,
       id_motivo: motivoSeleccionado!.id,
@@ -119,6 +119,10 @@ return (
             setInstitucion={setInstitucion}
             finishInstitucion={finishInstitucion}
             setFinishInstitucion={setFinishInstitucion}
+            correo={correo}
+            setCorreo={setCorreo}
+            telefono={telefono}
+            setTelefono={setTelefono}
           />
           <AdolescenteComponent
             adolescente={adolescente}

@@ -5,9 +5,7 @@ export type Solicitante = {
     dni: string,
     sexo: "M" | "F" | "",
     nombre: string,
-    apellido: string,
-    telefono: string,
-    correo: string
+    apellido: string
 }
 
 export const SolicitanteInicial : Solicitante = {
@@ -15,8 +13,6 @@ export const SolicitanteInicial : Solicitante = {
     sexo: "",
     nombre: "",
     apellido: "",
-    telefono:"",
-    correo: ""
 }
 
 export type Adolescente = {
@@ -32,8 +28,7 @@ export type Adolescente = {
     familiares: Familiar[]
     adolescente_validado: AdolescenteValidado | null
     hermanos_validados: Hermano[]
-    referencias_gubernamentales: Referencia[]
-    referencias_no_gubernamentales: Referencia[]
+    referencias_instituciones: Institucion[]
 }
 
 export type AdolescenteCreate = {
@@ -46,8 +41,7 @@ export type AdolescenteCreate = {
     escolarizado: boolean
     hermanos: Hermano[]
     familiares: Familiar[]
-    referencias_gubernamentales_data: (Referencia | number)[]
-    referencias_no_gubernamentales_data: (Referencia | number)[]
+    referencias_institicuones_data: (Institucion | number)[]
 }
 
 
@@ -70,8 +64,7 @@ export const AdolescenteInicial : AdolescenteCreate = {
     escolarizado: false,
     hermanos: [],
     familiares: [],
-    referencias_gubernamentales_data: [],
-    referencias_no_gubernamentales_data:  []
+    referencias_institicuones_data: []
 }
 
 export type Vinculo = {

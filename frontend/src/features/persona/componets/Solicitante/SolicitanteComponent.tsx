@@ -2,7 +2,7 @@ import { Card, CardHeader, CardContent } from "@mui/material"
 import type { Setter } from "@/common/types"
 import type { Solicitante } from "../../types"
 import { SolicitanteForm } from "./SolicitanteForm"
-import { SolicitanteView } from "./SolicitanteView"
+import { SolicitanteCard } from "./SolicitanteCard"
 
 type Props = {
   solicitante: Solicitante | null
@@ -20,7 +20,7 @@ export const SolicitanteComponent = ({solicitante, setSolicitante, finishSolicit
         />
         <CardContent>
       {finishSolicitante && solicitante != null ? (
-        <SolicitanteView
+        <SolicitanteCard
           solicitante={solicitante}
           onEditar={() => setFinishSolicitante(false)}
         />

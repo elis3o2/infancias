@@ -1,7 +1,5 @@
 from django.db import models
-from src.apps.domicilio.models import Domicilio, Institucion, ReferenciaGubernamental, ReferenciaNoGubernamental
-
-
+from src.apps.domicilio.models import Domicilio, Institucion
 
 class Adolescente(models.Model):
     id = models.AutoField(primary_key=True)
@@ -14,16 +12,10 @@ class Adolescente(models.Model):
     fecha_nacimiento = models.DateField()
     escolarizado = models.BooleanField()
 
-    referencias_gubernamentales = models.ManyToManyField(
-        "ReferenciaGubernamental",
-        through="AdolescenteGubernamental",
-        related_name="adolescentes"
-    )
-    
-    referencias_no_gubernamentales = models.ManyToManyField(
-        "ReferenciaNoGubernamental",
-        through="AdolescenteNoGubernamental",
-        related_name="adolescentes"
+    referencias_intituciones = models.ManyToManyField(
+        "Institucion",
+        through="AdolescenteInstitucion",
+        related_name="instituciones"
     )
 
     class Meta:
@@ -51,8 +43,6 @@ class Solicitante(models.Model):
     dni = models.CharField(max_length=10, blank=True, null=True)
     nombre = models.CharField(max_length=32)
     apellido = models.CharField(max_length=32)
-    telefono = models.CharField(max_length=16)
-    correo = models.CharField(max_length=32)
 
     class Meta:
         managed = False
@@ -113,27 +103,13 @@ class Familiar(models.Model):
         db_table = 'familiar'
 
 
-
-
-
-class AdolescenteGubernamental(models.Model):
+class AdolescenteInstitucion(models.Model):
     id = models.AutoField(primary_key=True)
     adolescente = models.ForeignKey(
         Adolescente, models.DO_NOTHING, db_column="id_adolescente")
-    gubernamental = models.ForeignKey(
-        ReferenciaGubernamental, models.DO_NOTHING, db_column="id_gubernamental")
+    institucion = models.ForeignKey(
+        Institucion, models.DO_NOTHING, db_column="id_institucion")
+    
     class Meta:
         managed = False
-        db_table = "adolescente_gubernamental"
-
-
-class AdolescenteNoGubernamental(models.Model):
-    id = models.AutoField(primary_key=True)
-    adolescente = models.ForeignKey(
-        Adolescente, models.DO_NOTHING, db_column="id_adolescente")
-    no_gubernamental = models.ForeignKey(
-        ReferenciaNoGubernamental, models.DO_NOTHING, db_column="id_no_gubernamental")
-
-    class Meta:
-        managed = False
-        db_table = "adolescente_no_gubernamental"
+        db_table = "adolescente_institucion"

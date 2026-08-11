@@ -7,13 +7,10 @@ INSERT INTO vinculo (nombre) VALUES
 
 
 INSERT INTO tipo_institucion (nombre) VALUES
-('Comedor / Merendero'),
-('Comisaria'),
-('Efector de Salud'),
-('Escuela Nivel Inicial'),
-('Escuela Especial'),
-('Poder Judicial'),
-('Otro');
+('Educativa'),
+('De Salud'),
+('Juducial'),
+('Otra');
 
 
 INSERT INTO derivacion (nombre) VALUES

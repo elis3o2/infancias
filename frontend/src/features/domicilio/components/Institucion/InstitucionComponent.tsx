@@ -1,19 +1,27 @@
 import { Card, CardHeader, CardContent } from '@mui/material';
 import type { Setter } from "@/common/types"
-import type { Institucion, InstitucionCreate } from "../../types"
+import type { Institucion } from "../../types"
 import { InstitucionView } from "./InstitucionView"
 import { InstitucionForm } from "./InstitucionForm"
+import { InstitucionCard } from './InstitucionCard';
 
 
 type Props = {
-    institucion: Institucion | InstitucionCreate
-    setInstitucion: Setter<Institucion | InstitucionCreate>
+    institucion: Institucion 
+    setInstitucion: Setter<Institucion>
     finishInstitucion: boolean
     setFinishInstitucion: Setter<boolean>
+    correo: string
+    setCorreo: Setter<string>
+    telefono: string
+    setTelefono: Setter<string>
 }
 
-export const InstitucionComponent = ({ institucion, setInstitucion, finishInstitucion, setFinishInstitucion }: Props) => {
-  return (
+export const InstitucionComponent = ({ institucion, setInstitucion, finishInstitucion, setFinishInstitucion, 
+          correo, setCorreo, telefono, setTelefono }: Props) => {
+  
+  console.log("TELEFON", telefono)
+            return (
     <Card variant="outlined" sx={{ borderRadius: 2 }}>
       <CardHeader
         title="Institución solicitante"
@@ -21,14 +29,19 @@ export const InstitucionComponent = ({ institucion, setInstitucion, finishInstit
       />
       <CardContent>
         {finishInstitucion && institucion != null ? (
-          <InstitucionView
+          <InstitucionCard
             institucion={institucion}
-            setFinshInstitucion={setFinishInstitucion}
+            onEditar={() =>setFinishInstitucion(false)}
           />
         ) : (
           <InstitucionForm
+            institucion={institucion}
             setInstitucion={setInstitucion}
             setFinshInstitucion={setFinishInstitucion}
+            correo={correo}
+            setCorreo={setCorreo}
+            telefono={telefono}
+            setTelefono={setTelefono}
           />
         )}
       </CardContent>

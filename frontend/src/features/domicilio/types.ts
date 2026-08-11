@@ -31,9 +31,11 @@ export type DomicilioValidado = {
 
 
 export type Domicilio = {
-    id: number,
+    id?: number,
     nombre: string,
     domicilio_validado: DomicilioValidado | null
+    provincia: Provincia
+    departamento: Departamento
 }
 
 
@@ -60,20 +62,24 @@ export type TipoInstitucion = {
 }
 
 
-export type InstitucionCreate = {
-    id_tipo: number
-    domicilio: { nombre: string }
-    nombre: string
-    telefono: string
+
+export const InstitucionInicial : Institucion = {
+    id: -1,
+    tipo: null,
+    domicilio: {nombre: "", provincia: null, departamento:null, domicilio_validado: null},
+    nombre: "",
+    telefono: "",
+    correo: ""
 }
 
 
 export type Institucion = {
-    id: number,
+    id?: number,
     tipo: TipoInstitucion,
     domicilio: Domicilio,
     nombre: string
     telefono: string
+    correo: string
 }
 
 

@@ -3,15 +3,24 @@ import pymysql
 
 ARCHIVO_EXCEL = "departamentos.xlsx"
 
-
-
 # Leer Excel
 df = pd.read_excel(ARCHIVO_EXCEL)
 
+# Obtener provincias únicas
+provincias = (
+    df["Provincia"]
+    .dropna()
+    .astype(str)
+    .str.strip()
+    .drop_duplicates()
+    .tolist()
+)
 
-# Leer Excel
-df = pd.read_excel(ARCHIVO_EXCEL)
+print("Provincias encontradas:")
+for provincia in provincias:
+    print(provincia)
 
+# Conexión a MariaDB
 conexion = pymysql.connect(
     host="localhost",
     user="root",
@@ -19,6 +28,46 @@ conexion = pymysql.connect(
     database="infancias",
     charset="utf8mb4"
 )
+
+try:
+    with conexion.cursor() as cursor:
+
+        for provincia in provincias:
+
+            # Evitar duplicados
+            cursor.execute(
+                """
+                SELECT id
+                FROM provincia
+                WHERE nombre = %s
+                """,
+                (provincia,)
+            )
+
+            existente = cursor.fetchone()
+
+            if existente:
+                print(f"Ya existe: {provincia}")
+                continue
+
+            cursor.execute(
+                """
+                INSERT INTO provincia (nombre)
+                VALUES (%s)
+                """,
+                (provincia,)
+            )
+
+            print(f"Insertada: {provincia}")
+
+    conexion.commit()
+
+finally:
+    print("Proceso terminado.")
+
+
+# Leer Excel
+df = pd.read_excel(ARCHIVO_EXCEL)
 
 
 try:
@@ -89,5 +138,6 @@ try:
 
 finally:
     conexion.close()
+
 
 print("Proceso terminado.")

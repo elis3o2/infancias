@@ -58,7 +58,8 @@ CREATE TABLE IF NOT EXISTS institucion (
     nombre VARCHAR(128) NOT NULL,
     id_domicilio INT NOT NULL,
     id_tipo INT NOT NULL,
-    telefono VARCHAR(16) NULL,
+    telefono VARCHAR(16) NOT NULL,
+    correo VARCHAR(32) NOT NULL,
     FOREIGN KEY (id_domicilio) REFERENCES domicilio (id),
     FOREIGN KEY (id_tipo) REFERENCES tipo_institucion (id)
 );
@@ -69,8 +70,6 @@ CREATE TABLE IF NOT EXISTS solicitante (
     dni VARCHAR(10) NULL,
     nombre VARCHAR(32) NOT NULL,
     apellido VARCHAR(32) NOT NULL,
-    telefono VARCHAR(16) NOT NULL,
-    correo  VARCHAR(32) NOT NULL
 );
 
 
@@ -143,7 +142,7 @@ CREATE TABLE IF NOT EXISTS familiar (
 
 CREATE TABLE IF NOT EXISTS motivo_solicitud (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(32) NOT NULL
+    nombre VARCHAR(64) NOT NULL
 );
 
 
@@ -161,6 +160,8 @@ CREATE TABLE IF NOT EXISTS derivacion (
 CREATE TABLE IF NOT EXISTS solicitud (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_institucion INT NOT NULL,
+    correo VARCHAR(32) NOT NULL,
+    telefono VARCHAR(32) NOT NULL,
     id_solicitante INT NOT NULL,
     id_adolescente INT NOT NULL,
     id_motivo INT NOT NULL,

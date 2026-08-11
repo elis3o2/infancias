@@ -25,6 +25,7 @@ import { DatoItem } from "@/common/components/DatoItem"
 import { Mapa } from "@/features/domicilio/components/Mapa"
 import { ValidarButtons } from "../Validacion/ValidarButtons"
 import type { Setter } from "@/common/types"
+import { AdolescenteSimpleCard } from "./AdolescenteSimpleCard"
 
 type Props = {
   adolescente: Adolescente
@@ -49,7 +50,6 @@ function formatFecha(fecha: string | null | undefined) {
 }
 
 export const AdolescenteCard = ({ adolescente, estado, setEstado, ciudadano, setCiudadano }: Props) => {
-  const sexoLabel = adolescente.sexo === "M" ? "Masculino" : "Femenino"
   const [salud, setSalud] = useState<Salud | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -93,33 +93,15 @@ return (
         <Stack direction="row" spacing={3}>
           {/* Columna izquierda: datos cargados del adolescente */}
           <Box sx={{ flex: 1 }}>
-            <List
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                columnGap: 3,
-                rowGap: 0,
-                bgcolor: "action.hover",
-                borderRadius: 2,
-                px: 2,
-                py: 1,
-              }}
-            >
-              <DatoItem icon={<PersonIcon fontSize="small" />} label="Nombre" valor={adolescente.nombre} />
-              <DatoItem icon={<PersonIcon fontSize="small" />} label="Apellido" valor={adolescente.apellido} />
-              <DatoItem icon={<BadgeIcon fontSize="small" />} label="DNI" valor={adolescente.dni} />
-              <DatoItem icon={<WcIcon fontSize="small" />} label="Sexo" valor={sexoLabel} />
-              <DatoItem
-                icon={<CakeIcon fontSize="small" />}
-                label="Fecha de nacimiento"
-                valor={formatFecha(adolescente.fecha_nacimiento)}
-              />
-             <DatoItem
-              icon={<SchoolIcon fontSize="small" />}
-              label={"Escolarizado"}
-              valor={adolescente.escolarizado? "Si" : "No"}
+            <AdolescenteSimpleCard
+              nombre={adolescente.nombre}
+              apellido={adolescente.apellido}
+              dni={adolescente.dni}
+              sexo={adolescente.sexo}
+              escolarizado={adolescente.escolarizado}
+              fecha_nacimiento={adolescente.fecha_nacimiento}
+              domicilio={adolescente.domicilio.nombre}
             />
-            </List>
 
             <Button
               onClick={handleValidar}
@@ -152,18 +134,11 @@ return (
                   Validación con RENAPER
                 </Typography>
 
-                <List
-                  sx={{
-                    bgcolor: "background.paper",
-                    borderRadius: 2,
-                    px: 2,
-                    py: 0.5,
-                  }}
-                >
-                  <DatoItem icon={<PersonIcon fontSize="small" />} label="Nombre" valor={ciudadano.nombre} />
-                  <DatoItem icon={<PersonIcon fontSize="small" />} label="Apellido" valor={ciudadano.apellido} />
-                  <DatoItem icon={<CakeIcon fontSize="small" />} label="Fecha de nacimiento" valor={formatFecha(ciudadano.fechaNacimiento)} />
-                </List>
+                <AdolescenteSimpleCard
+                  nombre={ciudadano.nombre}
+                  apellido={ciudadano.apellido}
+                  fecha_nacimiento={ciudadano.fechaNacimiento}
+                />
 
                 {ciudadano.fallecido === "SI" && (
                   <Alert severity="warning" sx={{ mt: 2, borderRadius: 2 }}>

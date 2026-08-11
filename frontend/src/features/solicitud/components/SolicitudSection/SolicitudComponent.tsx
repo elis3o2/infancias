@@ -3,6 +3,7 @@ import type { PrioridadSolicitud, MotivoSolicitud } from "../../types"
 import { useState } from "react"
 import { SolicitudForm } from "./SolicitudForm"
 import { SolicitudView } from "./SolicitudView"
+import { SolicitudCard } from "./SolicitudCard"
 
 type Props = {
     prioridadSeleccionada: PrioridadSolicitud
@@ -20,11 +21,11 @@ export const SolicitudComponent = ({ prioridadSeleccionada, setPrioridadSeleccio
   return (
     <>
       {finishSolicitudSection && motivoSeleccionado != null && prioridadSeleccionada != null ? (
-        <SolicitudView
+        <SolicitudCard
           motivo={motivoSeleccionado}
           prioridad={prioridadSeleccionada}
           descripcion={descripcion}
-          setFinishSolicitudSection={setFinishSolicitudSection}
+          onEditar={() => setFinishSolicitudSection(false)}
         />
       ) : (
         <SolicitudForm

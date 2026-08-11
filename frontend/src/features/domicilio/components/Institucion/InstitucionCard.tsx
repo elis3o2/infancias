@@ -6,19 +6,23 @@ import {
   List,
   Stack,
   Typography,
+  CardActions, 
+  Button
 } from "@mui/material"
 import BusinessIcon from "@mui/icons-material/Business";
 import CategoryIcon from "@mui/icons-material/Category";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneIcon from "@mui/icons-material/Phone";
+import EmailIcon from "@mui/icons-material/Email";
 import { DatoItem } from "@/common/components/DatoItem"
 
 type Props = {
   institucion: Institucion
+  onEditar?: () => void
 }
 
 
-export const InstitucionCard = ({ institucion }: Props) => {
+export const InstitucionCard = ({ institucion, onEditar }: Props) => {
 
   return (
     <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
@@ -52,11 +56,15 @@ export const InstitucionCard = ({ institucion }: Props) => {
 
               <DatoItem icon={<LocationOnIcon fontSize="small" />} label="Direccion" valor={institucion.domicilio.nombre} />
               <DatoItem icon={<PhoneIcon fontSize="small" />} label="Telefono" valor={institucion.telefono} />
-
+              <DatoItem icon={<EmailIcon fontSize="small" />} label="Correo" valor={institucion.correo}/>
             </List>
           </Box>
         </Stack>
       </CardContent>
+      {onEditar && 
+      <CardActions>
+        <Button onClick={onEditar}>Editar</Button>
+      </CardActions>}
     </Card>
   )
 }

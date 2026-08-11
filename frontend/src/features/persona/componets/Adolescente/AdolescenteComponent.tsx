@@ -1,8 +1,8 @@
 import type { Setter } from "@/common/types"
 import type { AdolescenteCreate } from "../../types"
 import { AdolescenteForm } from "./AdolescenteForm"
-import { AdolescenteView } from "./AdolescenteView"
 import { Card, CardHeader, CardContent} from "@mui/material"
+import { AdolescenteSimpleCard } from "./AdolescenteSimpleCard"
 
 type Props = {
   adolescente: AdolescenteCreate
@@ -20,8 +20,14 @@ export const AdolescenteComponent = ({ adolescente, setAdolescente, finishAdoles
         />
         <CardContent>
       {finishAdolescente && adolescente != null ? (
-        <AdolescenteView
-          adolescente={adolescente}
+        <AdolescenteSimpleCard
+          nombre={adolescente.nombre}
+          apellido={adolescente.apellido}
+          dni={adolescente.dni}
+          sexo={adolescente.sexo != "" ? adolescente.sexo: null}
+          escolarizado={adolescente.escolarizado}
+          fecha_nacimiento={adolescente.fecha_nacimiento}
+          domicilio={adolescente.domicilio.nombre}
           onEditar={() => setFinishAdolescente(false)}
         />
       ) : (
