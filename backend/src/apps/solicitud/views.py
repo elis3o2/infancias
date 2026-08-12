@@ -109,7 +109,7 @@ class SolicitudViewSet(viewsets.ModelViewSet):
                 contenido=file.read(),
             )
         
-        enviar_correo(subject="FORMULARIO PROBLEMÁTICA", body="La solicitud fue enviada correctamente.", to_emails=[solicitud.solicitante.correo])
+        # enviar_correo(subject="FORMULARIO PROBLEMÁTICA", body="La solicitud fue enviada correctamente.", to_emails=[solicitud.correo])
         return Response(
             self.get_serializer(solicitud).data,
             status=status.HTTP_201_CREATED,

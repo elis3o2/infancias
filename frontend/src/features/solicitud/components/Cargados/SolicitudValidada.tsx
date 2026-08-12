@@ -1,6 +1,6 @@
 import { SolicitanteCard } from "@/features/persona/componets/Solicitante/SolicitanteCard"
 import { InstitucionCard } from "@/features/domicilio/components/Institucion/InstitucionCard"
-import { DescripcionCard } from "../SolicitudSection/SolicitudCard"
+import { SolicitudCard } from "../SolicitudSection/SolicitudCard"
 import { FamiliaresCard } from "@/features/persona/componets/Familiar/FamiliarCard"
 import { ArchivoCard } from "../Archivo/ArchivoCard";
 import type { Solicitud } from "../../types"
@@ -33,7 +33,7 @@ export const SolicitudValidada = ({solicitud} : Props) => {
         <HermanoValidadoCard
             hermanos={solicitud.adolescente.hermanos_validados}
         />}
-        <DescripcionCard descripcion={solicitud.descripcion}/>
+        <SolicitudCard descripcion={solicitud.descripcion}/>
         <ArchivoCard archivos={solicitud.archivos}/>
         {solicitud.adolescente.referencias_gubernamentales.length > 0 &&
         <ReferenciaCard 

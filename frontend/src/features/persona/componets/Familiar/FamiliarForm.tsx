@@ -1,4 +1,4 @@
-import type { Familiar, FamiliarCreate, Vinculo } from "../../types"
+import type { Familiar, Vinculo } from "../../types"
 import type { Setter } from "@/common/types"
 import { TelefonoComponent } from "../TelefonoComponent"
 import { useState } from "react"
@@ -14,7 +14,7 @@ import { NombreForm } from "../NombreForm"
 import { VinculoForm } from "../VinculoForm"
 
 type Props = {
-  setFamiliar: Setter<FamiliarCreate | null>
+  setFamiliar: Setter<Familiar | null>
   setFinishFamiliar: Setter<boolean>
 }
 
@@ -38,7 +38,7 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
       nombre,
       apellido,
       telefono,
-      id_vinculo: vinculoSeleccionado.id,
+      vinculo: vinculoSeleccionado,
     })
 
     setFinishFamiliar(true)

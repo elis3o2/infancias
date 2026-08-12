@@ -8,20 +8,15 @@ import {
   CircularProgress,
   Collapse,
   Divider,
-  List,
   Stack,
   Typography,
 } from "@mui/material"
-import BadgeIcon from "@mui/icons-material/Badge"
-import WcIcon from "@mui/icons-material/Wc"
-import CakeIcon from "@mui/icons-material/Cake"
-import PersonIcon from "@mui/icons-material/Person"
 import FactCheckIcon from "@mui/icons-material/FactCheck"
 import { getCiudadano } from "../../api"
 import { useState } from "react"
-import { DatoItem } from "@/common/components/DatoItem"
 import { ValidarButtons} from "../Validacion/ValidarButtons"
 import type { Setter } from "@/common/types"
+import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteSimpleCard"
 
 type Props = {
   hermanos: Hermano[]
@@ -31,15 +26,6 @@ type Props = {
   setCiudadanos: Setter<(Ciudadano | null)[]>
 }
 
-function formatFecha(fecha: string | null | undefined) {
-  if (!fecha) return "—"
-  const d = new Date(fecha)
-  if (isNaN(d.getTime())) return fecha
-  const dia = String(d.getUTCDate()).padStart(2, "0")
-  const mes = String(d.getUTCMonth() + 1).padStart(2, "0")
-  const anio = d.getUTCFullYear()
-  return `${dia}-${mes}-${anio}`
-}
 
 export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiudadanos }: Props) => {
   
@@ -72,9 +58,6 @@ export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiud
     }
   }
 
-  function sexoLabel(h: Hermano) {
-    return h.sexo === "M" ? "Masculino" : "Femenino"
-  }
 
   function setEstado (e: null | "confirmado" | "rechazado", index){
     setEstados((prev) => {
@@ -112,24 +95,14 @@ export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiud
                     </Typography>
 
                   </Stack>
-                    <List
-                      sx={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        columnGap: 3,
-                        rowGap: 0,
-                        bgcolor: "action.hover",
-                        borderRadius: 2,
-                        px: 2,
-                        py: 1,
-                      }}
-                    >
-                      <DatoItem icon={<PersonIcon fontSize="small" />} label="Nombre" valor={hermano.nombre} />
-                      <DatoItem icon={<PersonIcon fontSize="small" />} label="Apellido" valor={hermano.apellido} />
-                      <DatoItem icon={<BadgeIcon fontSize="small" />} label="DNI" valor={hermano.dni} />
-                      <DatoItem icon={<WcIcon fontSize="small" />} label="Sexo" valor={sexoLabel(hermano)} />
-                      <DatoItem icon={<CakeIcon fontSize="small" />} label="Fecha de nacimiento" valor={formatFecha(hermano.fecha_nacimiento)} />
-                    </List>
+                      
+                      <AdolescenteSimpleCard
+                        nombre={hermano.nombre}
+                        apellido={hermano.apellido}
+                        dni={hermano.dni}
+                        sexo={hermano.sexo}
+                        fecha_nacimiento={hermano.fecha_nacimiento}
+                      />
 
                     <Button
                       onClick={() => handleValidar(hermano, index)}
@@ -167,19 +140,12 @@ export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiud
                       <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
                         Validación con RENAPER
                       </Typography>
-
-                      <List
-                        sx={{
-                          bgcolor: "background.paper",
-                          borderRadius: 2,
-                          px: 2,
-                          py: 0.5,
-                        }}
-                      >
-                        <DatoItem icon={<PersonIcon fontSize="small" />} label="Nombre" valor={ciudadano.nombre} />
-                        <DatoItem icon={<PersonIcon fontSize="small" />} label="Apellido" valor={ciudadano.apellido} />
-                        <DatoItem icon={<CakeIcon fontSize="small" />} label="Fecha de nacimiento" valor={formatFecha(ciudadano.fechaNacimiento)} />
-                      </List>
+                      
+                      <AdolescenteSimpleCard
+                        nombre={ciudadano.nombre}
+                        apellido={ciudadano.apellido}
+                        fecha_nacimiento={ciudadano.fechaNacimiento}
+                      />
 
                       {ciudadano.fallecido === "SI" && (
                         <Alert severity="warning" sx={{ mt: 2, borderRadius: 2 }}>

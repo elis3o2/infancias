@@ -12,7 +12,7 @@ import { NombreForm } from "../NombreForm"
 
 type Props = {
   solicitante: Solicitante
-  setSolicitante: Setter<Solicitante | null>
+  setSolicitante: Setter<Solicitante>
   setFinishSolicitante: Setter<boolean>
 }
 

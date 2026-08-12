@@ -38,6 +38,8 @@ class Solicitud(models.Model):
         Adolescente, models.DO_NOTHING, db_column='id_adolescente')
     motivo = models.ForeignKey(
         MotivoSolicitud, models.DO_NOTHING, db_column='id_motivo')
+    correo = models.CharField(max_length=32)
+    telefono = models.CharField(max_length=32)
     prioridad = models.ForeignKey(
         PrioridadSolicitud, models.DO_NOTHING, db_column='id_prioridad')
     descripcion = models.CharField(max_length=256)

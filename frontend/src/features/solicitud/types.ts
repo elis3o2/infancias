@@ -1,4 +1,4 @@
-import type { Institucion, InstitucionCreate } from "../domicilio/types"
+import type { Institucion } from "../domicilio/types"
 import type { Adolescente, AdolescenteCreate, Hermano, Solicitante } from "../persona/types"
 
 export type MotivoSolicitud = {
@@ -49,12 +49,14 @@ export type Solicitud = {
 
 
 export type SolicitudCreate = {
-    id_institucion?: number
-    institucion?: InstitucionCreate
+    id_institucion?: number | null
+    institucion?: Institucion | null
     solicitante: Solicitante
     adolescente: AdolescenteCreate
     id_motivo: number
     id_prioridad: number
+    correo: string
+    telefono: string
     descripcion: string
     archivos: File[]
 }

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Box, Button, Typography} from '@mui/material'
 import type { AdolescenteCreate, Familiar, Hermano, Solicitante } from "@/features/persona/types"
 import { AdolescenteInicial, SolicitanteInicial } from "@/features/persona/types"
-import { InstitucionInicial, type Institucion, type Referencia } from "@/features/domicilio/types"
+import { InstitucionInicial, type Institucion } from "@/features/domicilio/types"
 import type { Archivo, MotivoSolicitud, PrioridadSolicitud, SolicitudCreate } from "@/features/solicitud/types"
 import { SolicitanteComponent } from "@/features/persona/componets/Solicitante/SolicitanteComponent"
 import { AdolescenteComponent } from "@/features/persona/componets/Adolescente/AdolescenteComponent"
@@ -10,11 +10,11 @@ import { SolicitudComponent } from "@/features/solicitud/components/SolicitudSec
 import { HermanosComponent } from "@/features/persona/componets/Hermano/HermanoComponent"
 import { FamiliaresComponent } from "@/features/persona/componets/Familiar/FamiliarComponent"
 import { ArchivoComponent } from "@/features/solicitud/components/Archivo/ArchivoComponent"
-import { RedComponent } from "@/features/solicitud/components/Redes/RedComponent"
 import { InstitucionComponent } from "@/features/domicilio/components/Institucion/InstitucionComponent"
 import { postSolicitud } from "@/features/solicitud/api"
 import { AlertMessage } from "@/common/components"
 import type { AlertSeverity } from "@/common/types"
+import { ReferenciaInstitucionComponent } from "@/features/solicitud/components/Redes/ReferenciaInstitucionesComponent"
 
 export const CreatePage = () => {
   const [solicitante, setSolicitante] = useState<Solicitante>(SolicitanteInicial)
@@ -32,41 +32,98 @@ export const CreatePage = () => {
   const [descripcion, setDescripcion] = useState("")
   const [correo, setCorreo] = useState("")
   const [telefono, setTelefono] = useState("")
+  const [referencias, setReferencias] = useState<Institucion[]>([])
+  const [finishReferencias, setFinishReferencias] = useState(false)
   const [archivos, setArchivos] = useState<Archivo[]>([])
-  const [gubernamentales, setGubernamentales] = useState<(Referencia | number)[]>([])
-  const [noGubernamentales, setNoGubernamentales] = useState<(Referencia | number)[]>([])
   const [alertOpen, setAlertOpen] = useState(false)
   const [alertMessage, setAlertMessage] = useState("")
   const [alertSeverity, setAlertSeverity] = useState<AlertSeverity>("success")
   const [enviado, setEnviado] = useState(false)
   
-  async function handleEnviar() {
-    let id_institucion: number | null = null
-    let institucionNueva: InstitucionCreate | null = null
 
-    if (institucion) {
-      if ("id" in institucion) {
-        id_institucion = institucion.id
-      } else {
-        institucionNueva = institucion
+async function handleEnviar() {
+  if (!motivoSeleccionado || !prioridadSeleccionada) return
+
+  let id_institucion: number | null = null
+  let institucionNueva: Institucion | null = null
+
+  if (institucion) {
+    if (institucion.id !== undefined && institucion.id !== -1) {
+      id_institucion = institucion.id
+    } else {
+      institucionNueva = institucion
+    }
+  }
+
+  const domicilioData = {
+    nombre: adolescente.domicilio?.nombre,
+    id_departamento: 520,
+    domicilio_validado: adolescente.domicilio?.domicilio_validado,
+  }
+
+const familiaresData = familiares.map((familiar) => ({
+  id: familiar.id,
+  nombre: familiar.nombre,
+  apellido: familiar.apellido,
+  telefono: familiar.telefono,
+  id_vinculo: familiar.vinculo?.id,
+}))
+
+  const referenciasInstitucionesData = referencias.map((referencia) => {
+    if (referencia.id !== undefined && referencia.id !== -1) {
+      return {
+        id: referencia.id,
       }
     }
 
-    const solicitud: SolicitudCreate = {
-      id_institucion,
-      institucion: institucionNueva,
-      adolescente: {
-        ...adolescente,
-        hermanos,
-        familiares,
+    return {
+      nombre: referencia.nombre,
+      id_tipo: referencia.tipo.id,
+      telefono: referencia.telefono,
+      correo: referencia.correo,
+      domicilio: {
+        nombre: referencia.domicilio?.nombre,
+        id_departamento: referencia.domicilio?.departamento?.id,
+        domicilio_validado: referencia.domicilio?.domicilio_validado,
       },
-      solicitante,
-      id_motivo: motivoSeleccionado!.id,
-      id_prioridad: prioridadSeleccionada!.id,
-      descripcion,
-      archivos: archivos.map((archivo) => archivo.contenido),
     }
+  })
 
+  const solicitud = {
+    id_institucion,
+    institucion: institucionNueva
+      ? {
+          nombre: institucionNueva.nombre,
+          id_tipo: institucionNueva.tipo.id,
+          telefono: institucionNueva.telefono,
+          correo: institucionNueva.correo,
+          domicilio: {
+            nombre: institucionNueva.domicilio?.nombre,
+            id_departamento:
+              institucionNueva.domicilio?.departamento?.id,
+            domicilio_validado:
+              institucionNueva.domicilio?.domicilio_validado,
+          },
+        }
+      : undefined,
+
+    adolescente: {
+      ...adolescente,
+      domicilio: domicilioData,
+      hermanos,
+      familiares: familiaresData,
+      referencias_instituciones_data: referenciasInstitucionesData,
+    },
+
+    solicitante,
+    correo,
+    telefono,
+    id_motivo: motivoSeleccionado.id,
+    id_prioridad: prioridadSeleccionada.id,
+    descripcion,
+    archivos: archivos.map((archivo) => archivo.contenido),
+  }
+    console.log("SOLICITUD",solicitud)
     try {
       await postSolicitud(solicitud)
 
@@ -150,11 +207,11 @@ return (
             finishHermano={finishHermano}
             setFinishHermano={setFinishHermano}
           />
-          <RedComponent
-            gubernamentales={gubernamentales}
-            setGubernamentales={setGubernamentales}
-            noGubernamentales={noGubernamentales}
-            setNoGubernamentales={setNoGubernamentales}
+          <ReferenciaInstitucionComponent
+            instituciones={referencias}
+            setInstituciones={setReferencias}
+            finishInstitucion={finishReferencias}
+            setFinishInstitucion={setFinishReferencias}
           />
           <ArchivoComponent archivos={archivos} setArchivos={setArchivos} />
 

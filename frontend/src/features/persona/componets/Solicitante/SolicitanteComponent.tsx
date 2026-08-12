@@ -5,8 +5,8 @@ import { SolicitanteForm } from "./SolicitanteForm"
 import { SolicitanteCard } from "./SolicitanteCard"
 
 type Props = {
-  solicitante: Solicitante | null
-  setSolicitante: Setter<Solicitante | null>
+  solicitante: Solicitante
+  setSolicitante: Setter<Solicitante>
   finishSolicitante: boolean
   setFinishSolicitante: Setter<boolean>
 }

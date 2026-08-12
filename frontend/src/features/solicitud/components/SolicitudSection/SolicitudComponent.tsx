@@ -2,7 +2,6 @@ import type { Setter } from "@/common/types"
 import type { PrioridadSolicitud, MotivoSolicitud } from "../../types"
 import { useState } from "react"
 import { SolicitudForm } from "./SolicitudForm"
-import { SolicitudView } from "./SolicitudView"
 import { SolicitudCard } from "./SolicitudCard"
 
 type Props = {

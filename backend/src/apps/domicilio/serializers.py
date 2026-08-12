@@ -24,14 +24,29 @@ class DomicilioValidadoSerializer(serializers.ModelSerializer):
 
 
 class DomicilioSerializer(serializers.ModelSerializer):
-    domicilio_validado = DomicilioValidadoSerializer(required=False, allow_null=True)
+    departamento = DepartamentoSerializer(read_only=True)
+
+    id_departamento = serializers.PrimaryKeyRelatedField(
+        queryset=Departamento.objects.all(),
+        source="departamento",
+        write_only=True,
+        required=True,
+    )
+
+    domicilio_validado = DomicilioValidadoSerializer(
+        required=False,
+        allow_null=True,
+    )
 
     class Meta:
         model = Domicilio
         fields = "__all__"
 
     def create(self, validated_data):
-        domicilio_validado_data = validated_data.pop("domicilio_validado", None)
+        domicilio_validado_data = validated_data.pop(
+            "domicilio_validado",
+            None,
+        )
 
         domicilio_validado = None
 
@@ -47,8 +62,6 @@ class DomicilioSerializer(serializers.ModelSerializer):
             domicilio_validado=domicilio_validado,
             **validated_data,
         )
-
-
 class TipoInstitucionSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -63,6 +76,7 @@ class InstitucionSerializer(serializers.ModelSerializer):
         queryset=TipoInstitucion.objects.all(),
         source="tipo",
         write_only=True,
+        required=True,
     )
 
     domicilio = DomicilioSerializer()
@@ -72,21 +86,45 @@ class InstitucionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-        domicilio_data = validated_data.pop("domicilio")
+        print("INSTITUCION VALIDATED:", validated_data)
 
+        domicilio_data = validated_data.pop("domicilio")
         domicilio = DomicilioSerializer().create(domicilio_data)
 
         return Institucion.objects.create(
             domicilio=domicilio,
-            **validated_data
+            **validated_data,
         )
 
 
 class ReferenciaInstitucionInputSerializer(serializers.Serializer):
-    id = serializers.IntegerField(required=False)
-    nombre = serializers.CharField(required=False)
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Institucion.objects.all(),
+        required=False,
+    )
+
+    nombre = serializers.CharField(
+        required=False,
+    )
+
     id_tipo = serializers.PrimaryKeyRelatedField(
         queryset=TipoInstitucion.objects.all(),
-        required=False
+        source="tipo",
+        required=False,
     )
-    domicilio = DomicilioSerializer(required=False)
+
+    domicilio = DomicilioSerializer(
+        required=False,
+    )
+
+    telefono = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+    )
+
+    correo = serializers.EmailField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+    )

@@ -12,7 +12,7 @@ class Adolescente(models.Model):
     fecha_nacimiento = models.DateField()
     escolarizado = models.BooleanField()
 
-    referencias_intituciones = models.ManyToManyField(
+    referencias_instituciones = models.ManyToManyField(
         "Institucion",
         through="AdolescenteInstitucion",
         related_name="instituciones"

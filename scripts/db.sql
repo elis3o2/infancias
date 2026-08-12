@@ -23,15 +23,15 @@ CREATE TABLE IF NOT EXISTS domicilio_validado (
     radio_censal VARCHAR(32) NULL
 );
 
-CREATE TABLE provincia (
+CREATE TABLE IF NOT EXISTS provincia (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(32) NOT NULL
+    nombre VARCHAR(64) NOT NULL
 );
 
 
-CREATE TABLE departamento (
+CREATE TABLE IF NOT EXISTS departamento (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(32) NOT NULL,
+    nombre VARCHAR(64) NOT NULL,
     id_provincia INT NOT NULL,
     FOREIGN KEY (id_provincia) REFERENCES provincia(id)
 );
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS solicitante (
     id INT AUTO_INCREMENT PRIMARY KEY,
     dni VARCHAR(10) NULL,
     nombre VARCHAR(32) NOT NULL,
-    apellido VARCHAR(32) NOT NULL,
+    apellido VARCHAR(32) NOT NULL
 );
 
 
@@ -168,6 +168,7 @@ CREATE TABLE IF NOT EXISTS solicitud (
     id_prioridad INT NOT NULL,
     descripcion VARCHAR(256) NULL,
     fecha_hora_creacion DATETIME NOT NULL,
+    fecha_hora_modificacion DATETIME NULL,
     validado BOOLEAN DEFAULT false,
     rechazado BOOLEAN DEFAULT false,
     motivo_rechazo VARCHAR(256) NULL,

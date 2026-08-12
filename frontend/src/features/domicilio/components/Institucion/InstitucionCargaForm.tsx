@@ -21,6 +21,7 @@ export const InstitucionCargaForm = ({ institucion, setInstitucion, tipo, onVali
     institucion.domicilio.departamento != null &&
     institucion.domicilio.provincia != null
 
+    console.log("INS", institucion)
   useEffect(() => {
     onValidChange?.(esValido)
   }, [esValido])

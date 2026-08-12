@@ -9,19 +9,12 @@ import {
   CircularProgress,
   Collapse,
   Divider,
-  List,
   Stack,
   Typography,
 } from "@mui/material"
-import BadgeIcon from "@mui/icons-material/Badge"
-import WcIcon from "@mui/icons-material/Wc"
-import CakeIcon from "@mui/icons-material/Cake"
-import PersonIcon from "@mui/icons-material/Person"
-import SchoolIcon from "@mui/icons-material/School";
 import FactCheckIcon from "@mui/icons-material/FactCheck"
 import { getSalud, getCiudadano } from "../../api"
 import { useState } from "react"
-import { DatoItem } from "@/common/components/DatoItem"
 import { Mapa } from "@/features/domicilio/components/Mapa"
 import { ValidarButtons } from "../Validacion/ValidarButtons"
 import type { Setter } from "@/common/types"
@@ -35,19 +28,6 @@ type Props = {
   setCiudadano: Setter<Ciudadano | null>
 }
 
-function formatFecha(fecha: string | null | undefined) {
-  if (!fecha) return "—";
-
-  const d = new Date(fecha);
-
-  if (isNaN(d.getTime())) return fecha;
-
-  const dia = String(d.getUTCDate()).padStart(2, "0");
-  const mes = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const anio = d.getUTCFullYear();
-
-  return `${dia}-${mes}-${anio}`;
-}
 
 export const AdolescenteCard = ({ adolescente, estado, setEstado, ciudadano, setCiudadano }: Props) => {
   const [salud, setSalud] = useState<Salud | null>(null)

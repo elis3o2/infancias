@@ -1,7 +1,6 @@
 import { Card, CardHeader, CardContent } from '@mui/material';
 import type { Setter } from "@/common/types"
 import type { Institucion } from "../../types"
-import { InstitucionView } from "./InstitucionView"
 import { InstitucionForm } from "./InstitucionForm"
 import { InstitucionCard } from './InstitucionCard';
 
@@ -20,8 +19,7 @@ type Props = {
 export const InstitucionComponent = ({ institucion, setInstitucion, finishInstitucion, setFinishInstitucion, 
           correo, setCorreo, telefono, setTelefono }: Props) => {
   
-  console.log("TELEFON", telefono)
-            return (
+    return (
     <Card variant="outlined" sx={{ borderRadius: 2 }}>
       <CardHeader
         title="Institución solicitante"

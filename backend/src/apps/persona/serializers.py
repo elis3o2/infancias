@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from .models import (Adolescente, Solicitante, Familiar, Vinculo, Hermano, AdolescenteValidado, HermanoValidado)
+from .models import (Adolescente, Solicitante, Familiar, Vinculo, Hermano, AdolescenteValidado, HermanoValidado, AdolescenteInstitucion)
 from src.apps.domicilio.models import Institucion
 from src.apps.domicilio.serializers import (DomicilioSerializer, InstitucionSerializer, ReferenciaInstitucionInputSerializer)
-
+from django.db import transaction
 
 class HermanoValidadoSerializer(serializers.ModelSerializer):
     
@@ -81,20 +81,32 @@ class AdolescenteValidadoSerializer(serializers.ModelSerializer):
             "fecha_nacimiento",
         )
 
+
 class AdolescenteSerializer(serializers.ModelSerializer):
     domicilio = DomicilioSerializer()
 
-    hermanos = HermanoSerializer(many=True, required=False)
-    familiares = FamiliarSerializer(many=True, required=False)
+    hermanos = HermanoSerializer(
+        many=True,
+        required=False,
+    )
+
+    familiares = FamiliarSerializer(
+        many=True,
+        required=False,
+    )
 
     adolescente_validado = serializers.SerializerMethodField()
     hermanos_validados = serializers.SerializerMethodField()
 
-    referencias_intituciones = InstitucionSerializer(many=True, read_only=True)
-    referencias_intituciones_data = ReferenciaInstitucionInputSerializer(
+    referencias_instituciones = InstitucionSerializer(
+        many=True,
+        read_only=True,
+    )
+
+    referencias_instituciones_data = ReferenciaInstitucionInputSerializer(
         many=True,
         write_only=True,
-        required=False
+        required=False,
     )
 
     class Meta:
@@ -102,11 +114,15 @@ class AdolescenteSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_adolescente_validado(self, obj):
-            try:
-                validado = AdolescenteValidado.objects.get(adolescente=obj)
-                return AdolescenteValidadoSerializer(validado).data
-            except AdolescenteValidado.DoesNotExist:
-                return None
+        try:
+            validado = AdolescenteValidado.objects.get(
+                adolescente=obj
+            )
+
+            return AdolescenteValidadoSerializer(validado).data
+
+        except AdolescenteValidado.DoesNotExist:
+            return None
 
     def get_hermanos_validados(self, obj):
         hermanos = HermanoValidado.objects.filter(
@@ -118,55 +134,64 @@ class AdolescenteSerializer(serializers.ModelSerializer):
             many=True,
         ).data
 
-
+    @transaction.atomic
     def create(self, validated_data):
         domicilio_data = validated_data.pop("domicilio")
 
-        hermanos = validated_data.pop("hermanos", [])
-        familiares = validated_data.pop("familiares", [])
+        hermanos_data = validated_data.pop("hermanos", [])
 
-        refs_inst = validated_data.pop(
-            "referencias_intituciones_data",
-            []
-        )
+        familiares_data = validated_data.pop("familiares", [])
 
+        referencias_data = validated_data.pop("referencias_instituciones_data", [])
+
+        # Crear domicilio
         domicilio = DomicilioSerializer().create(domicilio_data)
 
+        # Crear adolescente
         adolescente = Adolescente.objects.create(
             domicilio=domicilio,
             **validated_data,
         )
 
-        for hermano_data in hermanos:
+        # Crear hermanos
+        for hermano_data in hermanos_data:
             Hermano.objects.create(
                 adolescente=adolescente,
-                **hermano_data
+                **hermano_data,
             )
 
-        for familiar_data in familiares:
+        # Crear familiares
+        for familiar_data in familiares_data:
             Familiar.objects.create(
                 adolescente=adolescente,
                 **familiar_data,
             )
 
-        for ref_data in refs_inst:
-            if "id" in ref_data:
-                institucion = Institucion.objects.get(
-                    id=ref_data["id"]
-                )
+        # Crear relaciones con instituciones
+        for referencia_data in referencias_data:
+            institucion = referencia_data.pop(
+                "id",
+                None
+            )
+
+            # Institución existente
+            if institucion is not None:
+                # Por ser PrimaryKeyRelatedField,
+                # `institucion` ya es una instancia de Institucion.
+                pass
+
+            # Institución nueva
             else:
                 institucion = InstitucionSerializer().create(
-                    ref_data
+                    referencia_data
                 )
 
             AdolescenteInstitucion.objects.create(
                 adolescente=adolescente,
-                institucion=institucion
+                institucion=institucion,
             )
 
         return adolescente
-
-
 
 class SolicitanteSerializer(serializers.ModelSerializer):
 

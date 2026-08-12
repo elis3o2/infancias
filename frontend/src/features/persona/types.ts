@@ -1,4 +1,4 @@
-import type { Domicilio, Institucion, Referencia } from "../domicilio/types"
+import type { Domicilio, Institucion } from "../domicilio/types"
 
 export type Solicitante = {
     id?: number,
@@ -41,7 +41,7 @@ export type AdolescenteCreate = {
     escolarizado: boolean
     hermanos: Hermano[]
     familiares: Familiar[]
-    referencias_institicuones_data: (Institucion | number)[]
+    referencias_instituciones_data: (Institucion | number)[]
 }
 
 
@@ -64,7 +64,7 @@ export const AdolescenteInicial : AdolescenteCreate = {
     escolarizado: false,
     hermanos: [],
     familiares: [],
-    referencias_institicuones_data: []
+    referencias_instituciones_data: []
 }
 
 export type Vinculo = {
@@ -74,11 +74,10 @@ export type Vinculo = {
 
 
 export type Familiar = {
-    id?: null
+    id?: number
     nombre: string
     apellido: string
-    id_vinculo?: number
-    vinculo?: Vinculo
+    vinculo: Vinculo
     telefono: string
 }
 

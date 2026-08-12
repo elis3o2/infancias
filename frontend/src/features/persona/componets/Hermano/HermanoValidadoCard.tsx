@@ -5,48 +5,29 @@ import {
   CardContent,
   Stack,
   Typography,
-  List
+  CardActions,
+  Button, 
+  Divider
 } from "@mui/material"
-import BadgeIcon from "@mui/icons-material/Badge"
-import WcIcon from "@mui/icons-material/Wc"
-import CakeIcon from "@mui/icons-material/Cake"
-import PersonIcon from "@mui/icons-material/Person"
-import { DatoItem } from "@/common/components/DatoItem"
+import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteSimpleCard"
 
 type Props = {
   hermanos: Hermano[]
+  onEliminar?: (n: number) => void
 }
 
-function formatFecha(fecha: string | null | undefined) {
-  if (!fecha) return "—"
-  const d = new Date(fecha)
-  if (isNaN(d.getTime())) return fecha
-  const dia = String(d.getUTCDate()).padStart(2, "0")
-  const mes = String(d.getUTCMonth() + 1).padStart(2, "0")
-  const anio = d.getUTCFullYear()
-  return `${dia}-${mes}-${anio}`
-}
-
-export const HermanoValidadoCard = ({ hermanos }: Props) => {
+export const HermanoValidadoCard = ({ hermanos, onEliminar }: Props) => {
   
-
-  function sexoLabel(h: Hermano) {
-    return h.sexo === "M" ? "Masculino" : "Femenino"
-  }
-
-
     return (
     <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
       <CardContent>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-          <Typography variant="h6" lineHeight={1.2}>
-            Hermanos
-          </Typography>
-        </Stack>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Hermanos
+        </Typography>
+        <Stack spacing={2}>
 
-        <Stack spacing={3}>
-          {hermanos.map((hermano, index) => {
-            return (
+        {hermanos.map((hermano, index) => (
+            <Box key={hermano.id ?? index}>
               <Stack direction="row" spacing={2} key={hermano.dni ?? index}>
                 <Box sx={{ flex: 1 }}>
                   <Stack
@@ -59,28 +40,25 @@ export const HermanoValidadoCard = ({ hermanos }: Props) => {
                     </Typography>
 
                   </Stack>
-                    <List
-                      sx={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        columnGap: 3,
-                        rowGap: 0,
-                        bgcolor: "action.hover",
-                        borderRadius: 2,
-                        px: 2,
-                        py: 1,
-                      }}
-                    >
-                      <DatoItem icon={<PersonIcon fontSize="small" />} label="Nombre" valor={hermano.nombre} />
-                      <DatoItem icon={<PersonIcon fontSize="small" />} label="Apellido" valor={hermano.apellido} />
-                      <DatoItem icon={<BadgeIcon fontSize="small" />} label="DNI" valor={hermano.dni} />
-                      <DatoItem icon={<WcIcon fontSize="small" />} label="Sexo" valor={sexoLabel(hermano)} />
-                      <DatoItem icon={<CakeIcon fontSize="small" />} label="Fecha de nacimiento" valor={formatFecha(hermano.fecha_nacimiento)} />
-                    </List>
+                    <AdolescenteSimpleCard
+                      nombre={hermano.nombre}
+                      apellido={hermano.apellido}
+                      sexo={hermano.sexo}
+                      dni={hermano.dni}
+                      fecha_nacimiento={hermano.fecha_nacimiento}
+                    />
                 </Box>
               </Stack>
-            )
-          })}
+                {onEliminar && 
+              <CardActions>
+                <Button onClick={() => onEliminar(index)}>Eliminar</Button>
+              </CardActions>}
+
+            {index < hermanos.length - 1 && (
+                <Divider sx={{ mt: 2 }} />
+            )}
+            </Box>
+        ))}
         </Stack>
       </CardContent>
     </Card>

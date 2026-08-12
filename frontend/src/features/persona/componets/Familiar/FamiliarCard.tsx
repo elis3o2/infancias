@@ -6,7 +6,9 @@ import {
   Stack,
   Typography,
   Divider,
-  Box
+  Box, 
+  CardActions,
+  Button
 } from "@mui/material"
 import BadgeIcon from "@mui/icons-material/Badge"
 import PhoneIcon from "@mui/icons-material/Phone"
@@ -15,9 +17,10 @@ import { DatoItem } from "@/common/components/DatoItem"
 
 type Props = {
   familiares: Familiar[]
+  onEliminar?: (n: number) => void
 }
 
-export const FamiliaresCard = ({ familiares }: Props) => {
+export const FamiliaresCard = ({ familiares, onEliminar }: Props) => {
   return (
     <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
       <CardContent>
@@ -60,6 +63,10 @@ export const FamiliaresCard = ({ familiares }: Props) => {
                 valor={familiar.telefono}
                 />
             </List>
+                {onEliminar && 
+              <CardActions>
+                <Button onClick={() => onEliminar(index)}>Eliminar</Button>
+              </CardActions>}
 
             {index < familiares.length - 1 && (
                 <Divider sx={{ mt: 2 }} />

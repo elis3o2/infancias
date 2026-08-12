@@ -26,13 +26,11 @@ export const InstitucionForm = ({ institucion, setInstitucion, setFinshInstituci
   const [modo, setModo] = useState<Modo>("seleccionar")
   const [correoValido, setCorreoValido] = useState(false)
   const [institucionValida, setInstitucionValida] = useState(false)
-
-  const modoValido = modo === "seleccionar"
-    ? Boolean(institucion.id && institucion.id !== -1)
-    : institucionValida
-
-  const formCompleto = Boolean(telefono) && telefono.length === 10 && correoValido && modoValido
-
+  console.log(institucionValida)
+  const formCompleto = telefono.length === 10 && correoValido &&
+                      ((modo == "seleccionar" && institucion.id != -1) || 
+                        modo == "cargar" &&  institucionValida)
+  console.log(institucionValida)
   // Sincroniza correo/telefono desde la institución elegida, solo en modo "seleccionar"
   useEffect(() => {
     if (modo === "seleccionar" && institucion.id !== -1) {

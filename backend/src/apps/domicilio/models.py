@@ -59,9 +59,7 @@ class Domicilio(models.Model):
 class TipoInstitucion(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=32)
-    territorial = models.BooleanField()
-    educacion = models.BooleanField()
-
+    
     class Meta:
         managed = False
         db_table = "tipo_institucion"

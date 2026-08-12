@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { AdolescenteCard } from "@/features/persona/componets/Adolescente/AdolescenteCard"
 import { SolicitanteCard } from "@/features/persona/componets/Solicitante/SolicitanteCard"
 import { InstitucionCard } from "@/features/domicilio/components/Institucion/InstitucionCard"
-import { DescripcionCard } from "../SolicitudSection/SolicitudCard"
+import { SolicitudCard } from "../SolicitudSection/SolicitudCard"
 import { FamiliaresCard } from "@/features/persona/componets/Familiar/FamiliarCard"
 import { HermanoCard } from "@/features/persona/componets/Hermano/HermanoCard";
 import { ArchivoCard } from "../Archivo/ArchivoCard";
@@ -13,6 +13,7 @@ import { validarSolicitud, rechazarSolicitud  } from "../../api"
 import { postAdolescenteValidado, postHermanoValidado } from "@/features/persona/api"
 import type { Ciudadano } from "@/features/persona/types"
 import { ReferenciaCard } from "../Redes/ReferenciaCard"
+import { InstitucionesCard } from "../Redes/InstitucionesCard"
 
 type Props = {
     solicitud: Solicitud
@@ -37,7 +38,7 @@ export const SolicitudValidar = ({solicitud} : Props) => {
     const year = d.getUTCFullYear()
     const month = String(d.getUTCMonth() + 1).padStart(2, "0")
     const day = String(d.getUTCDate()).padStart(2, "0")
-
+        console.log(solicitud)
     return `${year}-${month}-${day}`
     }
     console.log(solicitud)
@@ -104,18 +105,11 @@ export const SolicitudValidar = ({solicitud} : Props) => {
             ciudadanos={ciudadanosHermanos}
             setCiudadanos={setCiudadanosHermanos}
         />
-        <DescripcionCard descripcion={solicitud.descripcion}/>
+        <SolicitudCard descripcion={solicitud.descripcion}/>
         <ArchivoCard archivos={solicitud.archivos}/>
-        {solicitud.adolescente.referencias_gubernamentales.length > 0 &&
-        <ReferenciaCard 
-            referencias={solicitud.adolescente.referencias_gubernamentales} 
-            nombre="Instituciones gubernamentales de referencia"
-        /> }
-        {solicitud.adolescente.referencias_no_gubernamentales.length > 0 &&
-        <ReferenciaCard 
-            referencias={solicitud.adolescente.referencias_no_gubernamentales} 
-            nombre="Instituciones no gubernamentales de referencia"
-        /> }
+            {solicitud.adolescente.referencias_instituciones.length > 0  &&
+                <InstitucionesCard instituciones={solicitud.adolescente.referencias_instituciones}/>
+            }
         <AceptarButtons disabledConfirmar={disabledConfirmar} disabledRechazar={disabledRechazar} onConfirmar={aceptar} onRechazar={rechazar} />
 
     </>)

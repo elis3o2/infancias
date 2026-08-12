@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Stack, Button, Typography,Card, CardHeader, CardContent } from "@mui/material"
 import { FamiliarForm } from "./FamiliarForm"
 import { FamiliarView } from "./FamiliarView"
+import { FamiliaresCard } from "./FamiliarCard"
 
 type Props = {
   familiares: Familiar[]
@@ -34,13 +35,12 @@ export const FamiliaresComponent = ({ familiares, setFamiliares, finishFamiliar,
         />
       <CardContent>
         <Stack spacing={2}>
-          {familiares.map((familiar, index) => (
-            <FamiliarView
-              key={index}
-              familiar={familiar}
-              onEliminar={() => handleEliminar(index)}
+          {familiares.length > 0  && 
+            <FamiliaresCard
+              familiares={familiares}
+              onEliminar={handleEliminar}
             />
-          ))}
+          }
 
           {mostrarForm ? (
             <FamiliarForm

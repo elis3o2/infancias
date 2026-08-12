@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Stack, Button, Typography, Card, CardContent, CardHeader} from "@mui/material"
 import { HermanoForm } from "./HermanoForm"
 import { HermanoView } from "./HermanoView"
+import { HermanoValidadoCard } from "./HermanoValidadoCard"
 
 type Props = {
   hermanos: Hermano[]
@@ -34,13 +35,12 @@ export const HermanosComponent = ({ hermanos, setHermanos, finishHermano, setFin
       />
       <CardContent>
         <Stack spacing={2} sx={{ minWidth: 1028 }}>
-          {hermanos.map((hermano, index) => (
-            <HermanoView
-              key={index}
-              hermano={hermano}
-              onEliminar={() => handleEliminar(index)}
+          {hermanos.length > 0 &&
+            <HermanoValidadoCard
+              hermanos={hermanos}
+              onEliminar={handleEliminar}
             />
-          ))}
+          }
 
           {mostrarForm ? (
             <HermanoForm

@@ -31,6 +31,8 @@ export const postSolicitud = (solicitud: SolicitudCreate) => {
   formData.append("solicitante", JSON.stringify(solicitud.solicitante));
   
   formData.append("adolescente",JSON.stringify(solicitud.adolescente));
+  formData.append("correo", solicitud.correo)
+  formData.append("telefono", solicitud.telefono)
 
   formData.append("id_motivo", solicitud.id_motivo.toString());
 

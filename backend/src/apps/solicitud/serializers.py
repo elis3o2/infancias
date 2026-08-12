@@ -81,8 +81,11 @@ class SolicitudSerializer(serializers.ModelSerializer):
     archivos = ArchivoSerializer(many=True, read_only=True, source="archivo_set")
 
     def create(self, validated_data):
+        print("SOLICITUD VALIDATED:")
+        print(validated_data)
         adolescente_data = validated_data.pop("adolescente")
         solicitante_data = validated_data.pop("solicitante")
+        
 
         institucion_data = validated_data.pop("institucion", None)
 
