@@ -41,7 +41,7 @@ export const InstitucionForm = ({ institucion, setInstitucion, setFinshInstituci
 
   // Al cambiar de modo, arranca todo limpio
   useEffect(() => {
-    setInstitucion(InstitucionInicial)
+    setInstitucion({...InstitucionInicial, tipo})
     setCorreo("")
     setTelefono("")
   }, [modo])

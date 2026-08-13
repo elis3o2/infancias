@@ -15,7 +15,7 @@ export const ArchivoComponent = ({archivos, setArchivos} : Props) =>{
     setArchivos((prev) => prev.filter((a) => a.id !== id));
 
   return (
-    <Card>
+    <Card sx={{ minWidth: 1028}}>
       <CardHeader title="Archivos" />
       <CardContent>
         <ArchivoForm setArchivos={setArchivos} />

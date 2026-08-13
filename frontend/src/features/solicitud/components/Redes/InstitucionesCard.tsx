@@ -27,7 +27,7 @@ export const InstitucionesCard = ({ instituciones, onEliminar }: Props) => {
     <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
       <CardContent>
         <Typography variant="h6" sx={{ mb: 2 }}>
-          Instituciones
+          Instituciones de referencia
         </Typography>
         <Stack spacing={2}>
         {instituciones.map((institucion, index) => (

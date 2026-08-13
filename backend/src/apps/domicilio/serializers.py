@@ -62,6 +62,8 @@ class DomicilioSerializer(serializers.ModelSerializer):
             domicilio_validado=domicilio_validado,
             **validated_data,
         )
+
+
 class TipoInstitucionSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -86,7 +88,6 @@ class InstitucionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-        print("INSTITUCION VALIDATED:", validated_data)
 
         domicilio_data = validated_data.pop("domicilio")
         domicilio = DomicilioSerializer().create(domicilio_data)

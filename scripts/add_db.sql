@@ -1,22 +1,23 @@
 INSERT INTO vinculo (nombre) VALUES
+('Padre/Madre'),
 ('Hermano/a'),
 ('Tio/a'),
 ('Abuelo/a'),
 ('Vecino/a'),
-('Sobrino/a');
+('Sobrino/a'),
+('Otro');
 
 
 INSERT INTO tipo_institucion (nombre) VALUES
 ('Educativa'),
 ('De Salud'),
-('Juducial'),
+('Judicial'),
 ('Otra');
 
 
 INSERT INTO derivacion (nombre) VALUES
-("Derivacion1"), 
-("Derivacion2"), 
-("Derivacion3");
+("Equipo de Admisión"), 
+("Equipo de Guardia");
 
 INSERT INTO domicilio_validado (id,
 codigo_calle,

@@ -7,6 +7,7 @@ import type { Solicitud } from "../../types"
 import { AdolescenteValidadoCard } from "@/features/persona/componets/Adolescente/AdolescenteValidadoCard"
 import { HermanoValidadoCard } from "@/features/persona/componets/Hermano/HermanoValidadoCard"
 import { ReferenciaCard } from "../Redes/ReferenciaCard";
+import { InstitucionesCard } from "../Redes/InstitucionesCard";
 
 type Props = {
     solicitud: Solicitud
@@ -35,15 +36,9 @@ export const SolicitudValidada = ({solicitud} : Props) => {
         />}
         <SolicitudCard descripcion={solicitud.descripcion}/>
         <ArchivoCard archivos={solicitud.archivos}/>
-        {solicitud.adolescente.referencias_gubernamentales.length > 0 &&
-        <ReferenciaCard 
-            referencias={solicitud.adolescente.referencias_gubernamentales} 
-            nombre="Instituciones gubernamentales de referencia"
-        /> }
-        {solicitud.adolescente.referencias_no_gubernamentales.length > 0 &&
-        <ReferenciaCard 
-            referencias={solicitud.adolescente.referencias_no_gubernamentales} 
-            nombre="Instituciones no gubernamentales de referencia"
+        {solicitud.adolescente.referencias_instituciones.length > 0 &&
+        <InstitucionesCard
+            instituciones={solicitud.adolescente.referencias_instituciones} 
         />}
     </>)
 }

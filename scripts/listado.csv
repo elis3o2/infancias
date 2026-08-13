@@ -1,0 +1,330 @@
+﻿distrito,nombre,direccion,telefonos,titular,clasificacion
+CENTRO,Albergue del Estadio Municipal Jorge Newbery,LAGOS OVIDIO 2501,4805643,Municipal,Deportes
+CENTRO,Biblioteca Argentina Dr. Juan Álvarez,ROCA PTE. JULIO ARGENTINO 731,4802731,Municipal,Centros culturales y Bibliotecas
+CENTRO,Biblioteca Depositaria de las Naciones Unidas,SANTA FE 1553,4802731/480253 8-39 (int 134),Municipal,Centros culturales y Bibliotecas
+CENTRO,Biblioteca Especializada de la Escuela Superior de Museología,SAN LORENZO 2233,4802544,Municipal,Centros culturales y Bibliotecas
+CENTRO,Biblioteca General San Martín,ROSAS BRGD. JUAN MANUEL D 848,4802100/480295 4,Municipal,Centros culturales y Bibliotecas
+CENTRO,Biblioteca Pública Municipal José Manuel Estrada,BAYO SERVANDO 799,Tel/Fax: 4804678/54,Municipal,Centros culturales y Bibliotecas
+CENTRO,Biblioteca del Museo Castagnino,PELLEGRINI CARLOS 2202,3346397,Municipal,Centros culturales y Bibliotecas
+CENTRO,Biblioteca del Museo de la Ciudad,OROÑO NICASIO 2300,480-8665,Municipal,Centros culturales y Bibliotecas
+CENTRO,Biblioteca Dres. Salk y Sabin del ILAR,OCAMPO 1498,4808669 (int. 112),Municipal,Centros culturales y Bibliotecas
+CENTRO,Cancha Parque Norte,RIVADAVIA BERNARDINO 2450,,Municipal,Deportes
+CENTRO,Cancha de fútbol para personas ciegas,BALCARCE,,Municipal,Deportes
+CENTRO,Casa Vanzo Wernicke,COCHABAMBA 2010,,Municipal,Centros culturales y Bibliotecas
+CENTRO,Casa de Ensayos Organismos Estables Municipales (OEM),COMUNIDAD FORAL DE NAVARRA 234,,Municipal,Centros culturales y Bibliotecas
+CENTRO,Casa del Artista Plástico de Rosario,BELGRANO GRAL. MANUEL 603,4470858,Municipal,Centros culturales y Bibliotecas
+CENTRO,Centro Audiovisual Rosario,CHACABUCO 1371,4802545 / 4802728,Municipal,Centros culturales y Bibliotecas
+CENTRO,Centro Cuidar República de la Sexta,ESMERALDA 1774,,Municipal,Centros Cuidar
+CENTRO,Centro Cuidar Viaducto,AVELLANEDA NICOLAS 332,,Municipal,Centros Cuidar
+CENTRO,Centro Cultural La Casa del Tango,ILLIA PTE. ARTURO U. 1750,4802415,Municipal,Centros culturales y Bibliotecas
+CENTRO,Centro Cultural Parque de España / AECI,SARMIENTO DOMINGO FAUSTIN 101,4260941,Municipal,Centros culturales y Bibliotecas
+CENTRO,Centro Cultural Teatro del Viaducto,AVELLANEDA NICOLAS 402,4804939,Municipal,Centros culturales y Bibliotecas
+CENTRO,Centro de Atención a la Comunidad CEAC,ESMERALDA 2363,4808582,Provincial,Salud
+CENTRO,"Centro de Especialidades Médicas Ambulatorias de Rosario ""M. H. Zuasnábar"" (CEMAR)",SAN LUIS 2020,4802555,Municipal,Salud
+CENTRO,Centro de Estudios Latinoamericanos Ernesto Che Guevara (CEL Che),BELGRANO GRAL. MANUEL 950,4802 557/714 (int. 11),Municipal,Centros culturales y Bibliotecas
+CENTRO,Centro de Expresiones Contemporáneas (CEC),PASEO DE LAS ARTES 310,4802245/940,Municipal,Centros culturales y Bibliotecas
+CENTRO,"Centro de Salud ""Martin""",MORENO MARIANO 950,4802303,Municipal,Salud
+CENTRO,"Centro de Salud N° 25 ""FONAVI""",1110 2877,4805410,Provincial,Salud
+CENTRO,Complejo Astronómico Municipal,DIARIO LA CAPITAL 1602,4802554/533,Municipal,Centros culturales y Bibliotecas
+CENTRO,Complejo Deportivo Municipal Emilio A. Lotuf (ex Belgrano Centro),BELGRANO GRAL. MANUEL 621,4802444 (int. 122),Municipal,Deportes
+CENTRO,Cultural Fontanarrosa,SAN MARTIN GRAL. JOSE 1080,4802401,Municipal,Centros culturales y Bibliotecas
+CENTRO,Dirección de Educación Municipal,MAIPU 842,4802534/618,Municipal,Centros culturales y Bibliotecas
+CENTRO,Dr. Ernesto Sábato,SANTA FE 1653,,ONG,Vecinales
+CENTRO,El Jardín de los Niños,LUGONES LEOPOLDO 2290,341 5789088,Municipal,Centros culturales y Bibliotecas
+CENTRO,Escuela Municipal de Artes Urbanas,ESTEVEZ BOERO GUILLERMO 670,4802427,Municipal,Centros culturales y Bibliotecas
+CENTRO,Estación Parque Urquiza,CHACABUCO 1371,,Municipal,Centros culturales y Bibliotecas
+CENTRO,Estación Rosario 300,ESTEVEZ BOERO GUILLERMO 640,,Municipal,Centros culturales y Bibliotecas
+CENTRO,Estadio Municipal Jorge Newbery,LAGOS OVIDIO 2501,4805643,Municipal,Deportes
+CENTRO,Hemeroteca de Biblioteca Argentina,ROCA PTE. JULIO ARGENTINO 731,4802731,Municipal,Centros culturales y Bibliotecas
+CENTRO,Hospital Intendente Gabriel Carrasco,AVELLANEDA NICOLAS 1402,4804155,Municipal,Salud
+CENTRO,Hospital Provincial,ALEM LEANDRO N 1450,4801402,Provincial,Salud
+CENTRO,Hospital Provincial del Centenario,URQUIZA GRAL. JUSTO JOSE 3101,4724643 Conmutador 4724649/ 4804521,Provincial,Salud
+CENTRO,"Hospital de Niños ""Víctor J. Vilela""",VIRASORO GRAL. BENJAMIN 1855,Conmutador: 4808125/133,Municipal,Salud
+CENTRO,Instituto de Lucha Antipoliomielítica y Rehabilitación del Lisiado (ILAR),OCAMPO 1498,4808669,Municipal,Salud
+CENTRO,Instituto del Alimento Dr. Benjamín Berisso,LIMA 865,4804886/887,Municipal,Salud
+NOROESTE,La Isla de los Inventos,WHEELWRIGHT GUILLERMO 1402,341 5789115,Municipal,Centros culturales y Bibliotecas
+NOROESTE,Laboratorio de Especialidades Medicinales (LEM),LAVALLE GENERAL JUAN 370,4804166,Municipal,Salud
+NOROESTE,Maternidad Martin,SAN LUIS 2020,4802188,Municipal,Salud
+NOROESTE,PROMUSIDA,MORENO MARIANO 960,4802189,Municipal,Salud
+NOROESTE,Patinódromo Municipal Roberto Tagliabué,LAGOS OVIDIO 2301,,Municipal,Deportes
+NOROESTE,Playón Castellanos (entre Santa Fe y Córdoba),CASTELLANOS AARON,,Municipal,Deportes
+NOROESTE,Playón Lagos 2970,LAGOS OVIDIO,,Municipal,Deportes
+NOROESTE,Playón del Parque de España,SARMIENTO DOMINGO FAUSTIN 101,,Municipal,Deportes
+NOROESTE,Policlínico PAMI I,SARMIENTO DOMINGO FAUSTIN 373,4803520 al 30,Nacional,Salud
+NOROESTE,Polideportivo Floreal Gorini (Plaza de la Cooperación),ZABALA 1153,4802591,Municipal,Deportes
+NOROESTE,Puntos amarillos,SAN LUIS 2020,4802200 (int. 3116),Municipal,Salud
+NOROESTE,SIES (Sistema Integrado de Emergencia Sanitaria),BALCARCE 983,4460307,Municipal,Salud
+NOROESTE,Secretaría de Deporte y Turismo,ALIGHIERI DANTE 2731,3415781678,Municipal,Deportes
+NOROESTE,Vecinal 1° de Mayo,PRIMERO DE MAYO 2109,,ONG,Vecinales
+NOROESTE,Vecinal 1° de Mayo,PRIMERO DE MAYO 2109,,ONG,Vecinales
+NOROESTE,Vecinal Acera,ESPAÑA 2898,,ONG,Vecinales
+NOROESTE,Vecinal Avellaneda,CASTELLANOS AARON 581,,ONG,Vecinales
+NOROESTE,Vecinal Echesortu Oeste,PAZ MARCOS 4430,156859852,ONG,Vecinales
+NOROESTE,Vecinal Monumento Nacional a la Bandera,ROSAS BRGD. JUAN MANUEL DE 871,,ONG,Vecinales
+NOROESTE,Vecinal Solidaridad Social,PARAGUAY 2545,,ONG,Vecinales
+NOROESTE,Autódromo Juan Manuel Fangio,GARCIA DEL COSSIO JOSE SI 1898 Bis,4526000,Municipal,Deportes
+NOROESTE,Biblioteca Rosario Oeste,CHUBUT 5855,,Municipal,Centros culturales y Bibliotecas
+NOROESTE,Casa Castenetto,AZURDUY JUANA 6150,,Municipal,Centros culturales y Bibliotecas
+NOROESTE,Centro Cuidar Emaús,GENOVA 7958,4807843,Municipal,Centros Cuidar
+NOROESTE,Centro Cuidar La Tierrita,BURUCUYA 951 Bis,4807802,Municipal,Centros Cuidar
+NOROESTE,Centro Cuidar Ludueña,JUNIN 5799,4804933,Municipal,Centros Cuidar
+NOROESTE,Centro Cuidar Ludueña Norte,BIELSA RAFAEL 6001,4804934,Municipal,Centros Cuidar
+NOROESTE,Centro Cuidar Ludueña Sur,FORMOSA 296 Bis,4804655,Municipal,Centros Cuidar
+NOROESTE,Centro Cuidar Sorrento,SORRENTO,,Municipal,Centros Cuidar
+NOROESTE,Centro Cultural Fisherton,MORRISON 8197,4517807,Municipal,Centros culturales y Bibliotecas
+NOROESTE,Centro Cultural Martínez de Estrada,CACHI 1580 Bis,4807695,Municipal,Centros culturales y Bibliotecas
+NOROESTE,"Centro de Salud ""Dr. Roque Coulin""",HUMBERTO 1º 2033,4804819,Municipal,Salud
+NOROESTE,"Centro de Salud ""Emaús""",URDINARRAIN 7900,4807804,Municipal,Salud
+NOROESTE,"Centro de Salud ""Jean Henry Dunant""",AGNETA TTE. ALFREDO 1439,4807808,Municipal,Salud
+NOROESTE,"Centro de Salud ""Juana Azurduy"" Bº Empalme Graneros",FRAGA CNEL. ROSENDO MARIA 1093 Bis,4804815,Municipal,Salud
+NOROESTE,"Centro de Salud ""Lic. José Raúl Ugarte""",SUINDA 980,4807689,Municipal,Salud
+NOROESTE,"Centro de Salud ""Vecinal Angel Invaldi""",ECUADOR 645 Bis,,Municipal,Salud
+NOROESTE,"Centro de Salud ""Vecinal Antonio Paravano""",BURUCUYA 929 Bis,,Municipal,Salud
+NOROESTE,Centro de Salud Ceferino Namuncurá,INGENIEROS JOSE 8590,4807842,Municipal,Salud
+NOROESTE,Centro de Salud Dra. Débora Ferrandini,PROVINCIAS UNIDAS 150 Bis,4807680 (int 377),Municipal,Salud
+NOROESTE,"Centro de Salud N° 2 ""FONAVI Super Cemento""",DONADO AGUSTIN JOSE 911 Bis,4807540,Provincial,Salud
+NOROESTE,"Centro de Salud N° 26 ""De la C. Organizada""",TUCUMAN 7363,4575665,Provincial,Salud
+NOROESTE,"Centro de Salud N° 27 ""Ramón Carrillo""",TUCUMAN 5627,4807543,Provincial,Salud
+NOROESTE,"Centro de Salud N° 48 ""Juntos Podemos""",NOCHETTO JUAN 693,4807544,Provincial,Salud
+NOROESTE,Centro de Salud Vecinal Víctor Cué,PASO JUAN JOSE 5490,4388990,Municipal,Salud
+NOROESTE,"Estadio Mundialista de Hockey ""Luciana Aymar""",1635 850,,Municipal,Deportes
+NOROESTE,Playón Bielsa y Magallanes,BIELSA RAFAEL,,Municipal,Deportes
+NOROESTE,Playón María Madre de la Esperanza,CABAL MARIANO 1299 Bis,,Municipal,Deportes
+NOROESTE,Playón México y Junín,MEJICO,,Municipal,Deportes
+NOROESTE,Playón República 8700,LA REPUBLICA,,Municipal,Deportes
+NOROESTE,"Policlínico ""San Martín""",CHUBUT 7145,4807800,Municipal,Salud
+NOROESTE,Polideportivo 7 de septiembre,MARTINEZ ESTRADA EZEQUIEL 8070,4522012,Municipal,Deportes
+NOROESTE,Polideportivo Garzón,GARZON 300,4807095,Municipal,Deportes
+NOROESTE,Vecinal 20 de Junio,ECUADOR 645 Bis,4566469,ONG,Vecinales
+NOROESTE,Vecinal 7 de Septiembre,AYALA GAUNA VELMIRO 7951,,ONG,Vecinales
+NOROESTE,Vecinal 7 de Septiembre (puesto Salud animal),AYALA GAUNA VELMIRO 7951,,Municipal,Salud
+NOROESTE,Vecinal Antártida Argentina,NAVARRO PRESB. DR. JULIAN 7645,4519876,ONG,Vecinales
+NOROESTE,Vecinal Azcuénaga,MENDOZA 5310,4591790,ONG,Vecinales
+NOROESTE,Vecinal Barrio Belgrano,ZUVIRIA 6520,4582384,ONG,Vecinales
+NOROESTE,Vecinal Fisherton Este,CASILDA 7050,,ONG,Vecinales
+NOROESTE,Vecinal Fisherton Norte,GARCIA DEL COSSIO JOSE DR 1005 Bis,,ONG,Vecinales
+NOROESTE,Vecinal Fisherton R,O HIGGINS GRAL. BERNARDO 8959,,ONG,Vecinales
+NOROESTE,Vecinal Fisherton Sur,BERNHEIM JOSE ALEJANDRO 8650,,ONG,Vecinales
+NOROESTE,Vecinal Hostal del Sol,TALAMPAYA 1940 Bis,,ONG,Vecinales
+NOROESTE,Vecinal La Nueva Fisherton,MORRISON 8197,4525721,ONG,Vecinales
+NOROESTE,Vecinal La República,PARANA 1346,,ONG,Vecinales
+NOROESTE,Vecinal Las Flores,GARZON 428,4595833,ONG,Vecinales
+NOROESTE,Vecinal Ludueña Sur,FUNES PEDRO LINO 550,,ONG,Vecinales
+NOROESTE,Vecinal María Duboe,DERQUI SANTIAGO 7602,,ONG,Vecinales
+NOROESTE,Vecinal San Cayetano,CASACUBERTA JUAN A 8950,,ONG,Vecinales
+NOROESTE,Vecinal Santa Lucía,MONTEVIDEO,4565954,ONG,Vecinales
+NOROESTE,Vecinal Stella Maris y Santa Rosa,MARADONA JOSE IGNACIO 953 Bis,,ONG,Vecinales
+NOROESTE,Vecinal del Bicentenario,NICARAGUA 1098 Bis,4595035,ONG,Vecinales
+NORTE,Albergue Deportivo (La Casona),CENTRAL ARGENTINO 2846,Tel. 4804813,Municipal,Deportes
+NORTE,Asociación Civil 300 Bowling Club,ALVAREZ THOMAS IGNACIO 3558,,Municipal,Deportes
+NORTE,Casa Zelaya,ZELAYA CORNELIO 2047,,Municipal,Salud
+NORTE,Centro Cuidar Industrial,LOPEZ VICENTE FIDEL 1983,4804650,Municipal,Centros Cuidar
+NORTE,Centro Cuidar La Cerámica,MOLINA MANUEL IGNACIO 2850,4806172,Municipal,Centros Cuidar
+NORTE,Centro Cuidar La Cerámica,MOLINA MANUEL IGNACIO 2850,4806172,Municipal,Deportes
+NORTE,Centro Cuidar La Esperanza,HERRERA DR NICOLAS 2240,4806630,Municipal,Centros Cuidar
+NORTE,Centro Cuidar Los Cedros,POBLET MARCELINO 3001,4806638,Municipal,Centros Cuidar
+NORTE,Centro Cuidar Nuevo Alberdi,LUZARRIAGA MANUEL DE 2909,4806821,Municipal,Centros Cuidar
+NORTE,Centro Cuidar Rucci,MENA JUAN DE DIOS 2277,4806634,Municipal,Centros Cuidar
+NORTE,Centro Cuidar Travesía,JUSTO JUAN B 2083,4804656,Municipal,Centros Cuidar
+NORTE,Centro Cultural Cine Lumière,VELEZ SARSFIELD DALMACIO 1027,,Municipal,Centros culturales y Bibliotecas
+NORTE,Centro Cultural Parque Alem,NANSEN 100,4806632/341330 8016,Municipal,Centros culturales y Bibliotecas
+NORTE,Centro Recreativo La Esperanza,SUPERI COMANANTE JOSE 2208,,Municipal,Deportes
+NORTE,"Centro de Salud ""Dr. Salvador Mazza""",GRANDOLI FLODUARDO 3498,4806636,Municipal,Salud
+NORTE,"Centro de Salud ""Juan B. Justo""",JUSTO JUAN B 2083,4804657,Municipal,Salud
+NORTE,"Centro de Salud ""Vecinal Amor al Estudio""",JUNIN 1684,4393937,Municipal,Salud
+NORTE,"Centro de Salud ""Vecinal La Florida""",BRAILLE LUIS 1205,4806637,Municipal,Salud
+NORTE,Centro de Salud 1° de Mayo,MENA JUAN DE DIOS 2265,4806635,Municipal,Salud
+NORTE,Centro de Salud Alicia Moreau de Justo,1333 3040,4226162,Municipal,Salud
+NORTE,Centro de Salud Casiano Casas,CASAS CASIANO 970,4806631,Municipal,Salud
+NORTE,Centro de Salud Dra. Ena Richiger,SALVAT 2421,3413847592,Municipal,Salud
+NORTE,"Centro de Salud N° 19 ""La Cerámica""",ONGAMIRA 2899,4549434,Provincial,Salud
+NORTE,"Centro de Salud N° 20 ""La Esperanza""",PIZZURNO PABLO A 1983,4549442,Provincial,Salud
+NORTE,"Centro de Salud N° 47 ""Comunidad Toba""",PASO JUAN JOSE 2010,4804535,Provincial,Salud
+NORTE,"Centro de Salud N° 7 ""12 de Octubre""",MASSA MAESTRO 470,4549422,Provincial,Salud
+NORTE,"Centro de Salud Nº 8 ""Independencia""",CASAS CASIANO 1801,5252818,Provincial,Salud
+NORTE,Club Defensores de Nuevo Alberdi,BOUCHARD HIPOLITO 2782,4539963,Municipal,Deportes
+NORTE,"Club Social, Cultural y Deportivo Cristalería",CONWAY MARIA E 3129,,Municipal,Deportes
+NORTE,Complejo de Piletas del Parque Alem,ARTURO FRONDIZI 330,4384905,Municipal,Deportes
+NORTE,Costa Alta y Paseo del Caminante,CARRASCO EUDORO 3650,,Municipal,Deportes
+NORTE,Escuela Municipal de Actividades Náuticas,CARRASCO EUDORO 2002,,Municipal,Deportes
+NORTE,"Hospital ""Dr. Juan Bautista Alberdi""",PUCCIO JOSE N 575,4806177,Municipal,Salud
+NORTE,"Hospital de Niños ""Zona Norte""",DE LOS TRABAJADORES 1331,4350340/472453 2 al 36/4724648/472 4659/4724661,Provincial,Salud
+NORTE,Playón Grandoli y Luzarriaga,GRANDOLI FLODUARDO,,Municipal,Deportes
+NORTE,Playón Génova y Chaco,GENOVA,,Municipal,Deportes
+NORTE,Playón La Cerámica - República de Irak e/ Unión y Molina,IRAK REPUBLICA DE,,Municipal,Deportes
+NORTE,Playón Superí y Pizurno,SUPERI COMANDANTE JOSE,,Municipal,Deportes
+NORTE,Plaza Nuestra Señora de la Paz,1389 2072,,Municipal,Deportes
+NORTE,Policlínico PAMI II,OLIVE AUGUSTO J 1159,4803560 al 73,Nacional,Salud
+NORTE,Polideportivo Barrio Cristalería,ALBERINI CORIOLANO 3200,4806839,Municipal,Deportes
+NORTE,Roller Club Zona Norte,PASO JUAN JOSE 1103,,Municipal,Deportes
+NORTE,Vecinal Alberdi,LARRECHEA PEDRO T DE,,ONG,Vecinales
+NORTE,Vecinal Barrio Cerámica,GODOY CRUZ TOMAS 1585,,ONG,Vecinales
+NORTE,Vecinal Barrio Industrial - Biblioteca Amor al Estudio,JUNIN 1684,4393937,ONG,Vecinales
+NORTE,Vecinal Barrio Jardín Lomas de A,AMERISO DR. JOSE 1799,,ONG,Vecinales
+NORTE,Vecinal Barrio Olímpico,SALVAT 2669,,Municipal,Vecinales
+NORTE,Vecinal Barrio Parque Casas,SORRENTO 1293,4726611,ONG,Vecinales
+OESTE,Vecinal Barrio Parque Field,FRANK ANNA 2476,4558982,ONG,Vecinales
+OESTE,Vecinal Barrio Rucci,PEIRANO IRMA 2676,,ONG,Vecinales
+OESTE,Vecinal Complejo habitacional Ibarlucea,13118 3479,,Municipal,Vecinales
+OESTE,Vecinal Florida Norte,MONT CENIS 3959,4530915,ONG,Vecinales
+OESTE,Vecinal La Floresta,TALCA 1829,,ONG,Vecinales
+OESTE,Vecinal La Florida,VARELA JUAN C Y FLORENCI 3475,4536033,ONG,Vecinales
+OESTE,Vecinal Las Malvinas,DON ORIONE 545,4361109,ONG,Vecinales
+OESTE,Vecinal Lisandro de la Torre,ALBERDI JUAN BAUTISTA 1183 Bis,4387195,ONG,Vecinales
+OESTE,Vecinal Nuevo Alberdi,BOUCHARD HIPOLITO 2829,4806838,ONG,Vecinales
+OESTE,Vecinal Nuevo Alberdi Oeste Francisco Lai,RAZZORI AMILCAR 3530,4806178,ONG,Vecinales
+OESTE,Vecinal Sarmiento,DAMAS MENDOCINAS 330,4540554,ONG,Vecinales
+OESTE,Vecinal Unión,1351 1941,,ONG,Vecinales
+OESTE,Vecinal Unión y Parque Casas,MEDRANO DR. PEDRO 1350,4536943 de 16 a 19,ONG,Vecinales
+OESTE,Vecinal independencia,SUPERI COMANDANTE JOSE 2464,,Municipal,Vecinales
+OESTE,Biblioteca de Salud Pública Dra. María del Carmen Troncoso,PELLEGRINI CARLOS 3205,4808111 (int. 207),Municipal,Centros culturales y Bibliotecas
+OESTE,CMD Oeste (puesto de Salud animal),PERON PTE. JUAN DOMINGO 4602,,Municipal,Salud
+OESTE,Centro Cuidar 23 de Febrero,MARADONA DR. ESTEBAN 5710,4805461,Municipal,Centros Cuidar
+OESTE,Centro Cuidar Belgrano,ITUZAINGO 7358,4807693,Municipal,Centros Cuidar
+OESTE,Centro Cuidar Bella Vista,LIMA 1700,4805629,Municipal,Centros Cuidar
+OESTE,Centro Cuidar Distrito Oeste,PERON PRESIDENTE JUAN DOM 4534,4805851,Municipal,Centros Cuidar
+OESTE,Centro Cuidar La Lagunita,SEGUI JUAN FRANCISCO 6693,4807692,Municipal,Centros Cuidar
+OESTE,Centro Cuidar Parque Oeste,ROUILLON ALFREDO 1998,,Municipal,Centros Cuidar
+OESTE,Centro Cuidar Rouillón,ROUILLON ALFREDO 4300,480 5640,Municipal,Centros Cuidar
+OESTE,Centro Cuidar San Cayetano,VANZO JULIO 7916,4807694,Municipal,Centros Cuidar
+OESTE,Centro Cuidar San Francisquito,IRIONDO GOBERNADOR SIMON 2612,4805850,Municipal,Centros Cuidar
+OESTE,Centro Cuidar Santa Lucía,1752 2131,4807841,Municipal,Centros Cuidar
+OESTE,Centro Cuidar Vía Honda,RIVA FRANCISCO 5501,4805649,Municipal,Centros Cuidar
+OESTE,Centro Cultural El Obrador,ESPINILLO 4250,4805627,Municipal,Centros culturales y Bibliotecas
+OESTE,"Centro de Salud ""Dr. Esteban Maradona""",COCHABAMBA 5103,4807847,Municipal,Salud
+OESTE,"Centro de Salud ""Ernesto Che Guevara""",1709 7751,4727507,Provincial,Salud
+OESTE,"Centro de Salud ""Eva Duarte""",ROUILLON ALFREDO 2095,4807844,Municipal,Salud
+OESTE,"Centro de Salud ""Julio A. Roca""",DELIOT V 5323,4805859,Municipal,Salud
+OESTE,"Centro de Salud ""Libertad""",1816 4495,4807099,Provincial,Salud
+OESTE,"Centro de Salud ""Luchemos por la vida""",SEGUI JUAN FRANCISCO 6552,4807697,Municipal,Salud
+OESTE,"Centro de Salud ""Mauricio Casal""",SEGUI JUAN FRANCISCO 5305,4805625,Municipal,Salud
+OESTE,"Centro de Salud ""Santa Lucía""",1739 7691,4807841,Municipal,Salud
+OESTE,"Centro de Salud ""Sta. María Josefa Rossello""",RIVAROLA DR. RODOLFO 7501,4807845,Municipal,Salud
+OESTE,"Centro de Salud ""Vecinal Juan Pablo II""",FRAGA CNEL. ROSENDO MARIA 2308,,Municipal,Salud
+OESTE,Centro de Salud Barrio Toba,TAREGUEC 4320,4805620,Municipal,Salud
+OESTE,Centro de Salud Dr. David Staffieri,PERON PRESIDENTE JUAN DOM 4540,4805647,Municipal,Salud
+OESTE,"Centro de Salud N° 14 ""Avellaneda Oeste""",AMENABAR JOSE DE 4122,4805414,Provincial,Salud
+OESTE,"Centro de Salud N° 9 ""San Francisquito""",GALVEZ JOSE 3501,4805412,Provincial,Salud
+OESTE,"Centro de Salud N°13 ""FONAVI""",ROUILLON ALFREDO 3671,4805411,Provincial,Salud
+OESTE,Centro de Salud Vecinal Villa Urquiza,OCAMPO 5779,,Municipal,Salud
+OESTE,Club Social y Deportivo Infantil Valencia,PERON PTE. JUAN DOMINGO 5701,155-320502 (Frisson) 4328226- 155967775,Municipal,Deportes
+OESTE,Hospital Municipal de Salud Animal (ex IMuSA),FRANCIA 1940,4805463 / 4314048,Municipal,Salud
+OESTE,"Hospital de Emergencias ""Dr. Clemente Álvarez""",PELLEGRINI CARLOS 3205,4808111,Municipal,Salud
+OESTE,La Granja de la Infancia,PERON PRESIDENTE JUAN DOM 8000,341 5790221,Municipal,Centros culturales y Bibliotecas
+OESTE,Playón Amenábar y Circunvalación,AMENABAR JOSE DE 7299,,Municipal,Deportes
+OESTE,Playón Brasil esquina calle Volta,BRASIL,,Municipal,Deportes
+OESTE,Playón Colombres 2900 - Sector 4,COLOMBRES DR. GUILLERMO 2900,,Municipal,Deportes
+OESTE,Playón La Lagunita,PROVINCIAS UNIDAS,,Municipal,Deportes
+OESTE,Playón Misiones 2250,PROVINCIA DE MISIONES 2250,,Municipal,Deportes
+OESTE,Playón Servando Bayo 3100,BAYO SERVANDO 3100,,Municipal,Deportes
+OESTE,Playón Valparaiso y Saavedra,ANCON,,Municipal,Deportes
+OESTE,Playón Viamonte y Nicaragua,VIAMONTE JUAN JOSE 7301,,Municipal,Deportes
+OESTE,Playón calle Nº 1816 y Aborígenes Argentinos,"JOSE GABRIEL ""CURA"" BROCHERO",,Municipal,Deportes
+OESTE,Polideportivo Deliot,SEGUI JUAN FRANCISCO 5462,4805621,Municipal,Deportes
+OESTE,Polideportivo Parque Oeste,PASCO,4807840,Municipal,Deportes
+OESTE,Vecinal 13 de Marzo,MAGALLANES FERNANDO DE 3855,4319740 / 4335226,ONG,Vecinales
+OESTE,Vecinal 23 de Febrero,GIACHINO PEDRO EDGARDO 4310,,ONG,Vecinales
+OESTE,Vecinal Avellaneda Oeste,AMENABAR JOSE DE 4122,,ONG,Vecinales
+OESTE,Vecinal Azcuénaga Sur,PASCO 5330,4462170,ONG,Vecinales
+OESTE,Vecinal Barrio Parque,PERON PRESIDENTE JUAN DOM 3175,4335106,ONG,Vecinales
+OESTE,Vecinal Belgrano Oeste,COCHABAMBA 6657,4462495 / 4462170,ONG,Vecinales
+OESTE,Vecinal Belgrano Sur,BEMPORAT 7068,4565730,ONG,Vecinales
+OESTE,Vecinal Bella Vista,CAFFERATA JUAN MANUEL 2026,153048487,ONG,Vecinales
+OESTE,Vecinal Bella Vista Zona Oeste,GUTENBERG JUAN 2157,152553651,ONG,Vecinales
+OESTE,Vecinal Cacique Pedro Martínez,ROUILLON ALFREDO 4328,,Municipal,Vecinales
+OESTE,Vecinal Juan Pablo II,FRAGA CNEL. ROSENDO MARIA 2308,4567806,ONG,Vecinales
+OESTE,Vecinal Julio A. Roca,ALDAO CAMILO 3900,4805859,ONG,Vecinales
+OESTE,Vecinal Justo José Urquiza,MATIENZO CAPITAN BENJAMIN 2750,4311520,ONG,Vecinales
+OESTE,Vecinal Rodolfo Rivarola,FADER FERNANDO 3175,4571188,ONG,Vecinales
+SUDOESTE,Vecinal Unión y Progreso,FUNES PEDRO LINO 3355,,ONG,Vecinales
+SUDOESTE,Vecinal Villa Nueva,RUEDA MIGUEL 6250,,ONG,Vecinales
+SUDOESTE,Vecinal Villa Urquiza Zona Oeste,OCAMPO 5773,4317539,ONG,Vecinales
+SUDOESTE,Casa de Cultura Barrio Alvear,LETT FRANCISCO N 4253,4805628,Municipal,Centros culturales y Bibliotecas
+SUDOESTE,Centro Cuidar Acíndar,WINTER CORONEL 3810,4809734,Municipal,Centros Cuidar
+SUDOESTE,Centro Cuidar Barrio Plata,NUESTRA SRA DEL ROSARIO 3600,,Municipal,Centros Cuidar
+SUDOESTE,Centro Cuidar Itatí,GARIBALDI JOSE 2592,4805466,Municipal,Centros Cuidar
+SUDOESTE,Centro Cuidar Las Flores,5 DE AGOSTO 1763,4809527,Municipal,Centros Cuidar
+SUDOESTE,Centro Cuidar Las Flores Este,ESPAÑA 6755,4809191,Municipal,Centros Cuidar
+SUDOESTE,Centro Cuidar Punto Sudoeste,URIBURU PTE. JOSE EVARISTO 3876,,Municipal,Centros Cuidar
+SUDOESTE,Centro Cuidar Tío Rolo,AVELLANEDA NICOLAS 6915,,Municipal,Centros Cuidar
+SUDOESTE,"Centro de Salud ""El Gaucho""",AVELLANEDA NICOLAS 5625,4809779,Municipal,Salud
+SUDOESTE,"Centro de Salud ""Elena Bazzet""",CABRINI MADRE 2717,4809197,Municipal,Salud
+SUDOESTE,"Centro de Salud ""Enfermero Ariel E. Morandi"" Bº Plata",LAMADRID GREGORIO ARAOZ D 3307,4809768,Municipal,Salud
+SUDOESTE,"Centro de Salud ""Itatí""",GARIBALDI JOSE 2502,4805879,Municipal,Salud
+SUDOESTE,"Centro de Salud ""Las Flores""",FLOR DE NACAR 6983,4809772,Municipal,Salud
+SUDOESTE,"Centro de Salud ""Pocho Lepratti""",MELIAN JOSE 6386,4809529,Municipal,Salud
+SUDOESTE,"Centro de Salud ""San Marcelino Champagnat""",CASTELLANOS AARON 3935,4805648,Municipal,Salud
+SUDOESTE,"Centro de Salud ""San Vicente de Paul""",PUNTA DEL INDIO 7760,4809765,Municipal,Salud
+SUDOESTE,"Centro de Salud ""Santa Teresita""",FRANCIA 4435,4809195,Municipal,Salud
+SUDOESTE,"Centro de Salud ""Tío Rolo""",AVELLANEDA NICOLAS 6600,4809524,Municipal,Salud
+SUDOESTE,"Centro de Salud ""Vecinal Las Flores Este""",KHANTUTA 1397,4809767,Municipal,Salud
+SUDOESTE,"Centro de Salud ""Vecinal San Martín A""",PIEDRAS 1469,4809521,Municipal,Salud
+SUDOESTE,"Centro de Salud N° 15 ""Juan D. Perón"" (Bº Las Flores)",ESTRELLA FEDERAL 1785,4809435,Provincial,Salud
+SUDOESTE,"Centro de Salud N° 22 ""González Loza""",BOLONIA 4787,4809430,Provincial,Salud
+SUDOESTE,"Centro de Salud N° 5 ""Pedro Fiorina""",FRANCIA 3104,4808413,Provincial,Salud
+SUDOESTE,Centro de Salud Vecinal Parque Sur,BOLONIA 5350,4809196,Municipal,Salud
+SUDOESTE,Club Atlético Defensores de Zona Sur,LAGOS OVIDIO 6799,,Municipal,Deportes
+SUDOESTE,Playón Iriondo y Dean Funes,IRIONDO GOBERNADOR SIMON,,Municipal,Deportes
+SUDOESTE,Polideportivo Las Flores,CANTU 6990,4809193,Municipal,Deportes
+SUDOESTE,Vecinal 25 de Mayo,SANTIAGO 4798,4659665,ONG,Vecinales
+SUDOESTE,Vecinal Barrio Acindar,HUEMUL 4535,,ONG,Vecinales
+SUDOESTE,Vecinal Barrio Alvear,CASTELLANOS AARON 3665,4328238,ONG,Vecinales
+SUDOESTE,Vecinal Barrio Plata,AURORA 3506,4809768,ONG,Vecinales
+SUDOESTE,Vecinal Dorrego,DE LA QUINTANA HILARION 1866,4656332,ONG,Vecinales
+SUDOESTE,Vecinal F. M. Domingo Matheu,DE LUCA ESTEBAN 2651,4662473,ONG,Vecinales
+SUDOESTE,Vecinal Las Delicias Centro,DE LA QUINTANA HILARION 1866,4663133,ONG,Vecinales
+SUDOESTE,Vecinal Las Flores Este,KHANTUTA 1396,4809767,ONG,Vecinales
+SUDOESTE,Vecinal Martín Güemes,PLAZA ARGENTINA 3208,4231834,ONG,Vecinales
+SUDOESTE,Vecinal Ntra. Señora De Itatí,FLOR DE NACAR 7036,4653982,ONG,Vecinales
+SUDOESTE,Vecinal Parque Sur,BOLONIA 5350,4809196,ONG,Vecinales
+SUDOESTE,Vecinal Parque Sur (puesto Salud animal),BOLONIA 5350,,Municipal,Salud
+SUDOESTE,Vecinal San Francisco Solano,CALLAO 5862 Letra: B,,ONG,Vecinales
+SUDOESTE,Vecinal San Francisquito,SAN NICOLAS 3030,,ONG,Vecinales
+SUDOESTE,Vecinal San Martin A,PIEDRAS 1469,4629861,ONG,Vecinales
+SUDOESTE,Vecinal Santa Teresita,IRIONDO GOBERNADOR SIMON 5200,4809195,ONG,Vecinales
+SUDOESTE,Vecinal Tío Rolo,AVELLANEDA NICOLAS 6600,4809524,ONG,Vecinales
+SUDOESTE,Vecinal Villa 57 y 58 (Pueyrredón),ARABE UNIDA REPUBLICA 2247,4646684,ONG,Vecinales
+SUR,Centro Cuidar Ayacucho,AYACUCHO BATALLA DE 6317,4809525,Municipal,Centros Cuidar
+SUR,Centro Cuidar Flammarión,MARGIS PEDRO JOSE 5200,4809528,Municipal,Centros Cuidar
+SUR,Centro Cuidar Grandoli,GRANDOLI ABANDERADO CLETO 4951,,Municipal,Centros Cuidar
+SUR,Centro Cuidar La Tablada,NECOCHEA GRAL. MARIANO 4262,4809198,Municipal,Centros Cuidar
+SUR,Centro Cuidar Mangrullo,COSTANERA 5309,,Municipal,Centros Cuidar
+SUR,Centro Cuidar Molino Blanco,BOQUERON 639,,Municipal,Centros Cuidar
+SUR,Centro Cuidar Tablada,NECOCHEA GRAL. MARIANO 4262,,Municipal,Centros Cuidar
+SUR,Centro de Educación Física Nº 7,MAIPU 3051,,Municipal,Deportes
+SUR,Centro de Educación Física Nº 9,ARIJON MANUEL 649,,Municipal,Deportes
+SUR,"Centro de Salud ""Dr. Julio Maiztegui""",ROSA JOSE MARIA 9201,4809760,Municipal,Salud
+SUR,"Centro de Salud ""El Mangrullo""",MANGRULLO EL 5150,4809773,Municipal,Salud
+SUR,"Centro de Salud ""Luis Pasteur""",AYOLAS JUAN DE 270,4809778,Municipal,Salud
+SUR,"Centro de Salud ""Rubén Naranjo""",SANCHEZ DE THOMPSON MARIQ 9 Bis,4809190,Municipal,Salud
+SUR,"Centro de Salud ""Sur""",AYACUCHO BATALLA DE 6300,4809771,Municipal,Salud
+SUR,"Centro de Salud ""Vecinal Domingo Matheu""",CORRIENTES 3880,4809769,Municipal,Salud
+SUR,Centro de Salud 20 de Junio - Bº Tiro Suizo,MARGIS PEDRO JOSE 5115,4809766,Municipal,Salud
+SUR,Centro de Salud Alfonsina Storni,BERMUDEZ JOSE A 6390,4729677,Provincial,Salud
+SUR,"Centro de Salud N° 10 ""Villa Manuelita""",ERCILIA ALONSO DE 298 Bis,4809434,Provincial,Salud
+SUR,"Centro de Salud N° 11 ""Villa Corrientes""",AMENABAR JOSE DE 1329,4808420,Provincial,Salud
+SUR,"Centro de Salud N° 12 ""Dr. García Piatti""",BALCARCE 3850,4809431,Provincial,Salud
+SUR,"Centro de Salud N° 29 ""Araoz de la Madrid""",NALE ROXLO CONRADO 4780,4809437,Provincial,Salud
+SUR,"Centro de Salud N° 6 ""Eva Perón""",BERUTI ANTONIO LUIS 2732,4808421,Provincial,Salud
+SUR,Centro de Salud Pasteur (puesto Salud animal),AYOLAS JUAN DE 270,,Municipal,Salud
+Sin Distrito,"Hospital ""Dr. Roque Sáenz Peña""",LAPRIDA FRANCISCO NARCISO 5381,Conmutador: 4809144,Municipal,Salud
+Sin Distrito,Hospital Español,SARMIENTO DOMINGO FAUSTIN 3150,0341-4858700,Privado,Salud
+Sin Distrito,La Estación,GALVEZ JOSE 867,4808797,Municipal,Salud
+Sin Distrito,Parque Héroes de Malvinas,AYACUCHO BATALLA DE 4862,,Municipal,Deportes
+Sin Distrito,Playón Brazo Seco Saladillo,NUESTRA SRA DEL ROSARIO 500 Bis,,Municipal,Deportes
+Sin Distrito,Polideportivo 9 de Julio,DORREGO MANUEL 3339,4808661,Municipal,Deportes
+Sin Distrito,Polideportivo Balneario del Saladillo,NUESTRA SRA DEL ROSARIO 400 Bis,4809520,Municipal,Deportes
+Sin Distrito,Polideportivo Parque Hipólito Yrigoyen,GALVEZ JOSE 647,4808490,Municipal,Deportes
+Sin Distrito,Polideportivo Parque del Mercado,CEPEDA 5051 Letra: A,4809775,Municipal,Deportes
+Sin Distrito,Vecinal 22 de Julio,GRANDOLI ABANDERADO CLETO 4065,,ONG,Vecinales
+Sin Distrito,Vecinal AVROSE,BIBLIOTECA VIGIL 172 Bis,,ONG,Vecinales
+Sin Distrito,Vecinal Araoz de la Madrid,ISOLA DEMETRIO 347 Bis,,Municipal,Vecinales
+Sin Distrito,Vecinal Bernardo de Irigoyen,ALZUGARAY AMBROSIO DE 936,,ONG,Vecinales
+Sin Distrito,Vecinal Las Heras,DE LUCA ESTEBAN 132,4639822,ONG,Vecinales
+Sin Distrito,Vecinal Parque Regional Sur,AGUIRRE JULIAN 6059,,ONG,Vecinales
+Sin Distrito,Vecinal Saladillo Sud,BERMUDEZ JOSE A 5951,4629953,ONG,Vecinales
+Sin Distrito,Vecinal Saladillo Sud Este,FONSECA ILDEFONSO CONCEJA 5670,4650144,ONG,Vecinales
+Sin Distrito,Vecinal Uriburu y La Guardia,URIBURU PTE. JOSE EVARIST 1721,4633777,ONG,Vecinales
+Sin Distrito,Vecinal Vicente López y Planes,FRIAS FRANCISCO DE 808,,ONG,Vecinales
+Sin Distrito,Velódromo Municipal,ARIJON MANUEL 500 Bis,,Municipal,Deportes
+Sin Distrito,"Centro de Salud N° 28 ""Sargento Cabral""",PUNTA DEL INDIO 8428,4809436,Provincial,Salud

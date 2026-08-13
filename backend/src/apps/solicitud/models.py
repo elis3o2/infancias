@@ -20,6 +20,7 @@ class PrioridadSolicitud(models.Model):
         managed = False
         db_table = 'prioridad_solicitud'
 
+
 class Derivacion(models.Model):
     id = models.AutoField
     nombre = models.CharField(max_length=32)
@@ -27,6 +28,7 @@ class Derivacion(models.Model):
     class Meta: 
         managed = False
         db_table = 'derivacion'
+
 
 class Solicitud(models.Model):
     id = models.AutoField(primary_key=True)
@@ -42,7 +44,10 @@ class Solicitud(models.Model):
     telefono = models.CharField(max_length=32)
     prioridad = models.ForeignKey(
         PrioridadSolicitud, models.DO_NOTHING, db_column='id_prioridad')
+    prioridad_extra = models.ForeignKey(
+        PrioridadSolicitud, models.DO_NOTHING, db_column="id_prioridad_extra", null=True, blank=True)
     descripcion = models.CharField(max_length=256)
+    descripcion_extra = models.CharField(max_length=256, blank=True, null=True)
     fecha_hora_creacion = models.DateTimeField()
     fecha_hora_modificacion = models.DateTimeField(blank=True, null=True)
     validado = models.BooleanField()
@@ -50,6 +55,8 @@ class Solicitud(models.Model):
     motivo_rechazo = models.CharField(max_length=256, null=True, blank=True)
     derivacion = models.ForeignKey(
         Derivacion, models.DO_NOTHING, db_column="id_derivacion", null=True, blank=True)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column="id_usuario", null=True, blank=True)
 
     class Meta:
         managed = False
@@ -63,6 +70,8 @@ class Archivo(models.Model):
     nombre = models.CharField(max_length=255)
     tipo_mime = models.CharField(max_length=100, null=True, blank=True)
     contenido = models.BinaryField()
+    valido = BooleanField()
+    extra = BooleanField()
 
     class Meta:
         managed = False

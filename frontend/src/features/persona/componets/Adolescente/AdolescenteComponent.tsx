@@ -13,7 +13,7 @@ type Props = {
 
 export const AdolescenteComponent = ({ adolescente, setAdolescente, finishAdolescente, setFinishAdolescente}: Props) => {
   return (
-    <Card variant="outlined" sx={{ borderRadius: 2 }}>
+    <Card variant="outlined" sx={{ minWidth: 1028, borderRadius: 2 }}>
       <CardHeader
           title="Niño, Niña o Adolescente"
           titleTypographyProps={{ variant: 'h6', fontWeight: 600 }}

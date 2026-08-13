@@ -7,6 +7,8 @@ class Provincia(models.Model):
     class Meta:
         managed = False
         db_table = 'provincia'
+        ordering = ["nombre"]
+
 
 class Departamento(models.Model):
     id = models.AutoField
@@ -17,6 +19,7 @@ class Departamento(models.Model):
     class Meta:
         managed = False
         db_table = 'departamento'
+        ordering = ["nombre"]
 
 
 class DomicilioValidado(models.Model):
@@ -78,5 +81,6 @@ class Institucion(models.Model):
     class Meta:
         managed = False
         db_table = "institucion"
+        ordering = ["nombre"]
 
 

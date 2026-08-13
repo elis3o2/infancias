@@ -3,7 +3,7 @@ import { Box, Button, Typography} from '@mui/material'
 import type { AdolescenteCreate, Familiar, Hermano, Solicitante } from "@/features/persona/types"
 import { AdolescenteInicial, SolicitanteInicial } from "@/features/persona/types"
 import { InstitucionInicial, type Institucion } from "@/features/domicilio/types"
-import type { Archivo, MotivoSolicitud, PrioridadSolicitud, SolicitudCreate } from "@/features/solicitud/types"
+import type { Archivo, MotivoSolicitud, PrioridadSolicitud } from "@/features/solicitud/types"
 import { SolicitanteComponent } from "@/features/persona/componets/Solicitante/SolicitanteComponent"
 import { AdolescenteComponent } from "@/features/persona/componets/Adolescente/AdolescenteComponent"
 import { SolicitudComponent } from "@/features/solicitud/components/SolicitudSection/SolicitudComponent"
@@ -15,6 +15,8 @@ import { postSolicitud } from "@/features/solicitud/api"
 import { AlertMessage } from "@/common/components"
 import type { AlertSeverity } from "@/common/types"
 import { ReferenciaInstitucionComponent } from "@/features/solicitud/components/Redes/ReferenciaInstitucionesComponent"
+import { Footer } from "@/common/layouts/Footer"
+import { Header } from "@/common/layouts/Header"
 
 export const CreatePage = () => {
   const [solicitante, setSolicitante] = useState<Solicitante>(SolicitanteInicial)
@@ -147,6 +149,7 @@ const familiaresData = familiares.map((familiar) => ({
 
 return (
   <>
+    <Header/>
     <Box
       sx={{
         background: "linear-gradient(90deg, #eff6ff 0%, #f8fafc 100%)",
@@ -233,9 +236,10 @@ return (
         message={alertMessage}
         severity={alertSeverity}
       />
+      <Footer/>
     </Box>
   </>
-)
+  )
 }
 
 export default CreatePage

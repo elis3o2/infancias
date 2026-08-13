@@ -4,6 +4,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from decouple import config
+from django.db.models import Case, When, Value, IntegerField
 from .models import Adolescente, Solicitante, Familiar, Hermano, Vinculo, AdolescenteValidado, HermanoValidado
 from .serializers import (AdolescenteSerializer, SolicitanteSerializer, FamiliarSerializer, HermanoSerializer,
                                 VinculoSerializer, AdolescenteValidadoSerializer, HermanoValidadoSerializer)
@@ -42,9 +43,19 @@ class HermanoViewSet(viewsets.ModelViewSet):
     serializer_class = HermanoSerializer
 
 
+
 class VinculoViewSer(viewsets.ModelViewSet):
-    queryset = Vinculo.objects.all()
     serializer_class = VinculoSerializer
+    queryset = (
+        Vinculo.objects
+        .annotate(
+            orden_otros=Case(
+                When(nombre="Otro", then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        )
+        .order_by("orden_otros", "nombre"))
 
 
 class HistoriaClinicaView(APIView):

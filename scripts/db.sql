@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS domicilio_validado (
     radio_censal VARCHAR(32) NULL
 );
 
+
 CREATE TABLE IF NOT EXISTS provincia (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(64) NOT NULL
@@ -35,6 +36,7 @@ CREATE TABLE IF NOT EXISTS departamento (
     id_provincia INT NOT NULL,
     FOREIGN KEY (id_provincia) REFERENCES provincia(id)
 );
+
 
 CREATE TABLE IF NOT EXISTS domicilio (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -52,6 +54,7 @@ CREATE TABLE IF NOT EXISTS tipo_institucion (
     educacion BOOLEAN,
     territorial BOOLEAN
 );
+
 
 CREATE TABLE IF NOT EXISTS institucion (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -80,8 +83,12 @@ CREATE TABLE IF NOT EXISTS adolescente (
     nombre VARCHAR(32) NOT NULL,
     apellido VARCHAR(32) NOT NULL,
     id_domicilio INT NULL,
+    id_domicilio_extra INT NULL,
     fecha_nacimiento DATE NOT NULL,
     escolarizado BOOLEAN NOT NULL,
+    escolarizado_extra BOOLEAN NULL,
+    id_adolescente_validado INT NULL,
+    FOREIGN KEY (id_domicilio_extra) REFERENCES domicilio(id),
     FOREIGN KEY (id_domicilio) REFERENCES domicilio (id)
 );
 
@@ -93,8 +100,6 @@ CREATE TABLE IF NOT EXISTS adolescente_validado (
     nombre VARCHAR(32) NOT NULL,
     apellido VARCHAR(32) NOT NULL,
     fecha_nacimiento DATE NOT NULL,
-    id_adolescente INT NOT NULL,
-    FOREIGN KEY (id_adolescente) REFERENCES adolescente(id)
 );
 
 
@@ -106,6 +111,7 @@ CREATE TABLE IF NOT EXISTS hermano (
     apellido VARCHAR(32) NOT NULL,
     fecha_nacimiento DATE NOT NULL,
     id_adolescente INT NOT NULL,
+    id_hermano_validado INT NULL,
     FOREIGN KEY (id_adolescente) REFERENCES adolescente(id)
 );
 
@@ -117,8 +123,8 @@ CREATE TABLE IF NOT EXISTS hermano_validado (
     nombre VARCHAR(32) NOT NULL,
     apellido VARCHAR(32) NOT NULL,
     fecha_nacimiento DATE NOT NULL,
-    id_hermano INT NOT NULL,
-    FOREIGN KEY (id_hermano) REFERENCES hermano(id)
+    id_adolescente INT NOT NULL,
+    FOREIGN KEY (id_adolescente) REFERENCES adolescente_validado(id)
 );
 
 
@@ -135,6 +141,8 @@ CREATE TABLE IF NOT EXISTS familiar (
     id_adolescente INT NOT NULL,
     id_vinculo INT NOT NULL,
     telefono VARCHAR(16) NULL,
+    validado BOOLEAN,
+    extra BOOLEAN,
     FOREIGN KEY (id_adolescente) REFERENCES adolescente (id),
     FOREIGN KEY (id_vinculo) REFERENCES vinculo (id)
 );
@@ -151,6 +159,7 @@ CREATE TABLE IF NOT EXISTS prioridad_solicitud (
     nombre VARCHAR(32) NOT NULL
 );
 
+
 CREATE TABLE IF NOT EXISTS derivacion (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(32) NOT NULL
@@ -166,13 +175,16 @@ CREATE TABLE IF NOT EXISTS solicitud (
     id_adolescente INT NOT NULL,
     id_motivo INT NOT NULL,
     id_prioridad INT NOT NULL,
+    id_prioridad_extra INT NULL,
     descripcion VARCHAR(256) NULL,
+    descripcion_extra VARCHAR(256) NULL,
     fecha_hora_creacion DATETIME NOT NULL,
     fecha_hora_modificacion DATETIME NULL,
     validado BOOLEAN DEFAULT false,
     rechazado BOOLEAN DEFAULT false,
     motivo_rechazo VARCHAR(256) NULL,
     id_derivacion INT NULL,
+    id_usuario INT NULL,
     FOREIGN KEY (id_institucion) REFERENCES institucion(id),
     FOREIGN KEY (id_solicitante) REFERENCES solicitante(id),
     FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
@@ -182,13 +194,14 @@ CREATE TABLE IF NOT EXISTS solicitud (
 );
 
 
-
 CREATE TABLE  IF NOT EXISTS archivo (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_solicitud INT NOT NULL,
     nombre VARCHAR(255) NOT NULL,
     tipo_mime VARCHAR(100),
     contenido LONGBLOB NOT NULL,
+    valido BOOLEAN,
+    extra BOOLEAN,
     FOREIGN KEY (id_solicitud) REFERENCES solicitud(id)
 );
 
@@ -197,6 +210,8 @@ CREATE TABLE IF NOT EXISTS adolescente_institucion (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_adolescente INT NOT NULL,
     id_institucion INT NOT NULL,
+    validado BOOLEAN,
+    extra BOOLEAN,
     FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
-    FOREIGN KEY (id_institucion) REFERENCES institucion(id)    
+    FOREIGN KEY (id_institucion) REFERENCES institucion(id)
 );
