@@ -63,13 +63,13 @@ async function handleEnviar() {
     domicilio_validado: adolescente.domicilio?.domicilio_validado,
   }
 
-const familiaresData = familiares.map((familiar) => ({
-  id: familiar.id,
-  nombre: familiar.nombre,
-  apellido: familiar.apellido,
-  telefono: familiar.telefono,
-  id_vinculo: familiar.vinculo?.id,
-}))
+  const familiaresData = familiares.map((familiar) => ({
+    id: familiar.id,
+    nombre: familiar.nombre,
+    apellido: familiar.apellido,
+    telefono: familiar.telefono,
+    id_vinculo: familiar.vinculo?.id,
+  }))
 
   const referenciasInstitucionesData = referencias.map((referencia) => {
     if (referencia.id !== undefined && referencia.id !== -1) {

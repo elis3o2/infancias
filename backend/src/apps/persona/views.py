@@ -5,8 +5,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from decouple import config
 from django.db.models import Case, When, Value, IntegerField
+from django.db import transaction
 from .models import Adolescente, Solicitante, Familiar, Hermano, Vinculo, AdolescenteValidado, HermanoValidado
-from .serializers import (AdolescenteSerializer, SolicitanteSerializer, FamiliarSerializer, HermanoSerializer,
+from .serializers import (AdolescenteCreateSerializer, SolicitanteSerializer, FamiliarSerializer, HermanoSerializer,
                                 VinculoSerializer, AdolescenteValidadoSerializer, HermanoValidadoSerializer)
 from src.permissions import ReadOnly
 from typing import Any, cast
@@ -20,7 +21,7 @@ class AdolescenteValidadoViewSet(viewsets.ModelViewSet):
 
 class AdolescenteViewSet(viewsets.ModelViewSet):
     queryset = Adolescente.objects.all()
-    serializer_class = AdolescenteSerializer
+    serializer_class = AdolescenteCreateSerializer
 
 
 class SolicitanteViewSet(viewsets.ModelViewSet):

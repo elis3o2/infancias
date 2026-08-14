@@ -3,14 +3,12 @@ import type { Domicilio, Institucion } from "../domicilio/types"
 export type Solicitante = {
     id?: number,
     dni: string,
-    sexo: "M" | "F" | "",
     nombre: string,
     apellido: string
 }
 
 export const SolicitanteInicial : Solicitante = {
     dni: "",
-    sexo: "",
     nombre: "",
     apellido: "",
 }
@@ -41,7 +39,7 @@ export type AdolescenteCreate = {
     escolarizado: boolean
     hermanos: Hermano[]
     familiares: Familiar[]
-    referencias_instituciones_data: (Institucion | number)[]
+    referencias_instituciones_data: (Institucion | {id: number})[]
 }
 
 

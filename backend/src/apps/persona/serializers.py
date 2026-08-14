@@ -79,8 +79,8 @@ class AdolescenteValidadoSerializer(serializers.ModelSerializer):
 
 class AdolescenteCreateSerializer(serializers.ModelSerializer):
 
-    domicilio = DomicilioSerializer()
-    hermanos = HermanoSerializer(many=True, required=False, write_only=True)
+    domicilio  = DomicilioSerializer()
+    hermanos   = HermanoSerializer(many=True, required=False, write_only=True)
     familiares = FamiliarSerializer(many=True, required=False, write_only=True)
     referencias_instituciones_data = ReferenciaInstitucionInputSerializer(many=True, write_only=True, required=False)
 

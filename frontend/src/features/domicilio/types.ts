@@ -75,7 +75,8 @@ export const InstitucionInicial : Institucion = {
 
 export type Institucion = {
     id?: number,
-    tipo: TipoInstitucion,
+    tipo?: TipoInstitucion,
+    id_tipo?: number
     domicilio: Domicilio,
     nombre: string
     telefono: string

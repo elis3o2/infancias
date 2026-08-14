@@ -21,7 +21,6 @@ export const InstitucionCargaForm = ({ institucion, setInstitucion, tipo, onVali
     institucion.domicilio.departamento != null &&
     institucion.domicilio.provincia != null
 
-    console.log("INS", institucion)
   useEffect(() => {
     onValidChange?.(esValido)
   }, [esValido])
@@ -79,6 +78,7 @@ export const InstitucionCargaForm = ({ institucion, setInstitucion, tipo, onVali
         departamento={institucion.domicilio.departamento}
         setDepartamento={setDepartamento}
         id_provincia={institucion.domicilio.provincia ? institucion.domicilio.provincia.id : null}
+        disabled={institucion.domicilio.provincia == null}
       />
     </Stack>
   )

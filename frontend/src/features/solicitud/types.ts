@@ -51,7 +51,7 @@ export type Solicitud = {
 export type SolicitudCreate = {
     id_institucion?: number | null
     institucion?: Institucion | null
-    solicitante: Solicitante
+    solicitante?: Solicitante
     adolescente: AdolescenteCreate
     id_motivo: number
     id_prioridad: number

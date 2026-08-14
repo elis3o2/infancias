@@ -1,6 +1,7 @@
 from django.db import models
 from src.apps.domicilio.models import Institucion
 from src.apps.persona.models import Solicitante, Adolescente
+from django.conf import settings
 
 
 class MotivoSolicitud(models.Model):
@@ -35,7 +36,7 @@ class Solicitud(models.Model):
     institucion = models.ForeignKey(
         Institucion, models.DO_NOTHING, db_column='id_institucion')
     solicitante = models.ForeignKey(
-        Solicitante, models.DO_NOTHING, db_column='id_solicitante')
+        Solicitante, models.DO_NOTHING, db_column='id_solicitante', blank=True, null=True)
     adolescente = models.ForeignKey(
         Adolescente, models.DO_NOTHING, db_column='id_adolescente')
     motivo = models.ForeignKey(
@@ -43,9 +44,9 @@ class Solicitud(models.Model):
     correo = models.CharField(max_length=32)
     telefono = models.CharField(max_length=32)
     prioridad = models.ForeignKey(
-        PrioridadSolicitud, models.DO_NOTHING, db_column='id_prioridad')
+        PrioridadSolicitud, models.DO_NOTHING, db_column='id_prioridad', related_name='prioridad')
     prioridad_extra = models.ForeignKey(
-        PrioridadSolicitud, models.DO_NOTHING, db_column="id_prioridad_extra", null=True, blank=True)
+        PrioridadSolicitud, models.DO_NOTHING, db_column="id_prioridad_extra", related_name='prioridad_extra', null=True, blank=True)
     descripcion = models.CharField(max_length=256)
     descripcion_extra = models.CharField(max_length=256, blank=True, null=True)
     fecha_hora_creacion = models.DateTimeField()
@@ -70,8 +71,8 @@ class Archivo(models.Model):
     nombre = models.CharField(max_length=255)
     tipo_mime = models.CharField(max_length=100, null=True, blank=True)
     contenido = models.BinaryField()
-    valido = BooleanField()
-    extra = BooleanField()
+    valido = models.BooleanField()
+    extra = models.BooleanField()
 
     class Meta:
         managed = False

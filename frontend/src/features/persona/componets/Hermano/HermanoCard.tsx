@@ -17,6 +17,8 @@ import { useState } from "react"
 import { ValidarButtons} from "../Validacion/ValidarButtons"
 import type { Setter } from "@/common/types"
 import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteSimpleCard"
+import { AgregarHermano } from "./AgregarHemano"
+import { HermanosNuevos } from "./HemanosNuevos"
 
 type Props = {
   hermanos: Hermano[]
@@ -160,6 +162,9 @@ export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiud
               </Stack>
             )
           })}
+        <HermanosNuevos hermanos={[]} setHermanos={((a) => a)}/>
+
+
         </Stack>
       </CardContent>
     </Card>

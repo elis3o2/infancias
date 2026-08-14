@@ -11,7 +11,8 @@ from django.db import transaction
 from django.utils import timezone
 from django.db.models.functions import Coalesce
 from .models import PrioridadSolicitud, MotivoSolicitud, Solicitud, Archivo, Derivacion
-from .serializers import PrioridadSolicitudSerializer, MotivoSolicitudSerializer, SolicitudSerializer, ArchivoSerializer, DerivacionSerializer, SolicitudListSerializer
+from .serializers import (PrioridadSolicitudSerializer, MotivoSolicitudSerializer, ArchivoSerializer, DerivacionSerializer, 
+                        SolicitudListSerializer, SolicitudCreateSerializer, SolicitudReadSerializer, SolicitudValReadSerializer, SolicitudWriteSerializer)
 from .permissions import SolicitudPermission
 from src.permissions import ReadOnly
 from src.utils import enviar_correo
@@ -40,7 +41,7 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         )
     ).order_by("-fecha_orden")
 
-    serializer_class = SolicitudSerializer
+    serializer_class = SolicitudReadSerializer
 
     def get_serializer_class(self):
         if self.action in [
@@ -51,8 +52,24 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         ]:
             return SolicitudListSerializer
 
-        return SolicitudSerializer
+        return SolicitudReadSerializer
 
+
+    def retrieve(self, request, *args, **kwargs):
+        solicitud = self.get_object()
+
+        if solicitud.validado:
+            serializer = SolicitudValReadSerializer(
+                solicitud,
+                context={"request": request}
+            )
+        else:
+            serializer = SolicitudReadSerializer(
+                solicitud,
+                context={"request": request}
+            )
+
+        return Response(serializer.data)
     # ---------------------------------------------------------
     # QUERYSET SEGUN GRUPO
     # ---------------------------------------------------------
@@ -123,9 +140,12 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             if campo in data:
                 data[campo] = json.loads(data[campo])
 
-        serializer = self.get_serializer(data=data)
+        serializer = SolicitudCreateSerializer(data=data)
 
         if not serializer.is_valid():
+            print("ERRORES SERIALIZER:")
+            print(serializer.errors)
+
             return Response(
                 serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
@@ -146,9 +166,8 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             body="La solicitud fue enviada correctamente.",
             to_emails=[solicitud.correo],
         )
-
         return Response(
-            self.get_serializer(solicitud).data,
+            SolicitudCreateSerializer(solicitud).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -332,7 +351,7 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         )
 
         return Response(
-            SolicitudSerializer(
+            SolicitudWriteSerializer(
                 solicitud
             ).data
         )
