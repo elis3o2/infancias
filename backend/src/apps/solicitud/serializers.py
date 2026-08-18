@@ -225,6 +225,9 @@ class SolicitudWriteSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
+
+        validated_data["fecha_hora_modificacion"] = timezone.now()
+
         instance.save()
 
         # Actualizar Adolescente

@@ -402,18 +402,18 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             ]
         )
 
-        enviar_correo(
-            subject="FORMULARIO PROBLEMÁTICA",
-            body=(
-                "Su solicitud fue rechazada. "
-                "A continuación se detallan "
-                "los motivos.\n\n"
-                f"{motivo}"
-            ),
-            to_emails=[
-                solicitud.solicitante.correo
-            ],
-        )
+        #enviar_correo(
+        #    subject="FORMULARIO PROBLEMÁTICA",
+        #    body=(
+        #        "Su solicitud fue rechazada. "
+        #        "A continuación se detallan "
+        #        "los motivos.\n\n"
+        #        f"{motivo}"
+        #    ),
+        #    to_emails=[
+        #        solicitud.correo
+        #    ],
+        #)
 
         return Response(
             self.get_serializer(solicitud).data

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { getArchivoById } from "../../api";
 import type { ArchivoSimple } from "../../types";
 
@@ -6,25 +5,11 @@ type Props = {
   archivos: ArchivoSimple[]
 }
 
-export function ArchivoVistaCard({ archivos }: Props) {
-  const [deseleccionados, setDeseleccionados] = useState<Set<string | number>>(new Set());
-
+export function ArchivoCard({ archivos }: Props) {
   if (archivos.length === 0) {
     return (
       <></>
     );
-  }
-
-  function toggleDeseleccionado(id: string | number) {
-    setDeseleccionados((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
   }
 
   return (
@@ -37,8 +22,6 @@ export function ArchivoVistaCard({ archivos }: Props) {
           <ArchivoRow
             key={archivo.id}
             archivo={archivo}
-            deseleccionado={deseleccionados.has(archivo.id)}
-            onToggleDeseleccionado={() => toggleDeseleccionado(archivo.id)}
           />
         ))}
       </ul>
@@ -48,7 +31,7 @@ export function ArchivoVistaCard({ archivos }: Props) {
 
 /* ── fila individual ─────────────────────────────────────────────────────── */
 
-function ArchivoRow({ archivo, deseleccionado, onToggleDeseleccionado }) {
+function ArchivoRow({ archivo }) {
     async function handleDownload (archivo: ArchivoSimple){
         
         const response = await getArchivoById(archivo.id);
@@ -64,11 +47,11 @@ function ArchivoRow({ archivo, deseleccionado, onToggleDeseleccionado }) {
   };
 
   return (
-    <li style={{ ...styles.row, ...(deseleccionado ? styles.rowDeseleccionado : {}) }}>
-      <MimeIcon mime={archivo.tipo_mime} deseleccionado={deseleccionado} />
+    <li style={styles.row}>
+      <MimeIcon mime={archivo.tipo_mime} />
 
       <div style={styles.info}>
-        <span style={{ ...styles.nombre, ...(deseleccionado ? styles.textoDeseleccionado : {}) }} title={archivo.nombre}>
+        <span style={styles.nombre} title={archivo.nombre}>
           {archivo.nombre}
         </span>
         <span style={styles.meta}>
@@ -83,20 +66,9 @@ function ArchivoRow({ archivo, deseleccionado, onToggleDeseleccionado }) {
           title="Descargar"
           aria-label={`Descargar ${archivo.nombre}`}
         >
+        
           <DownloadIcon />
-        </button>
-
-        <button
-          onClick={onToggleDeseleccionado}
-          style={{
-            ...styles.btnIcon,
-            ...(deseleccionado ? styles.btnActivo : {}),
-          }}
-          title={deseleccionado ? "Recuperar" : "Quitar"}
-          aria-label={deseleccionado ? `Recuperar ${archivo.nombre}` : `Quitar ${archivo.nombre}`}
-        >
-          <CloseIcon />
-        </button>
+          </button>
       </div>
     </li>
   );
@@ -132,9 +104,9 @@ function mimeColor(mime) {
   return "#94A3B8";
 }
 
-function MimeIcon({ mime, deseleccionado }: { mime: string, deseleccionado?: boolean }) {
+function MimeIcon({ mime }) {
   return (
-    <span style={{ ...styles.mimeIcon, background: deseleccionado ? "#CBD5E1" : mimeColor(mime) }}>
+    <span style={{ ...styles.mimeIcon, background: mimeColor(mime) }}>
       {shortMime(mime).slice(0, 3)}
     </span>
   );
@@ -153,15 +125,6 @@ function DownloadIcon() {
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
       <polyline points="7 10 12 15 17 10"/>
       <line x1="12" y1="15" x2="12" y2="3"/>
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg {...svgProps}>
-      <line x1="18" y1="6" x2="6" y2="18"/>
-      <line x1="6" y1="6" x2="18" y2="18"/>
     </svg>
   );
 }
@@ -200,11 +163,7 @@ const styles = {
     background:   "#fff",
     border:       "1px solid #E2E8F0",
     borderRadius: "10px",
-    transition:   "box-shadow 0.15s, background 0.15s, opacity 0.15s",
-  },
-  rowDeseleccionado: {
-    background: "#F1F5F9",
-    opacity:    0.6,
+    transition:   "box-shadow 0.15s",
   },
   mimeIcon: {
     display:        "inline-flex",
@@ -234,10 +193,6 @@ const styles = {
     textOverflow: "ellipsis",
     whiteSpace:   "nowrap",
   },
-  textoDeseleccionado: {
-    color:         "#94A3B8",
-    textDecoration: "line-through",
-  },
   meta: {
     fontSize: "11px",
     color:    "#94A3B8",
@@ -259,11 +214,6 @@ const styles = {
     cursor:         "pointer",
     color:          "#64748B",
     transition:     "background 0.15s, color 0.15s",
-  },
-  btnActivo: {
-    background:  "#E2E8F0",
-    color:       "#334155",
-    borderColor: "#CBD5E1",
   },
   btnDanger: {
     color: "#EF4444",
