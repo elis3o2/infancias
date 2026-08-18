@@ -44,3 +44,52 @@ print("Grupos asignados:")
 
 for group in user.groups.all():
     print(f" - {group.name}")
+    
+
+
+
+user, created = User.objects.get_or_create(
+    username="entrada",
+    defaults={
+        "email": "entrada@example.com",
+        "first_name": "Entrada"
+    },
+)
+if created:
+    user.set_password("entrada")
+    user.save()
+group, _ = Group.objects.get_or_create(name="entrada")
+user.groups.add(group)
+
+
+
+
+user, created = User.objects.get_or_create(
+    username="admision",
+    defaults={
+        "email": "admision@example.com",
+        "first_name": "Admision"
+    },
+)
+if created:
+    user.set_password("admision")
+    user.save()
+group, _ = Group.objects.get_or_create(name="admision")
+user.groups.add(group)
+
+
+
+
+
+user, created = User.objects.get_or_create(
+    username="guardia",
+    defaults={
+        "email": "guardia@example.com",
+        "first_name": "Guardia"
+    },
+)
+if created:
+    user.set_password("guardia")
+    user.save()
+group, _ = Group.objects.get_or_create(name="guardia")
+user.groups.add(group)

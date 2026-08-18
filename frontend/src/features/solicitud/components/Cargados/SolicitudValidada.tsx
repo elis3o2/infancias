@@ -8,14 +8,14 @@ import { AdolescenteValidadoCard } from "@/features/persona/componets/Adolescent
 import { HermanoValidadoCard } from "@/features/persona/componets/Hermano/HermanoValidadoCard"
 import { ReferenciaCard } from "../Redes/ReferenciaCard";
 import { InstitucionesCard } from "../Redes/InstitucionesCard";
-
+import { ArchivoVistaCard } from "../Archivo/ArchivoVistaCard";
 type Props = {
     solicitud: Solicitud
 }
 
 
 export const SolicitudValidada = ({solicitud} : Props) => {
-
+    console.log("VALIDADA")
     return (<>
         <InstitucionCard institucion={solicitud.institucion}/>
         <SolicitanteCard solicitante={solicitud.solicitante}/>
@@ -30,12 +30,14 @@ export const SolicitudValidada = ({solicitud} : Props) => {
         { solicitud.rechazado && solicitud.adolescente.hermanos.length > 0 &&
         <HermanoValidadoCard
             hermanos={solicitud.adolescente.hermanos}
-        /> }{ !solicitud.rechazado && solicitud.adolescente.hermanos_validados.length > 0 &&
+        /> }
+        { !solicitud.rechazado && solicitud.adolescente.hermanos_validados.length > 0 &&
         <HermanoValidadoCard
             hermanos={solicitud.adolescente.hermanos_validados}
         />}
         <SolicitudCard descripcion={solicitud.descripcion}/>
-        <ArchivoCard archivos={solicitud.archivos}/>
+        <SolicitudCard descripcion={solicitud.descripcion_extra} />
+        <ArchivoVistaCard archivos={solicitud.archivos}/>
         {solicitud.adolescente.referencias_instituciones.length > 0 &&
         <InstitucionesCard
             instituciones={solicitud.adolescente.referencias_instituciones} 

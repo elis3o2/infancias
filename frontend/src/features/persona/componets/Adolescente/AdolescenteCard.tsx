@@ -19,6 +19,9 @@ import { Mapa } from "@/features/domicilio/components/Mapa"
 import { ValidarButtons } from "../Validacion/ValidarButtons"
 import type { Setter } from "@/common/types"
 import { AdolescenteSimpleCard } from "./AdolescenteSimpleCard"
+import type { Domicilio } from "@/features/domicilio/types"
+import { DomicilioComponent } from "@/features/domicilio/components/DomicilioComponent"
+import { CambiarDomicilio } from "@/features/domicilio/components/CambiarDomicilio"
 
 type Props = {
   adolescente: Adolescente
@@ -26,13 +29,16 @@ type Props = {
   setEstado: Setter<"confirmado" | "rechazado" | null>
   ciudadano: Ciudadano | null
   setCiudadano: Setter<Ciudadano | null>
+  nuevoDomicilio: Domicilio | null 
+  setNuevoDomicilio: Setter<Domicilio | null>
 }
 
 
-export const AdolescenteCard = ({ adolescente, estado, setEstado, ciudadano, setCiudadano }: Props) => {
+export const AdolescenteCard = ({ adolescente, estado, setEstado, ciudadano, setCiudadano, nuevoDomicilio, setNuevoDomicilio }: Props) => {
   const [salud, setSalud] = useState<Salud | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [finishDomicilio, setFinishDomicilio] = useState(false)
 
   const handleValidar = async () => {
     setLoading(true)
@@ -40,7 +46,7 @@ export const AdolescenteCard = ({ adolescente, estado, setEstado, ciudadano, set
     try {
       const [ciudadanoRes, saludRes] = await Promise.all([
         getCiudadano(adolescente.dni, adolescente.sexo),
-        getSalud(adolescente.dni, adolescente.sexo),
+        getCiudadano(adolescente.dni, adolescente.sexo),
       ])
       setCiudadano(ciudadanoRes)
       setSalud(saludRes)
@@ -151,14 +157,13 @@ return (
           </Collapse>
 
         </Stack>
-        <Box sx={{ height: 400, width: "100%", mt: 5}}>
-            <Mapa
-          latitud={adolescente.domicilio.domicilio_validado.coordenada_x}
-          longitud={adolescente.domicilio.domicilio_validado.coordenada_y}
-          nombre={adolescente.domicilio.nombre}
-        />
-      </Box>
+<CambiarDomicilio domicilio={adolescente.domicilio} nuevoDomicilio={nuevoDomicilio} setNuevoDomicilio={setNuevoDomicilio}/>
       </CardContent>
+
+
+
+
+
     </Card>
   )
 }

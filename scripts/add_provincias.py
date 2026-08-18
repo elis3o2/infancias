@@ -24,7 +24,7 @@ for provincia in provincias:
 conexion = pymysql.connect(
     host="localhost",
     user="root",
-    password="Ch4c4l3s",
+    password="keiko2003",
     database="infancias",
     charset="utf8mb4"
 )

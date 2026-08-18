@@ -24,9 +24,6 @@ export const FamiliaresCard = ({ familiares, onEliminar }: Props) => {
   return (
     <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
       <CardContent>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          Familiares
-        </Typography>
         <Stack spacing={2}>
         {familiares.map((familiar, index) => (
             <Box key={familiar.id ?? index}>

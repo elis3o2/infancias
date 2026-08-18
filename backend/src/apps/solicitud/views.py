@@ -102,7 +102,7 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             return qs.filter(
                 validado=True,
                 rechazado=False,
-                derivacion__nombre__iexact="Grupo de Guardia",
+                derivacion__id=2
             )
 
         # ADMISION:
@@ -111,7 +111,7 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             return qs.filter(
                 validado=True,
                 rechazado=False,
-                derivacion__nombre__iexact="Grupo de Admisión",
+                derivacion__id=1,
             )
 
         # Usuario autenticado pero sin grupo
@@ -161,11 +161,11 @@ class SolicitudViewSet(viewsets.ModelViewSet):
                 contenido=file.read(),
             )
 
-        enviar_correo(
-            subject="FORMULARIO PROBLEMÁTICA",
-            body="La solicitud fue enviada correctamente.",
-            to_emails=[solicitud.correo],
-        )
+        #enviar_correo(
+        #    subject="FORMULARIO PROBLEMÁTICA",
+        #    body="La solicitud fue enviada correctamente.",
+        #    to_emails=[solicitud.correo],
+        #)
         return Response(
             SolicitudCreateSerializer(solicitud).data,
             status=status.HTTP_201_CREATED,
@@ -279,7 +279,7 @@ class SolicitudViewSet(viewsets.ModelViewSet):
     # ---------------------------------------------------------
     # VALIDAR
     # ---------------------------------------------------------
-
+    @action(detail=True, methods=["put"])
     @transaction.atomic
     def validar(self, request, *args, **kwargs):
 
@@ -303,11 +303,12 @@ class SolicitudViewSet(viewsets.ModelViewSet):
 
         data = {}
         for key in request.data.keys():
-
             if key == "archivos":
                 continue
-
-            data[key] = request.data.get(key)
+            if key == "id_archivos":
+                data[key] = request.data.getlist(key)
+            else:
+                data[key] = request.data.get(key)
 
         if "adolescente" in data:
             data["adolescente"] = json.loads(
@@ -324,13 +325,13 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         )
 
         if not serializer.is_valid():
-
+            print(serializer.errors)
             return Response(
                 serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        solicitud = serializer.save()
+        solicitud = serializer.save(validado=True)
 
         for file in request.FILES.getlist("archivos"):
 
@@ -342,13 +343,13 @@ class SolicitudViewSet(viewsets.ModelViewSet):
                 valido=True,
             )
 
-        enviar_correo(
-            subject="FORMULARIO PROBLEMÁTICA",
-            body="Su solicitud fue aprobada.",
-            to_emails=[
-                solicitud.solicitante.correo
-            ],
-        )
+        #enviar_correo(
+        #    subject="FORMULARIO PROBLEMÁTICA",
+        #    body="Su solicitud fue aprobada.",
+        #    to_emails=[
+        #        solicitud.correo
+        #    ],
+        #)
 
         return Response(
             SolicitudWriteSerializer(

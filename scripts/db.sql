@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS domicilio (
 
 CREATE TABLE IF NOT EXISTS tipo_institucion (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(32) NOT NULL,
+    nombre VARCHAR(32) NOT NULL
 );
 
 
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS adolescente_validado (
     sexo  CHAR NOT NULL,
     nombre VARCHAR(32) NOT NULL,
     apellido VARCHAR(32) NOT NULL,
-    fecha_nacimiento DATE NOT NULL,
+    fecha_nacimiento DATE NOT NULL
 );
 
 

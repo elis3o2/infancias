@@ -65,10 +65,49 @@ export const getDerivaciones = (): Promise<Derivacion[]> => {
   return http.get<Derivacion[]>(`solicitud/derivacion/`).then(res => res.data)
 }
 
-export const validarSolicitud = (id: number, id_derivacion: number) => {
-  return http.put(`solicitud/solicitud/${id}/validar/?id_derivacion=${id_derivacion}`).then(res => res.data)
+
+
+type ValidarSolicitudParams = {
+  solicitudId: number
+  descripcionExtra: string | null
+  idPrioridad: number
+  idDerivacion: number
+  adolescenteData: unknown
+  archivoSeleccionado: Set<number>
+  archivosNuevos: { file: File }[]
 }
 
+export const validarSolicitud = ({
+  solicitudId,
+  descripcionExtra,
+  idPrioridad,
+  idDerivacion,
+  adolescenteData,
+  archivoSeleccionado,
+  archivosNuevos,
+}: ValidarSolicitudParams) => {
+  const formData = new FormData()
+  formData.append("descripcion_extra", descripcionExtra ?? "")
+  formData.append("id_prioridad", String(idPrioridad))
+  formData.append("id_derivacion", String(idDerivacion))
+  formData.append("adolescente", JSON.stringify(adolescenteData))
+
+  // archivos existentes que quedaron seleccionados -> se validan (valido=true)
+  archivoSeleccionado.forEach((id) => {
+    formData.append("id_archivos", String(id))
+  })
+
+  // archivos nuevos subidos por el usuario
+  archivosNuevos.forEach(({ file }) => {
+    formData.append("archivos", file)
+  })
+
+  return http.put(`solicitud/solicitud/${solicitudId}/validar/`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  })
+}
 
 export const rechazarSolicitud = (id: number, motivo: string) => {
   return http.put(`solicitud/solicitud/${id}/rechazar/?motivo=${motivo}`).then(res => res.data)
@@ -78,3 +117,5 @@ export const rechazarSolicitud = (id: number, motivo: string) => {
 export const getSolicitudSimple = (): Promise<SolicitudSimple[]> => {
   return http.get<SolicitudSimple[]>(`solicitud/solicitud/`).then(res => res.data)
 }
+
+

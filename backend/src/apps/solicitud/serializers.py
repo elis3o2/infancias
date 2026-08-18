@@ -129,7 +129,9 @@ class SolicitudReadSerializer(serializers.ModelSerializer):
             "prioridad",
             "descripcion",
             "fecha_hora_creacion",
-            "archivos"
+            "archivos",
+            "validado",
+            "rechazado"
         ]
 
 
@@ -156,6 +158,9 @@ class SolicitudValReadSerializer(serializers.ModelSerializer):
             "descripcion_extra",
             "fecha_hora_creacion",
             "fecha_hora_modificacion",
+            "archivos",
+            "validado",
+            "rechazado"
         ]
 
     def get_archivos(self, obj):
@@ -207,6 +212,7 @@ class SolicitudWriteSerializer(serializers.ModelSerializer):
             "id_prioridad",
             "id_derivacion",
             "adolescente",
+            "id_archivos"
         ]
 
     @transaction.atomic
@@ -236,14 +242,11 @@ class SolicitudWriteSerializer(serializers.ModelSerializer):
 
             adolescente_serializer.save()
 
-        if id_archivos: 
-
+        if archivos_data:
             Archivo.objects.filter(
-                id__in=id_archivos,
+                id__in=archivos_data,
                 solicitud=instance,
-            ).update(
-                valido=True
-            ) 
+            ).update(valido=True)
         return instance
     
 

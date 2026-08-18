@@ -38,6 +38,7 @@ export type Solicitud = {
     motivo: MotivoSolicitud
     prioridad: PrioridadSolicitud
     descripcion: string
+    descripcion_extra?: string
     archivos: ArchivoSimple[]
     fecha_hora_creacion: string
     fecha_hora_modificacion: string | null
@@ -70,4 +71,10 @@ export type SolicitudSimple = {
     validado: boolean
     rechazado: boolean
     derivacion: Derivacion | null
+}
+
+
+export type ArchivoPendiente = {
+  id: string       // id temporal, solo del lado del cliente
+  file: File
 }

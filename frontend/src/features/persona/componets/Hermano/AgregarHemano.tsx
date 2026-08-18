@@ -35,7 +35,7 @@ export const AgregarHermano = ({ onHermanoAgregado }: AgregarHermanoProps) => {
       }
       setCiudadano(data)
     } catch (e) {
-      setError("Ocurrió un error al consultar RENAPER. Intente nuevamente.")
+      setError("No se encontro a la persona")
     } finally {
       setLoading(false)
     }

@@ -17,9 +17,9 @@ const MAX_DESCRIPCION = 256
 
 type Props = {
     prioridadSeleccionada: PrioridadSolicitud
-    setPrioridadSeleccionada: Setter<PrioridadSolicitud | null>
+    setPrioridadSeleccionada: Setter<PrioridadSolicitud>
     motivoSeleccionado: MotivoSolicitud
-    setMotivoSeleccionado: Setter<MotivoSolicitud | null>
+    setMotivoSeleccionado: Setter<MotivoSolicitud>
     descripcion: string
     setDescripcion: Setter<string>
     setFinishSolicitudSection: Setter<boolean>

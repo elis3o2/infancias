@@ -366,3 +366,10 @@ INSERT INTO familiar (id, nombre, apellido, id_adolescente, id_vinculo, telefono
 
 INSERT INTO solicitud (id, id_institucion, id_solicitante, id_adolescente, id_motivo, id_prioridad, descripcion, fecha_hora_creacion, validado, rechazado)
 VALUES (999, 4, 999, 999, 27, 1, "Esta es la descripción de la solicitud", "2026-07-20", false, false);
+
+
+
+ALTER TABLE solicitud
+ADD CONSTRAINT fk_solicitud_usuario
+FOREIGN KEY (id_usuario)
+REFERENCES auth_user(id);

@@ -26,10 +26,12 @@ type Props = {
   setEstados: Setter<(null | "confirmado" | "rechazado")[]>
   ciudadanos: (Ciudadano | null)[]
   setCiudadanos: Setter<(Ciudadano | null)[]>
+  nuevosHermanos: Hermano[]
+  setNuevosHermanos: Setter<Hermano[]>
 }
 
 
-export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiudadanos }: Props) => {
+export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiudadanos, nuevosHermanos, setNuevosHermanos }: Props) => {
   
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null)
   const [errores, setErrores] = useState<(string | null)[]>(hermanos.map(() => null))
@@ -162,9 +164,42 @@ export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiud
               </Stack>
             )
           })}
-        <HermanosNuevos hermanos={[]} setHermanos={((a) => a)}/>
+          <Stack spacing={3}>
+            {nuevosHermanos.map((hermano, index) => {
+              return (
+                <Stack direction="row" spacing={2} key={hermano.dni ?? index}>
+                  <Box sx={{ flex: 1 }}>
+                    <Stack direction="row" alignItems="center" sx={{ mb: 1 }}>
+                      <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
+                        Datos del hermano
+                      </Typography>
+                    </Stack>
 
+                    <AdolescenteSimpleCard
+                      nombre={hermano.nombre}
+                      apellido={hermano.apellido}
+                      dni={hermano.dni}
+                      sexo={hermano.sexo}
+                      fecha_nacimiento={hermano.fecha_nacimiento}
+                    />
 
+                    <Button
+                      onClick={() =>
+                        setNuevosHermanos(nuevosHermanos.filter((_, i) => i !== index))
+                      }
+                      variant="contained"
+                      color="error"
+                      sx={{ mt: 2 }}
+                    >
+                      Eliminar
+                    </Button>
+                  </Box>
+                </Stack>
+              )
+            })}
+
+            <HermanosNuevos hermanos={nuevosHermanos} setHermanos={setNuevosHermanos} />
+          </Stack>
         </Stack>
       </CardContent>
     </Card>

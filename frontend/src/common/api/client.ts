@@ -103,4 +103,17 @@ axiosClient.interceptors.response.use(
   }
 );
 
+axiosClient.interceptors.request.use((cfg) => {
+  console.log("INTERCEPTOR EJECUTADO:", cfg.url);
+
+  const t = localStorage.getItem("tokens");
+  const tokens: AuthTokens | null = t ? JSON.parse(t) : null;
+
+  if (tokens?.access && cfg.headers) {
+    cfg.headers.Authorization = `Bearer ${tokens.access}`;
+  }
+
+  return cfg;
+});
+
 export default axiosClient;
