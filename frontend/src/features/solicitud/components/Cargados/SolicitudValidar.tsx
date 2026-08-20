@@ -156,7 +156,7 @@ export const SolicitudValidar = ({solicitud} : Props) => {
     archivosNuevos.forEach(({ file }) => {
         formData.append("archivos", file)
     })
-
+    console.log("ADOLESCENTE", adolescenteData)
     await validarSolicitud({
     solicitudId: solicitud.id,
     descripcionExtra: nuevaDescripcion,

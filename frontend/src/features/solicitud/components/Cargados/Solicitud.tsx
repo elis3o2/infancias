@@ -59,7 +59,6 @@ export const ValidarSolicitud = () => {
   }, [id])
 
 
-
   // ── Estados de carga / error ───────────────────────────────────────────────
   if (loading)
     return (

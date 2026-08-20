@@ -1,26 +1,29 @@
 import { AppBar, Toolbar, Box, Typography } from "@mui/material"
+import { useNavigate } from "react-router-dom";
 
 export const Header = () => {
+  const navigate = useNavigate();
   return (
     <AppBar
       position="static"
       elevation={0}
       sx={{
-        backgroundColor: "#0056A6",
+        backgroundColor: "#005cc6",
       }}
     >
       <Toolbar sx={{ minHeight: 80 }}>
-        <Box
-          component="img"
-          src="/logo-municipalidad.png"
-          alt="Municipalidad de Rosario"
-          sx={{
-            height: 55,
-            width: "auto",
-            mr: 2,
-          }}
-        />
-
+      <Box
+        component="img"
+        src="/azul.png"
+        alt="Municipalidad de Rosario"
+        onClick={() => navigate("/solicitud/")}
+        sx={{
+          height: 55,
+          width: "auto",
+          mr: 2,
+          cursor: "pointer",
+        }}
+      />
         <Box>
           <Typography
             variant="h6"

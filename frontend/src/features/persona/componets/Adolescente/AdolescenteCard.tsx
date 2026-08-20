@@ -46,7 +46,7 @@ export const AdolescenteCard = ({ adolescente, estado, setEstado, ciudadano, set
     try {
       const [ciudadanoRes, saludRes] = await Promise.all([
         getCiudadano(adolescente.dni, adolescente.sexo),
-        getCiudadano(adolescente.dni, adolescente.sexo),
+        getSalud(adolescente.dni, adolescente.sexo),
       ])
       setCiudadano(ciudadanoRes)
       setSalud(saludRes)

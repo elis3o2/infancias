@@ -43,6 +43,7 @@ export const DomicilioComponent = ({ domicilio, setDomicilio, finishDomicilio, s
       id: null,
       nombre: geoSeleccionada.properties.name,
       domicilio_validado: domicilioValidado,
+      id_departamento: 520
     })
   }, [geoSeleccionada])
 

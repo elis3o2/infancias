@@ -5,7 +5,7 @@ type Props = {
   archivos: ArchivoSimple[]
 }
 
-export function ArchivoCard({ archivos }: Props) {
+export function ArchivoVistaCard({ archivos }: Props) {
   if (archivos.length === 0) {
     return (
       <></>

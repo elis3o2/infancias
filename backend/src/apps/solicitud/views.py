@@ -102,7 +102,6 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             return qs.filter(
                 validado=True,
                 rechazado=False,
-                derivacion__id=2
             )
 
         # ADMISION:
@@ -111,7 +110,6 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             return qs.filter(
                 validado=True,
                 rechazado=False,
-                derivacion__id=1,
             )
 
         # Usuario autenticado pero sin grupo
@@ -161,11 +159,11 @@ class SolicitudViewSet(viewsets.ModelViewSet):
                 contenido=file.read(),
             )
 
-        #enviar_correo(
-        #    subject="FORMULARIO PROBLEMÁTICA",
-        #    body="La solicitud fue enviada correctamente.",
-        #    to_emails=[solicitud.correo],
-        #)
+        enviar_correo(
+            subject="FORMULARIO PROBLEMÁTICA",
+            body="La solicitud fue enviada correctamente.",
+            to_emails=[solicitud.correo],
+        )
         return Response(
             SolicitudCreateSerializer(solicitud).data,
             status=status.HTTP_201_CREATED,
@@ -343,13 +341,13 @@ class SolicitudViewSet(viewsets.ModelViewSet):
                 valido=True,
             )
 
-        #enviar_correo(
-        #    subject="FORMULARIO PROBLEMÁTICA",
-        #    body="Su solicitud fue aprobada.",
-        #    to_emails=[
-        #        solicitud.correo
-        #    ],
-        #)
+        enviar_correo(
+            subject="FORMULARIO PROBLEMÁTICA",
+            body="Su solicitud fue aprobada.",
+            to_emails=[
+                solicitud.correo
+            ],
+        )
 
         return Response(
             SolicitudWriteSerializer(
@@ -402,18 +400,18 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             ]
         )
 
-        #enviar_correo(
-        #    subject="FORMULARIO PROBLEMÁTICA",
-        #    body=(
-        #        "Su solicitud fue rechazada. "
-        #        "A continuación se detallan "
-        #        "los motivos.\n\n"
-        #        f"{motivo}"
-        #    ),
-        #    to_emails=[
-        #        solicitud.correo
-        #    ],
-        #)
+        enviar_correo(
+            subject="FORMULARIO PROBLEMÁTICA",
+            body=(
+                "Su solicitud fue rechazada. "
+                "A continuación se detallan "
+                "los motivos.\n\n"
+                f"{motivo}"
+            ),
+            to_emails=[
+                solicitud.correo
+            ],
+        )
 
         return Response(
             self.get_serializer(solicitud).data

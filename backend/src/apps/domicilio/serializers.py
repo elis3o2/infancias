@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Provincia, Departamento, Domicilio, DomicilioValidado, TipoInstitucion, Institucion
+from .models import (Provincia, Departamento, Distrito, Vecinal, Barrio, SeccionalPolicial, IdentidadBarrial, Localidad,
+                    Domicilio, DomicilioValidado, TipoInstitucion, Institucion)
 
 
 class ProvinciaSerializer(serializers.ModelSerializer):
@@ -15,13 +16,91 @@ class DepartamentoSerializer(serializers.ModelSerializer):
         model = Departamento
         fields = "__all__"
 
+
+class DistritoSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Distrito
+        fields = "__all__"
+
+
+class VecinalSeializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Vecinal
+        fields = "__all__"
+
+
+class BarrioSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Barrio
+        fields = "__all__"
+
+
+class SeccionalPolicialSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = SeccionalPolicial
+        fields = "__all__"
+
+
+class IdentidadBarrialSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = IdentidadBarrial
+        fields = "__all__"
+
+
+class LocalidadSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Localidad
+        fields = "__all__"
+
+
         
 class DomicilioValidadoSerializer(serializers.ModelSerializer):
-    
+    distrito = DistritoSerializer()
+    vecinal  = VecinalSeializer()
+    barrio   = BarrioSerializer()
+    seccional_policial = SeccionalPolicialSerializer()
+    identidad_barrial = IdentidadBarrialSerializer()
+    localidad = LocalidadSerializer()
+
     class Meta:
         model = DomicilioValidado
         fields = "__all__"
 
+    def create(self, validated_data):
+
+        relaciones = {
+            "distrito": Distrito,
+            "vecinal": Vecinal,
+            "barrio": Barrio,
+            "seccional_policial": SeccionalPolicial,
+            "identidad_barrial": IdentidadBarrial,
+            "localidad": Localidad,
+        }
+
+        for campo, modelo in relaciones.items():
+
+            data = validated_data.pop(campo, None)
+
+            if data is not None:
+                objeto, _ = modelo.objects.get_or_create(
+                    id=data["id"],
+                    defaults={
+                        "nombre": data["nombre"],
+                    },
+                )
+
+                validated_data[campo] = objeto
+
+        return DomicilioValidado.objects.create(
+            **validated_data
+        )
+        
 
 class DomicilioSerializer(serializers.ModelSerializer):
     departamento = DepartamentoSerializer(read_only=True)
@@ -116,16 +195,4 @@ class ReferenciaInstitucionInputSerializer(serializers.Serializer):
 
     domicilio = DomicilioSerializer(
         required=False,
-    )
-
-    telefono = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        allow_null=True,
-    )
-
-    correo = serializers.EmailField(
-        required=False,
-        allow_blank=True,
-        allow_null=True,
     )

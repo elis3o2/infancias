@@ -1,6 +1,6 @@
 from django.db import models
 from src.apps.domicilio.models import Institucion
-from src.apps.persona.models import Solicitante, Adolescente
+from src.apps.persona.models import Adolescente
 from django.conf import settings
 
 
@@ -22,21 +22,19 @@ class PrioridadSolicitud(models.Model):
         db_table = 'prioridad_solicitud'
 
 
-class Derivacion(models.Model):
+class Equipo(models.Model):
     id = models.AutoField
     nombre = models.CharField(max_length=32)
 
     class Meta: 
         managed = False
-        db_table = 'derivacion'
+        db_table = 'equipo'
 
 
 class Solicitud(models.Model):
     id = models.AutoField(primary_key=True)
     institucion = models.ForeignKey(
         Institucion, models.DO_NOTHING, db_column='id_institucion')
-    solicitante = models.ForeignKey(
-        Solicitante, models.DO_NOTHING, db_column='id_solicitante', blank=True, null=True)
     adolescente = models.ForeignKey(
         Adolescente, models.DO_NOTHING, db_column='id_adolescente')
     motivo = models.ForeignKey(
@@ -54,8 +52,6 @@ class Solicitud(models.Model):
     validado = models.BooleanField()
     rechazado = models.BooleanField()
     motivo_rechazo = models.CharField(max_length=256, null=True, blank=True)
-    derivacion = models.ForeignKey(
-        Derivacion, models.DO_NOTHING, db_column="id_derivacion", null=True, blank=True)
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column="id_usuario", null=True, blank=True)
 
@@ -71,8 +67,6 @@ class Archivo(models.Model):
     nombre = models.CharField(max_length=255)
     tipo_mime = models.CharField(max_length=100, null=True, blank=True)
     contenido = models.BinaryField()
-    valido = models.BooleanField()
-    extra = models.BooleanField()
 
     class Meta:
         managed = False

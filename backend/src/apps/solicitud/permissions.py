@@ -5,14 +5,6 @@ class SolicitudPermission(BasePermission):
 
     def has_permission(self, request, view):
 
-
-        print("USER:", request.user)
-        print("AUTH:", request.user.is_authenticated)
-        print(
-            "GROUPS:",
-            list(request.user.groups.values_list("name", flat=True))
-        )
-
         # Crear es público
         if view.action == "create":
             return True

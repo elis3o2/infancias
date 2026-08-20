@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.db import transaction
 from .models import MotivoSolicitud, PrioridadSolicitud, Solicitud, Archivo, Derivacion
 from src.apps.persona.serializers import ( AdolescenteCreateSerializer, AdolescenteReadSerializer, AdolescenteWriteSerializer,
-                                            AdolescenteValReadSerializer, SolicitanteSerializer)
+                                            AdolescenteValReadSerializer)
 from src.apps.domicilio.serializers import InstitucionSerializer
 from src.apps.domicilio.models import Institucion
 
@@ -34,22 +34,36 @@ class DerivacionSerializer(serializers.ModelSerializer):
 
 
 class SolicitudListSerializer(serializers.ModelSerializer):
-    motivo     = MotivoSolicitudSerializer(read_only=True)
-    prioridad  = PrioridadSolicitudSerializer(read_only=True)
-    derivacion = DerivacionSerializer(read_only=True)
-    validado   = serializers.BooleanField(read_only=True)
-    rechazado  = serializers.BooleanField(read_only=True)
+    motivo = MotivoSolicitudSerializer(read_only=True)
+    prioridad = serializers.SerializerMethodField()
+    validado = serializers.BooleanField(read_only=True)
+    rechazado = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Solicitud
-        fields = ['id', 'motivo', 'prioridad', 'derivacion', 'fecha_hora_creacion', 'fecha_hora_modificacion',
-                    'validado', 'rechazado']
+        fields = [
+            'id',
+            'motivo',
+            'prioridad',
+            'fecha_hora_creacion',
+            'fecha_hora_modificacion',
+            'validado',
+            'rechazado',
+        ]
 
+    def get_prioridad(self, obj):
+        if obj.validado and obj.prioridad_extra is not None:
+            return PrioridadSolicitudSerializer(
+                obj.prioridad_extra
+            ).data
+
+        return PrioridadSolicitudSerializer(
+            obj.prioridad
+        ).data
 
 
 class SolicitudCreateSerializer(serializers.ModelSerializer):
     adolescente    = AdolescenteCreateSerializer()
-    solicitante    = SolicitanteSerializer()
     institucion    = InstitucionSerializer(required=False)
     id_institucion = serializers.PrimaryKeyRelatedField(
         queryset=Institucion.objects.all(),
@@ -75,16 +89,33 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
         solicitante_data = validated_data.pop("solicitante")
 
         institucion_data = validated_data.pop("institucion", None)
-        
+
+        # Datos que pertenecen a la solicitud
+        correo = validated_data.get("correo")
+        telefono = validated_data.get("telefono")
+
         if isinstance(institucion_data, dict):
-            validated_data["institucion"] = InstitucionSerializer().create(institucion_data)
-        
+            institucion = InstitucionSerializer().create(institucion_data)
+
         elif isinstance(institucion_data, Institucion):
-            validated_data["institucion"] = institucion_data
+            institucion = institucion_data
+
+            # Si se pasó id_institucion, actualizar sus datos
+            if correo is not None:
+                institucion.correo = correo
+
+            if telefono is not None:
+                institucion.telefono = telefono
+
+            institucion.save()
+
+        else:
+            institucion = None
 
         adolescente = AdolescenteCreateSerializer().create(adolescente_data)
         solicitante = SolicitanteSerializer().create(solicitante_data)
 
+        validated_data["institucion"] = institucion
         validated_data["adolescente"] = adolescente
         validated_data["solicitante"] = solicitante
 
@@ -104,13 +135,13 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
             "id_motivo",
             "id_prioridad",
             "correo",
-            "telefono"
+            "telefono",
+            "descripcion"
         ]
 
 
 class SolicitudReadSerializer(serializers.ModelSerializer):
     adolescente = AdolescenteReadSerializer(read_only=True)
-    solicitante = SolicitanteSerializer(read_only=True)
     institucion = InstitucionSerializer(read_only=True)
     motivo      = MotivoSolicitudSerializer(read_only=True)
     prioridad   = PrioridadSolicitudSerializer(read_only=True)
@@ -131,13 +162,13 @@ class SolicitudReadSerializer(serializers.ModelSerializer):
             "fecha_hora_creacion",
             "archivos",
             "validado",
-            "rechazado"
+            "rechazado",
+            "motivo_rechazo"
         ]
 
 
 class SolicitudValReadSerializer(serializers.ModelSerializer):
     adolescente = AdolescenteValReadSerializer(read_only=True)
-    solicitante = SolicitanteSerializer(read_only=True)
     institucion = InstitucionSerializer(read_only=True)
     motivo      = MotivoSolicitudSerializer(read_only=True)
     prioridad   = PrioridadSolicitudSerializer(read_only=True, source="prioridad_extra")
@@ -160,7 +191,8 @@ class SolicitudValReadSerializer(serializers.ModelSerializer):
             "fecha_hora_modificacion",
             "archivos",
             "validado",
-            "rechazado"
+            "rechazado",
+            "motivo_rechazo"
         ]
 
     def get_archivos(self, obj):
@@ -191,18 +223,7 @@ class SolicitudWriteSerializer(serializers.ModelSerializer):
         write_only=True,
     )
 
-    id_archivos = serializers.ListField(
-        child=serializers.IntegerField(),
-        required=False,
-        write_only=True,
-    )
     
-    id_derivacion = serializers.PrimaryKeyRelatedField(
-        queryset=Derivacion.objects.all(),
-        source="derivacion",
-        write_only=True,
-        required=True,
-    )
 
     class Meta:
         model = Solicitud
@@ -210,7 +231,6 @@ class SolicitudWriteSerializer(serializers.ModelSerializer):
             "id",
             "descripcion_extra",
             "id_prioridad",
-            "id_derivacion",
             "adolescente",
             "id_archivos"
         ]
@@ -225,8 +245,7 @@ class SolicitudWriteSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-
-        validated_data["fecha_hora_modificacion"] = timezone.now()
+        instance.fecha_hora_modificacion = timezone.now()
 
         instance.save()
 
@@ -245,11 +264,7 @@ class SolicitudWriteSerializer(serializers.ModelSerializer):
 
             adolescente_serializer.save()
 
-        if archivos_data:
-            Archivo.objects.filter(
-                id__in=archivos_data,
-                solicitud=instance,
-            ).update(valido=True)
+
         return instance
     
 
