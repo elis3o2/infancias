@@ -4,8 +4,6 @@ import { InstitucionInicial } from "../../types"
 import { useEffect, useState } from "react"
 import { ToggleButtonGroup, ToggleButton, Stack, Button } from "@mui/material"
 import { TipoInstitucionComponent } from "../TipoInstitucionComponent"
-import { TelefonoComponent } from "@/features/persona/componets/TelefonoComponent"
-import { CorreoForm } from "@/features/persona/componets/CorreoForm"
 import { InstitucionCargaForm } from "./InstitucionCargaForm"
 import { InstitucionSelectForm } from "./InstitucionSelectForm"
 
@@ -13,41 +11,26 @@ type Props = {
   institucion: Institucion
   setInstitucion: Setter<Institucion>
   setFinshInstitucion: Setter<boolean>
-  correo: string
-  setCorreo: Setter<string>
-  telefono: string
-  setTelefono: Setter<string>
 }
 
 type Modo = "seleccionar" | "cargar"
 
-export const InstitucionForm = ({ institucion, setInstitucion, setFinshInstitucion, correo, setCorreo, telefono, setTelefono }: Props) => {
+export const InstitucionForm = ({ institucion, setInstitucion, setFinshInstitucion }: Props) => {
   const [tipo, setTipo] = useState<TipoInstitucion | null>(null)
   const [modo, setModo] = useState<Modo>("seleccionar")
-  const [correoValido, setCorreoValido] = useState(false)
   const [institucionValida, setInstitucionValida] = useState(false)
   console.log(institucionValida)
-  const formCompleto = telefono.length === 10 && correoValido &&
-                      ((modo == "seleccionar" && institucion.id != -1) || 
-                        modo == "cargar" &&  institucionValida)
-  console.log(institucionValida)
-  // Sincroniza correo/telefono desde la institución elegida, solo en modo "seleccionar"
-  useEffect(() => {
-    if (modo === "seleccionar" && institucion.id !== -1) {
-      setCorreo(institucion.correo ?? "")
-      setTelefono(institucion.telefono ?? "")
-    }
-  }, [institucion.id, modo])
+  const formCompleto = (modo == "seleccionar" && institucion.id != -1) || 
+                        modo == "cargar" &&  institucionValida
+
 
   // Al cambiar de modo, arranca todo limpio
   useEffect(() => {
     setInstitucion({...InstitucionInicial, tipo})
-    setCorreo("")
-    setTelefono("")
   }, [modo])
 
   function handleCargar() {
-    setInstitucion((prev) => ({ ...prev, correo, telefono }))
+    setInstitucion((prev) => ({ ...prev }))
     setFinshInstitucion(true)
   }
 
@@ -73,8 +56,7 @@ export const InstitucionForm = ({ institucion, setInstitucion, setFinshInstituci
           {modo === "cargar" && (
             <InstitucionCargaForm institucion={institucion} setInstitucion={setInstitucion} tipo={tipo} onValidChange={setInstitucionValida} />
           )}
-          <TelefonoComponent telefono={telefono} setTelefono={setTelefono} />
-          <CorreoForm correo={correo} setCorreo={setCorreo} onValidChange={setCorreoValido} />
+
           <Button variant="contained" onClick={handleCargar} disabled={!formCompleto} fullWidth>
             Guardar
           </Button>

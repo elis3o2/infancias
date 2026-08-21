@@ -16,7 +16,7 @@ STATICFILES_DIRS = [
 
 SECRET_KEY = config('DJANGO_SECRET_KEY')
 
-
+AUTH_USER_MODEL = 'src.Usuario'
 
 USE_TZ = False
 TIME_ZONE = "America/Argentina/Buenos_Aires"

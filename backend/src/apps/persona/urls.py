@@ -2,15 +2,13 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from .views import (AdolescenteViewSet, FamiliarViewSet, VinculoViewSer,
-                HermanoViewSet, HistoriaClinicaView, CiudadanoDataViewSet, AdolescenteValidadoViewSet, HermanoValidadoViewSet)
+                HermanoViewSet, HistoriaClinicaView, CiudadanoDataViewSet, )
 
 router = DefaultRouter()
 router.register("adolescente", AdolescenteViewSet)
 router.register("familiar", FamiliarViewSet)
 router.register("hermano", HermanoViewSet)
 router.register("vinculo", VinculoViewSer)
-router.register("adolescente_validado", AdolescenteValidadoViewSet)
-router.register("hermano_validado", HermanoValidadoViewSet)
 
 
 urlpatterns = [

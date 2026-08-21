@@ -72,39 +72,10 @@ class DomicilioValidadoSerializer(serializers.ModelSerializer):
         model = DomicilioValidado
         fields = "__all__"
 
-    def create(self, validated_data):
 
-        relaciones = {
-            "distrito": Distrito,
-            "vecinal": Vecinal,
-            "barrio": Barrio,
-            "seccional_policial": SeccionalPolicial,
-            "identidad_barrial": IdentidadBarrial,
-            "localidad": Localidad,
-        }
-
-        for campo, modelo in relaciones.items():
-
-            data = validated_data.pop(campo, None)
-
-            if data is not None:
-                objeto, _ = modelo.objects.get_or_create(
-                    id=data["id"],
-                    defaults={
-                        "nombre": data["nombre"],
-                    },
-                )
-
-                validated_data[campo] = objeto
-
-        return DomicilioValidado.objects.create(
-            **validated_data
-        )
-        
 
 class DomicilioSerializer(serializers.ModelSerializer):
     departamento = DepartamentoSerializer(read_only=True)
-
     id_departamento = serializers.PrimaryKeyRelatedField(
         queryset=Departamento.objects.all(),
         source="departamento",
@@ -120,27 +91,6 @@ class DomicilioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Domicilio
         fields = "__all__"
-
-    def create(self, validated_data):
-        domicilio_validado_data = validated_data.pop(
-            "domicilio_validado",
-            None,
-        )
-
-        domicilio_validado = None
-
-        if domicilio_validado_data is not None:
-            domicilio_validado, _ = DomicilioValidado.objects.get_or_create(
-                codigo_calle=domicilio_validado_data["codigo_calle"],
-                altura=domicilio_validado_data["altura"],
-                bis=domicilio_validado_data["bis"],
-                defaults=domicilio_validado_data,
-            )
-
-        return Domicilio.objects.create(
-            domicilio_validado=domicilio_validado,
-            **validated_data,
-        )
 
 
 class TipoInstitucionSerializer(serializers.ModelSerializer):
@@ -166,33 +116,16 @@ class InstitucionSerializer(serializers.ModelSerializer):
         model = Institucion
         fields = "__all__"
 
-    def create(self, validated_data):
-
-        domicilio_data = validated_data.pop("domicilio")
-        domicilio = DomicilioSerializer().create(domicilio_data)
-
-        return Institucion.objects.create(
-            domicilio=domicilio,
-            **validated_data,
-        )
-
 
 class ReferenciaInstitucionInputSerializer(serializers.Serializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Institucion.objects.all(),
         required=False,
     )
-
-    nombre = serializers.CharField(
-        required=False,
-    )
-
+    nombre = serializers.CharField(required=False,)
     id_tipo = serializers.PrimaryKeyRelatedField(
         queryset=TipoInstitucion.objects.all(),
         source="tipo",
         required=False,
     )
-
-    domicilio = DomicilioSerializer(
-        required=False,
-    )
+    domicilio = DomicilioSerializer(required=False,)

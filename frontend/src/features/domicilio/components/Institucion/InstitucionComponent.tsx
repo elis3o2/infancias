@@ -10,14 +10,9 @@ type Props = {
     setInstitucion: Setter<Institucion>
     finishInstitucion: boolean
     setFinishInstitucion: Setter<boolean>
-    correo: string
-    setCorreo: Setter<string>
-    telefono: string
-    setTelefono: Setter<string>
 }
 
-export const InstitucionComponent = ({ institucion, setInstitucion, finishInstitucion, setFinishInstitucion, 
-          correo, setCorreo, telefono, setTelefono }: Props) => {
+export const InstitucionComponent = ({ institucion, setInstitucion, finishInstitucion, setFinishInstitucion}: Props) => {
   
     return (
     <Card variant="outlined" sx={{ borderRadius: 2 }}>
@@ -36,10 +31,6 @@ export const InstitucionComponent = ({ institucion, setInstitucion, finishInstit
             institucion={institucion}
             setInstitucion={setInstitucion}
             setFinshInstitucion={setFinishInstitucion}
-            correo={correo}
-            setCorreo={setCorreo}
-            telefono={telefono}
-            setTelefono={setTelefono}
           />
         )}
       </CardContent>

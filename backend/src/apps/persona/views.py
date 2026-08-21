@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from decouple import config
 from django.db.models import Case, When, Value, IntegerField
 from django.db import transaction
-from .models import Adolescente, Familiar, Hermano, Vinculo, HermanoValidado
+from .models import Adolescente, Familiar, Hermano, Vinculo
 from .serializers import (AdolescenteCreateSerializer, FamiliarSerializer, HermanoSerializer,
                                 VinculoSerializer)
 from src.permissions import ReadOnly

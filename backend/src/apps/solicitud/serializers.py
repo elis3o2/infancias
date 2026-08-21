@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 from django.db import transaction
-from .models import MotivoSolicitud, PrioridadSolicitud, Solicitud, Archivo, Derivacion
+from .models import MotivoSolicitud, PrioridadSolicitud, Solicitud, Archivo
 from src.apps.persona.serializers import ( AdolescenteCreateSerializer, AdolescenteReadSerializer, AdolescenteWriteSerializer,
                                             AdolescenteValReadSerializer)
 from src.apps.domicilio.serializers import InstitucionSerializer
@@ -26,11 +26,6 @@ class ArchivoSerializer(serializers.ModelSerializer):
         fields = ("id", "nombre", "tipo_mime")
 
 
-class DerivacionSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Derivacion
-        fields = '__all__'
 
 
 class SolicitudListSerializer(serializers.ModelSerializer):
@@ -46,7 +41,7 @@ class SolicitudListSerializer(serializers.ModelSerializer):
             'motivo',
             'prioridad',
             'fecha_hora_creacion',
-            'fecha_hora_modificacion',
+            'fecha_hora_entrada',
             'validado',
             'rechazado',
         ]
@@ -84,47 +79,6 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
         write_only=True,
     )
 
-    def create(self, validated_data):
-        adolescente_data = validated_data.pop("adolescente")
-        solicitante_data = validated_data.pop("solicitante")
-
-        institucion_data = validated_data.pop("institucion", None)
-
-        # Datos que pertenecen a la solicitud
-        correo = validated_data.get("correo")
-        telefono = validated_data.get("telefono")
-
-        if isinstance(institucion_data, dict):
-            institucion = InstitucionSerializer().create(institucion_data)
-
-        elif isinstance(institucion_data, Institucion):
-            institucion = institucion_data
-
-            # Si se pasó id_institucion, actualizar sus datos
-            if correo is not None:
-                institucion.correo = correo
-
-            if telefono is not None:
-                institucion.telefono = telefono
-
-            institucion.save()
-
-        else:
-            institucion = None
-
-        adolescente = AdolescenteCreateSerializer().create(adolescente_data)
-        solicitante = SolicitanteSerializer().create(solicitante_data)
-
-        validated_data["institucion"] = institucion
-        validated_data["adolescente"] = adolescente
-        validated_data["solicitante"] = solicitante
-
-        validated_data["fecha_hora_creacion"] = timezone.now()
-        validated_data["validado"] = False
-        validated_data["rechazado"] = False
-
-        return Solicitud.objects.create(**validated_data)
-
     class Meta:
         model = Solicitud
         fields = [
@@ -138,6 +92,7 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
             "telefono",
             "descripcion"
         ]
+
 
 
 class SolicitudReadSerializer(serializers.ModelSerializer):
@@ -188,7 +143,7 @@ class SolicitudValReadSerializer(serializers.ModelSerializer):
             "descripcion",
             "descripcion_extra",
             "fecha_hora_creacion",
-            "fecha_hora_modificacion",
+            "fecha_hora_entrada",
             "archivos",
             "validado",
             "rechazado",
@@ -222,7 +177,6 @@ class SolicitudWriteSerializer(serializers.ModelSerializer):
         source="prioridad_extra",
         write_only=True,
     )
-
     
 
     class Meta:
@@ -232,40 +186,7 @@ class SolicitudWriteSerializer(serializers.ModelSerializer):
             "descripcion_extra",
             "id_prioridad",
             "adolescente",
-            "id_archivos"
         ]
 
-    @transaction.atomic
-    def update(self, instance, validated_data):
-
-        adolescente_data = validated_data.pop("adolescente", None)
-        archivos_data = validated_data.pop("id_archivos", None)
-
-        # Actualizar Solicitud
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-
-        instance.fecha_hora_modificacion = timezone.now()
-
-        instance.save()
-
-        # Actualizar Adolescente
-        if adolescente_data:
-
-            adolescente_serializer = AdolescenteWriteSerializer(
-                instance=instance.adolescente,
-                data=adolescente_data,
-                partial=True,
-            )
-
-            adolescente_serializer.is_valid(
-                raise_exception=True
-            )
-
-            adolescente_serializer.save()
-
-
-        return instance
-    
 
 

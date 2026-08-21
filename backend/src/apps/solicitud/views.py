@@ -1,21 +1,21 @@
 import json
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.http import HttpResponse
 from django.db import transaction
 from django.utils import timezone
 from django.db.models.functions import Coalesce
-from .models import PrioridadSolicitud, MotivoSolicitud, Solicitud, Archivo, Derivacion
-from .serializers import (PrioridadSolicitudSerializer, MotivoSolicitudSerializer, ArchivoSerializer, DerivacionSerializer, 
+from .models import PrioridadSolicitud, MotivoSolicitud, Solicitud, Archivo
+from .serializers import (PrioridadSolicitudSerializer, MotivoSolicitudSerializer, ArchivoSerializer, 
                         SolicitudListSerializer, SolicitudCreateSerializer, SolicitudReadSerializer, SolicitudValReadSerializer, SolicitudWriteSerializer)
 from .permissions import SolicitudPermission
 from src.permissions import ReadOnly
 from src.utils import enviar_correo
+
 
 class PrioridadSolicitudViewSet(viewsets.ModelViewSet):
     queryset = PrioridadSolicitud.objects.all()
@@ -29,14 +29,13 @@ class MotivoSolicitudViewSet(viewsets.ModelViewSet):
     permission_classes = [ReadOnly]
 
 
-
 class SolicitudViewSet(viewsets.ModelViewSet):
 
     permission_classes = [SolicitudPermission]
 
     queryset = Solicitud.objects.annotate(
         fecha_orden=Coalesce(
-            "fecha_hora_modificacion",
+            "fecha_hora_entrada",
             "fecha_hora_creacion",
         )
     ).order_by("-fecha_orden")
@@ -70,10 +69,8 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             )
 
         return Response(serializer.data)
-    # ---------------------------------------------------------
-    # QUERYSET SEGUN GRUPO
-    # ---------------------------------------------------------
 
+    # QUERYSET SEGUN GRUPO
     def get_queryset(self):
         qs = super().get_queryset()
         desde = self.request.query_params.get("desde")
@@ -84,8 +81,7 @@ class SolicitudViewSet(viewsets.ModelViewSet):
 
         if hasta:
             qs = qs.filter(fecha_orden__date__lte=hasta)
-        # create es público, pero cualquier consulta
-        # necesita usuario autenticado.
+
         if not self.request.user.is_authenticated:
             return qs.none()
 
@@ -115,113 +111,42 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         # Usuario autenticado pero sin grupo
         return qs.none()
 
-    # ---------------------------------------------------------
     # CREAR
-    # ---------------------------------------------------------
-
-    @transaction.atomic
     def create(self, request, *args, **kwargs):
-
         data = {}
-
-        for key in request.data.keys():
+        for key, value in request.data.items():
             if key == "archivos":
                 continue
+            data[key] = value
 
-            data[key] = request.data.get(key)
-
-        for campo in (
-            "adolescente",
-            "solicitante",
-            "institucion",
-        ):
-            if campo in data:
-                data[campo] = json.loads(data[campo])
+        for campo in ("adolescente", "solicitante", "institucion"):
+            if campo in data and isinstance(data[campo], str):
+                try:
+                    data[campo] = json.loads(data[campo])
+                except json.JSONDecodeError:
+                    return Response(
+                        {campo: "El formato JSON es inválido."}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
 
         serializer = SolicitudCreateSerializer(data=data)
+        
+        serializer.is_valid(raise_exception=True)
 
-        if not serializer.is_valid():
-            print("ERRORES SERIALIZER:")
-            print(serializer.errors)
-
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        solicitud = serializer.save()
-
-        for file in request.FILES.getlist("archivos"):
-            Archivo.objects.create(
-                solicitud=solicitud,
-                nombre=file.name,
-                tipo_mime=file.content_type,
-                contenido=file.read(),
-            )
-
-        enviar_correo(
-            subject="FORMULARIO PROBLEMÁTICA",
-            body="La solicitud fue enviada correctamente.",
-            to_emails=[solicitud.correo],
+        archivos = request.FILES.getlist("archivos")
+        
+        solicitud = crear_solicitud(
+            datos_solicitud=serializer.validated_data,
+            archivos=archivos
         )
+
         return Response(
             SolicitudCreateSerializer(solicitud).data,
             status=status.HTTP_201_CREATED,
         )
 
-    # ---------------------------------------------------------
-    # MODIFICAR
-    # ---------------------------------------------------------
 
-    def update(self, request, *args, **kwargs):
-
-        solicitud = self.get_object()
-
-        # Solo Entrada debería llegar hasta acá por Permission,
-        # pero mantenemos esta protección en el ViewSet.
-        if solicitud.validado or solicitud.rechazado:
-            return Response(
-                {
-                    "error": (
-                        "Una solicitud validada "
-                        "no puede modificarse."
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return super().update(
-            request,
-            *args,
-            **kwargs,
-        )
-
-    def partial_update(self, request, *args, **kwargs):
-
-        solicitud = self.get_object()
-
-        if solicitud.validado:
-            return Response(
-                {
-                    "error": (
-                        "Una solicitud validada "
-                        "no puede modificarse."
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return super().partial_update(
-            request,
-            *args,
-            **kwargs,
-        )
-
-
-    # ---------------------------------------------------------
     # SIN VALIDAR
-    # ---------------------------------------------------------
-
     @action(detail=False, methods=["get"])
     def sin_validar(self, request):
 
@@ -237,185 +162,70 @@ class SolicitudViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    # ---------------------------------------------------------
-    # RECHAZADOS
-    # ---------------------------------------------------------
-
-    @action(detail=False, methods=["get"])
-    def rechazados(self, request):
-
-        qs = self.get_queryset().filter(
-            rechazado=True,
-        )
-
-        serializer = self.get_serializer(
-            qs,
-            many=True,
-        )
-
-        return Response(serializer.data)
-
-    # ---------------------------------------------------------
-    # VALIDADOS
-    # ---------------------------------------------------------
-
-    @action(detail=False, methods=["get"])
-    def validados(self, request):
-
-        qs = self.get_queryset().filter(
-            validado=True,
-            rechazado=False,
-        )
-
-        serializer = self.get_serializer(
-            qs,
-            many=True,
-        )
-
-        return Response(serializer.data)
-
-    # ---------------------------------------------------------
     # VALIDAR
-    # ---------------------------------------------------------
     @action(detail=True, methods=["put"])
-    @transaction.atomic
     def validar(self, request, *args, **kwargs):
-
         solicitud = self.get_object()
 
-        # ==========================================
-        # Verificar estado
-        # ==========================================
+        data = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
 
-        if solicitud.validado or solicitud.rechazado:
-            return Response(
-                {
-                    "error": "La solicitud ya fue procesada."
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # ==========================================
-        # Preparar datos
-        # ==========================================
-
-        data = {}
-        for key in request.data.keys():
-            if key == "archivos":
-                continue
-            if key == "id_archivos":
-                data[key] = request.data.getlist(key)
-            else:
-                data[key] = request.data.get(key)
-
-        if "adolescente" in data:
-            data["adolescente"] = json.loads(
-                data["adolescente"]
-            )
+        if "adolescente" in data and isinstance(data["adolescente"], str):
+            try:
+                data["adolescente"] = json.loads(data["adolescente"])
+            except json.JSONDecodeError:
+                return Response(
+                    {"adolescente": "El campo adolescente debe contener JSON válido."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         serializer = SolicitudWriteSerializer(
             instance=solicitud,
             data=data,
             partial=True,
-            context={
-                "request": request
-            }
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+
+        solicitud = validar_solicitud(
+            solicitud=solicitud,
+            datos_validados=serializer.validated_data,
         )
 
-        if not serializer.is_valid():
-            print(serializer.errors)
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        return Response(SolicitudWriteSerializer(solicitud).data)
 
-        solicitud = serializer.save(validado=True)
-
-        for file in request.FILES.getlist("archivos"):
-
-            Archivo.objects.create(
-                solicitud=solicitud,
-                nombre=file.name,
-                tipo_mime=file.content_type,
-                contenido=file.read(),
-                valido=True,
-            )
-
-        enviar_correo(
-            subject="FORMULARIO PROBLEMÁTICA",
-            body="Su solicitud fue aprobada.",
-            to_emails=[
-                solicitud.correo
-            ],
-        )
-
-        return Response(
-            SolicitudWriteSerializer(
-                solicitud
-            ).data
-        )
-
-    # ---------------------------------------------------------
     # RECHAZAR
-    # ---------------------------------------------------------
-
     @action(detail=True, methods=["put"])
     def rechazar(self, request, pk=None):
-
         solicitud = self.get_object()
-
-        # Una solicitud validada no puede rechazarse
-        if solicitud.validado or solicitud.rechazado:
-            return Response(
-                {
-                    "error": (
-                        "Una solicitud validada "
-                        "no puede rechazarse."
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         motivo = request.query_params.get("motivo")
 
         if not motivo:
-            return Response(
-                {
-                    "error": "motivo es requerido"
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError({"motivo": "El motivo es requerido."})
 
-        solicitud.validado = False
-        solicitud.rechazado = True
-        solicitud.motivo_rechazo = motivo
-        solicitud.fecha_hora_modificacion = timezone.now()
-
-        solicitud.save(
-            update_fields=[
-                "validado",
-                "rechazado",
-                "motivo_rechazo",
-                "fecha_hora_modificacion",
-            ]
+        solicitud = rechazar_solicitud(
+            solicitud=solicitud, 
+            motivo=motivo
         )
 
-        enviar_correo(
-            subject="FORMULARIO PROBLEMÁTICA",
-            body=(
-                "Su solicitud fue rechazada. "
-                "A continuación se detallan "
-                "los motivos.\n\n"
-                f"{motivo}"
-            ),
-            to_emails=[
-                solicitud.correo
-            ],
+        return Response(self.get_serializer(solicitud).data)
+    
+    # DERIVAR
+    @action(detail=True, methods=["put"])
+    def derivar(self, request, pk=None):
+        solicitud = self.get_object()
+
+        equipo_id = request.data.get("equipo_id")
+
+        if not equipo_id:
+            raise ValidationError({"equipo_id": "El ID del equipo es requerido para derivar."})
+
+        solicitud = derivar_solicitud(
+            solicitud=solicitud,
+            equipo_id=equipo_id
         )
 
-        return Response(
-            self.get_serializer(solicitud).data
-        )
+        return Response(self.get_serializer(solicitud).data)
 
 
 
@@ -437,7 +247,3 @@ class ArchivoViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
         return response
-
-class DerivacionViewSet(viewsets.ModelViewSet):
-    queryset = Derivacion.objects.all()
-    serializer_class = DerivacionSerializer
