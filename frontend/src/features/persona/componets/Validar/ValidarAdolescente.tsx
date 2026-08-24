@@ -146,7 +146,7 @@ return (
         <Mapa 
             latitud={adolescente.domicilio.domicilio_validado?.latitud}
             longitud={adolescente.domicilio.domicilio_validado?.longitud}
-            nombre={adolescente.nombre}
+            nombre={adolescente.domicilio.nombre}
         />}
       </CardContent>
 
