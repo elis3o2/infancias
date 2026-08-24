@@ -5,8 +5,8 @@ import type { MotivoSolicitud } from "../types"
 import { getMotivos } from '../api'
 
 type Props = {
-    motivoSeleccionado: MotivoSolicitud
-    setMotivoSeleccionado: Setter<MotivoSolicitud>
+    motivoSeleccionado: MotivoSolicitud | null
+    setMotivoSeleccionado: Setter<MotivoSolicitud | null>
 }
 
 
@@ -52,9 +52,9 @@ export const MotivodForm = ({motivoSeleccionado, setMotivoSeleccionado}: Props) 
             label="Motivo"
             value={motivoSeleccionado?.id ?? ""}
             onChange={(e) => {
-            const idSeleccionado = Number(e.target.value)
-            const motivo = motivos.find((m) => m.id === idSeleccionado) ?? null
-            setMotivoSeleccionado(motivo)
+              const idSeleccionado = Number(e.target.value)
+              const motivo = motivos.find((m) => m.id === idSeleccionado) ?? null
+              setMotivoSeleccionado(motivo)
             }}
         >
             {motivos.map((motivo) => (

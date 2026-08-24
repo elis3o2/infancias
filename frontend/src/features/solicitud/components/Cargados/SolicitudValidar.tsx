@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { AdolescenteCard } from "@/features/persona/componets/Adolescente/AdolescenteCard"
-import { SolicitanteCard } from "@/features/persona/componets/Solicitante/SolicitanteCard"
 import { InstitucionCard } from "@/features/domicilio/components/Institucion/InstitucionCard"
 import { SolicitudCard } from "../SolicitudSection/SolicitudCard"
 import { HermanoCard } from "@/features/persona/componets/Hermano/HermanoCard";
 import { ArchivoCard } from "../Archivo/ArchivoCard";
 import { AceptarButtons } from "./AceptarButtons";
-import type { PrioridadSolicitud, Solicitud } from "../../types"
+import type { PrioridadSolicitud,  SolicitudCrud } from "../../types"
 import { validarSolicitud, rechazarSolicitud  } from "../../api"
 import type { Ciudadano, Familiar, Hermano } from "@/features/persona/types"
-import { InstitucionesCard } from "../Redes/InstitucionesCard"
+import { InstitucionesCard } from "../../../domicilio/components/Institucion/InstitucionesCard"
 import type { ArchivoPendiente } from "../../types"
 import { ArchivoNuevoCard } from "../Archivo/ArchivoNuevoCard"
 import { TextField } from "@mui/material"
@@ -18,10 +17,11 @@ import { PrioridadSelector } from "../PrioridadSelector"
 import type { Domicilio } from "@/features/domicilio/types"
 import { FamiliaresEditarCard } from "@/features/persona/componets/Familiar/FamiliarEditarCard"
 import { FamiliaresNuevos } from "@/features/persona/componets/Familiar/FamiliaresNuevos"
+import { ValidarAdolescente } from "@/features/persona/componets/Validar/ValidarAdolescente"
 
 
 type Props = {
-    solicitud: Solicitud
+    solicitud: SolicitudCrud
 }
 const MAX_DESCRIPCION = 256
 
@@ -182,15 +182,12 @@ export const SolicitudValidar = ({solicitud} : Props) => {
 
     return (<>
         <InstitucionCard institucion={solicitud.institucion}/>
-        <SolicitanteCard solicitante={solicitud.solicitante}/>
-        <AdolescenteCard
+        <ValidarAdolescente
             adolescente={solicitud.adolescente}
             estado={estadoAdolescente}
             setEstado={setEstadoAdolescente}
-            ciudadano={ciudadanoAdolescente}
+            ciudadano={ciudadanoAdolescente}     
             setCiudadano={setCiudadanoAdolescente}
-            nuevoDomicilio={nuevoDomicilio}
-            setNuevoDomicilio={setNuevoDomicilio}
         />
         <FamiliaresEditarCard familiares={solicitud.adolescente.familiares} seleccionados={familiarSeleccionado} setSeleccionados={setFamiliarSeleccionado}/>
         <FamiliaresNuevos familiares={familiaresNuevos} setFamiliares={setFamiliaresNuevos} />

@@ -1,10 +1,9 @@
 import { useState } from "react"
 import { Box, Button, Typography} from '@mui/material'
-import type { AdolescenteCreate, Familiar, Hermano, Solicitante } from "@/features/persona/types"
-import { AdolescenteInicial, SolicitanteInicial } from "@/features/persona/types"
-import { InstitucionInicial, type Institucion } from "@/features/domicilio/types"
-import type { Archivo, MotivoSolicitud, PrioridadSolicitud } from "@/features/solicitud/types"
-import { SolicitanteComponent } from "@/features/persona/componets/Solicitante/SolicitanteComponent"
+import type { AdolescenteCreate, FamiliarCreate, HermanoCreate } from "@/features/persona/types"
+import { AdolescenteInicial } from "@/features/persona/types"
+import { InstitucionInicial, type InstitucionFormData } from "@/features/domicilio/types"
+import type { Archivo, MotivoSolicitud, PrioridadSolicitud, SolicitudCreate } from "@/features/solicitud/types"
 import { AdolescenteComponent } from "@/features/persona/componets/Adolescente/AdolescenteComponent"
 import { SolicitudComponent } from "@/features/solicitud/components/SolicitudSection/SolicitudComponent"
 import { HermanosComponent } from "@/features/persona/componets/Hermano/HermanoComponent"
@@ -14,27 +13,29 @@ import { InstitucionComponent } from "@/features/domicilio/components/Institucio
 import { postSolicitud } from "@/features/solicitud/api"
 import { AlertMessage } from "@/common/components"
 import type { AlertSeverity } from "@/common/types"
-import { ReferenciaInstitucionComponent } from "@/features/solicitud/components/Redes/ReferenciaInstitucionesComponent"
+import { ReferenciaInstitucionComponent } from "@/features/domicilio/components/Institucion/ReferenciaInstitucionesComponent"
 import { Footer } from "@/common/layouts/Footer"
 import { Header } from "@/common/layouts/Header"
+import { ContactoComponent } from "@/features/solicitud/components/Contacto/ContactoComponent"
+import { esInstitucionExistente, institucionFormToInstitucionInput } from "@/features/domicilio/utils"
+import { adolescenteCreateToAdolescenteInput } from "@/features/persona/utils"
 
 export const CreatePage = () => {
-  const [solicitante, setSolicitante] = useState<Solicitante>(SolicitanteInicial)
-  const [finishSolicitante, setFinishSolicitante] = useState(false)
-  const [institucion, setInstitucion] = useState<Institucion>(InstitucionInicial)
+  const [correo, setCorreo] = useState("")
+  const [telefono, setTelefono] = useState("")
+  const [finishContacto, setFinishContacto] = useState(false)
+  const [institucion, setInstitucion] = useState<InstitucionFormData>(InstitucionInicial)
   const [finishInstitucion, setFinishInstitucion] = useState(false)
   const [adolescente, setAdolescente] = useState<AdolescenteCreate>(AdolescenteInicial)
-  const [familiares, setFamiliares] = useState<Familiar[]>([])
+  const [familiares, setFamiliares] = useState<FamiliarCreate[]>([])
   const [finishFamiliar, setFinishFamiliar] = useState(false)
-  const [hermanos, setHermanos] = useState<Hermano[]>([])
+  const [hermanos, setHermanos] = useState<HermanoCreate[]>([])
   const [finishHermano, setFinishHermano] = useState(true)
   const [finishAdolescente, setFinishAdolescente] = useState(false)
   const [prioridadSeleccionada, setPrioridadSeleccionada] = useState<PrioridadSolicitud | null>(null)
   const [motivoSeleccionado, setMotivoSeleccionado] = useState<MotivoSolicitud | null>(null)
   const [descripcion, setDescripcion] = useState("")
-  const [correo, setCorreo] = useState("")
-  const [telefono, setTelefono] = useState("")
-  const [referencias, setReferencias] = useState<Institucion[]>([])
+  const [referencias, setReferencias] = useState<InstitucionFormData[]>([])
   const [finishReferencias, setFinishReferencias] = useState(false)
   const [archivos, setArchivos] = useState<Archivo[]>([])
   const [alertOpen, setAlertOpen] = useState(false)
@@ -46,86 +47,24 @@ export const CreatePage = () => {
 async function handleEnviar() {
   if (!motivoSeleccionado || !prioridadSeleccionada) return
 
-  let id_institucion: number | null = null
-  let institucionNueva: Institucion | null = null
+  const institucionInput = institucionFormToInstitucionInput(institucion);
+  const adolescenteInput = adolescenteCreateToAdolescenteInput(adolescente);
 
-  if (institucion) {
-    if (institucion.id !== undefined && institucion.id !== -1) {
-      id_institucion = institucion.id
-    } else {
-      institucionNueva = institucion
-    }
-  }
-
-  const domicilioData = {
-    nombre: adolescente.domicilio?.nombre,
-    id_departamento: 520,
-    domicilio_validado: adolescente.domicilio?.domicilio_validado,
-  }
-
-  const familiaresData = familiares.map((familiar) => ({
-    id: familiar.id,
-    nombre: familiar.nombre,
-    apellido: familiar.apellido,
-    telefono: familiar.telefono,
-    id_vinculo: familiar.vinculo?.id,
-  }))
-
-  const referenciasInstitucionesData = referencias.map((referencia) => {
-    if (referencia.id !== undefined && referencia.id !== -1) {
-      return {
-        id: referencia.id,
-      }
-    }
-
-    return {
-      nombre: referencia.nombre,
-      id_tipo: referencia.tipo.id,
-      telefono: referencia.telefono,
-      correo: referencia.correo,
-      domicilio: {
-        nombre: referencia.domicilio?.nombre,
-        id_departamento: referencia.domicilio?.departamento?.id,
-        domicilio_validado: referencia.domicilio?.domicilio_validado,
-      },
-    }
-  })
-
-  const solicitud = {
-    id_institucion,
-    institucion: institucionNueva
-      ? {
-          nombre: institucionNueva.nombre,
-          id_tipo: institucionNueva.tipo.id,
-          telefono: institucionNueva.telefono,
-          correo: institucionNueva.correo,
-          domicilio: {
-            nombre: institucionNueva.domicilio?.nombre,
-            id_departamento:
-              institucionNueva.domicilio?.departamento?.id,
-            domicilio_validado:
-              institucionNueva.domicilio?.domicilio_validado,
-          },
-        }
-      : undefined,
-
-    adolescente: {
-      ...adolescente,
-      domicilio: domicilioData,
-      hermanos,
-      familiares: familiaresData,
-      referencias_instituciones_data: referenciasInstitucionesData,
-    },
-
-    solicitante,
+  const base = {
+    adolescente: adolescenteInput,
     correo,
     telefono,
     id_motivo: motivoSeleccionado.id,
     id_prioridad: prioridadSeleccionada.id,
     descripcion,
     archivos: archivos.map((archivo) => archivo.contenido),
-  }
-    console.log("SOLICITUD",solicitud)
+  };
+
+
+  const solicitud: SolicitudCreate = esInstitucionExistente(institucionInput)
+    ? { ...base, id_institucion: institucionInput.id_institucion }
+    : { ...base, institucion: institucionInput };
+
     try {
       await postSolicitud(solicitud)
 
@@ -168,21 +107,19 @@ return (
         </Box>
       ) : (
         <>
-          <SolicitanteComponent
-            solicitante={solicitante}
-            setSolicitante={setSolicitante}
-            finishSolicitante={finishSolicitante}
-            setFinishSolicitante={setFinishSolicitante}
+          <ContactoComponent
+            correo={correo}
+            setCorreo={setCorreo}
+            telefono={telefono}
+            setTelefono={setTelefono}
+            finishContacto={finishContacto}
+            setFinishContacto={setFinishContacto}
           />
           <InstitucionComponent
             institucion={institucion}
             setInstitucion={setInstitucion}
             finishInstitucion={finishInstitucion}
             setFinishInstitucion={setFinishInstitucion}
-            correo={correo}
-            setCorreo={setCorreo}
-            telefono={telefono}
-            setTelefono={setTelefono}
           />
           <AdolescenteComponent
             adolescente={adolescente}
@@ -222,8 +159,8 @@ return (
             variant="outlined"
             onClick={() => handleEnviar()}
             disabled={
-              !finishInstitucion || !finishSolicitante ||
-              !finishAdolescente || !finishHermano || !finishFamiliar
+              !finishInstitucion || !finishAdolescente || 
+              !finishHermano || !finishFamiliar
             }>
             Enviar
           </Button>

@@ -5,7 +5,7 @@ import {
   Box, Stack, Typography
 } from "@mui/material"
 import { Mapa } from "@/features/domicilio/components/Mapa"
-import { AdolescenteSimpleCard } from "./AdolescenteSimpleCard"
+import { AdolescenteSimpleCard } from "./AdolescenteList"
 
 type Props = {
   adolescente: Adolescente

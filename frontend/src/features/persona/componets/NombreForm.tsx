@@ -1,11 +1,9 @@
 import { TextField } from '@mui/material'
-import type { Setter } from "@/common/types"
-
 
 type Props = {
     label: string
     value: string
-    setNombre: Setter<string>
+    setNombre: (nombre: string) => void
 }
 
 export const NombreForm = ({label, value, setNombre}: Props) => {

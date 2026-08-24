@@ -2,12 +2,12 @@ import { useEffect } from "react"
 import { Stack, TextField } from "@mui/material"
 import { DepartamentoComponent } from "../DepartamentoComponet"
 import { ProvinciaComponent } from "../ProvinciaComponent"
-import type { Institucion, Departamento, Provincia, TipoInstitucion } from "../../types"
+import type { Departamento, Provincia, TipoInstitucion, InstitucionFormData } from "../../types"
 import type { Setter } from "@/common/types"
 
 type Props = {
-  institucion: Institucion
-  setInstitucion: Setter<Institucion>
+  institucion: InstitucionFormData
+  setInstitucion: Setter<InstitucionFormData>
   tipo: TipoInstitucion
   onValidChange: (esValido: boolean) => void
 }
@@ -42,14 +42,14 @@ export const InstitucionCargaForm = ({ institucion, setInstitucion, tipo, onVali
         }))
     }
 
-    const setProvincia = (provincia: Provincia) => {
+    const setProvincia = (provincia: Provincia | null ) => {
         setInstitucion((prev) => ({
         ...prev,
         domicilio: { ...prev.domicilio, provincia, departamento: null },
         }))
     }
 
-    const setDepartamento = (departamento: Departamento) => {
+    const setDepartamento = (departamento: Departamento | null) => {
         setInstitucion((prev) => ({
             ...prev,
             domicilio: { ...prev.domicilio, departamento },

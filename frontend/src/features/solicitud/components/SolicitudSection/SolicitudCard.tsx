@@ -2,9 +2,9 @@ import { Box, Card, CardContent, Stack, Typography, Chip, Button } from "@mui/ma
 import type { MotivoSolicitud, PrioridadSolicitud } from "../../types"
 
 type Props = {
-  motivo?: MotivoSolicitud
-  prioridad?: PrioridadSolicitud
-  descripcion?: string
+  motivo: MotivoSolicitud
+  prioridad: PrioridadSolicitud
+  descripcion: string
   onEditar?: () => void
 }
 
@@ -19,8 +19,8 @@ export const SolicitudCard = ({ motivo, prioridad, descripcion, onEditar }: Prop
     <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
       <CardContent>
         <Stack spacing={2}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row"  sx={{alignItems:"center", justifyContent:"space-between"}}>
+            <Stack direction="row" spacing={1} sx={{alignItems:"center"}}>
               <Typography variant="h6">Descripción</Typography>
               {motivo && <Chip label={motivo.nombre} size="small" variant="outlined" />}
               {prioridad && (
@@ -31,7 +31,11 @@ export const SolicitudCard = ({ motivo, prioridad, descripcion, onEditar }: Prop
                 />
               )}
             </Stack>
-
+            {onEditar && (
+              <Button size="small" onClick={onEditar}>
+                Editar
+              </Button>
+            )}
           </Stack>
 
           <Box
@@ -44,22 +48,13 @@ export const SolicitudCard = ({ motivo, prioridad, descripcion, onEditar }: Prop
           >
             <Typography
               variant="body1"
-              sx={{
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-              }}
+              sx={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
             >
               {descripcion || "Sin descripción"}
             </Typography>
           </Box>
         </Stack>
-      {onEditar && (
-      <Button size="small" onClick={onEditar}>
-        Editar
-      </Button>
-    )}
       </CardContent>
     </Card>
-    
   )
 }

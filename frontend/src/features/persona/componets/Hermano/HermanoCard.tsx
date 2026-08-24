@@ -16,7 +16,7 @@ import { getCiudadano } from "../../api"
 import { useState } from "react"
 import { ValidarButtons} from "../Validacion/ValidarButtons"
 import type { Setter } from "@/common/types"
-import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteSimpleCard"
+import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteList"
 import { AgregarHermano } from "./AgregarHemano"
 import { HermanosNuevos } from "./HemanosNuevos"
 

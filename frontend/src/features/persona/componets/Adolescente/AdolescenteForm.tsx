@@ -3,9 +3,11 @@ import type { Setter } from "@/common/types"
 import { DniForm } from "../DniForm"
 import { SexoForm } from "../SexoForm"
 import { useState } from "react"
-import { Card, CardContent, CardActions, Stack, TextField, Button, FormControlLabel, Switch } from "@mui/material"
+import { Card, CardContent, CardActions, Stack, TextField, Button } from "@mui/material"
 import { DomicilioComponent } from "@/features/domicilio/components/DomicilioComponent"
 import { NombreForm } from "../NombreForm"
+import type { DomicilioFormData } from "@/features/domicilio/types"
+import { EscolarizadoForm } from "../EscolarizadoForm"
 
 type Props = {
   adolescente: AdolescenteCreate
@@ -16,25 +18,25 @@ type Props = {
 export const AdolescenteForm = ({ adolescente, setAdolescente, setFinishAdolescente }: Props) => {
   const [finishDomicilio, setFinishDomicilio] = useState(false)
 
-  function setNombre (nombre) { 
+  function setNombre (nombre: string) { 
     setAdolescente({ ...adolescente, nombre })
   }  
-  function setApellido (apellido) {
+  function setApellido (apellido: string) {
     setAdolescente({ ...adolescente, apellido })
   } 
-  function setDni (dni) {
+  function setDni (dni: string) {
     setAdolescente({ ...adolescente, dni })
   }
-  function setSexo (sexo) {
+  function setSexo (sexo: "M" | "F" | "") {
     setAdolescente({ ...adolescente, sexo })
   }
-  function setFechaNacimiento (fecha_nacimiento) {
+  function setFechaNacimiento (fecha_nacimiento: string) {
     setAdolescente({ ...adolescente, fecha_nacimiento })
   }
-  function setEscolarizado (escolarizado) {
+  function setEscolarizado (escolarizado: boolean | null) {
     setAdolescente({ ...adolescente, escolarizado })
   }
-  function setDomicilio (domicilio) {
+  function setDomicilio (domicilio: DomicilioFormData | null) {
     setAdolescente({ ...adolescente, domicilio })
   }
 
@@ -76,16 +78,10 @@ export const AdolescenteForm = ({ adolescente, setAdolescente, setFinishAdolesce
             slotProps={{ inputLabel: { shrink: true } }}
             fullWidth
           />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={adolescente.escolarizado}
-                onChange={(e) => setEscolarizado(e.target.checked)}
-              />
-            }
-            label="Actualmente escolarizado"
+          <EscolarizadoForm 
+          escolarizado={adolescente.escolarizado}
+          setEscolarizado={setEscolarizado}
           />
-          
           <DomicilioComponent 
             domicilio={adolescente.domicilio}
             setDomicilio={setDomicilio}

@@ -9,7 +9,7 @@ import {
   Button, 
   Divider
 } from "@mui/material"
-import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteSimpleCard"
+import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteList"
 
 type Props = {
   hermanos: Hermano[]

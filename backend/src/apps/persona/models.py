@@ -135,7 +135,8 @@ class Familiar(models.Model):
     vinculo = models.ForeignKey(
         Vinculo, models.DO_NOTHING, db_column="id_vinculo")
     telefono = models.CharField(max_length=16, null=True, blank=True)
-    domicilio = models.CharField(max_length=256, null=True, blank=True)
+    domicilio = models.ForeignKey(
+        Domicilio, models.DO_NOTHING, db_column="id_domicilio", blank=True, null=True)
     persona = models.ForeignKey(
         Persona, models.DO_NOTHING, db_column="id_persona", related_name="familiares", null=True, blank=True)
 

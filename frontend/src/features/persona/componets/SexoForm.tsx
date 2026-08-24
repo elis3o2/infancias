@@ -1,9 +1,8 @@
-import type { Setter } from '@/common/types'
 import {FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Typography, FormHelperText} from '@mui/material'
 
 type Props = {
     sexo: "M" | "F" | ""
-    setSexo: Setter<"M" | "F" | "">
+    setSexo: (s : "M" | "F" | "") => void
 }
 
 export const SexoForm = ({sexo, setSexo}: Props) => {

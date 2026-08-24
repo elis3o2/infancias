@@ -5,8 +5,8 @@ import type { PrioridadSolicitud } from "../types"
 import { getPrioridades } from '../api'
 
 type Props = {
-    prioridadSeleccionada: PrioridadSolicitud
-    setPrioridadSeleccionada: Setter<PrioridadSolicitud>
+    prioridadSeleccionada: PrioridadSolicitud | null 
+    setPrioridadSeleccionada: Setter<PrioridadSolicitud | null>
 }
 
 
@@ -16,7 +16,6 @@ export const PrioridadForm = ({prioridadSeleccionada, setPrioridadSeleccionada}:
 
     console.log(prioridades)
     useEffect(() => {
-        console.log("EFFECT")
         let activo = true
     
         const cargarOpciones = async () => {

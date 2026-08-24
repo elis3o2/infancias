@@ -29,10 +29,6 @@ export const postSolicitud = (solicitud: SolicitudCreate) => {
     formData.append("institucion", JSON.stringify(solicitud.institucion));
   }
   
-  if (solicitud.solicitante) {
-    formData.append("solicitante", JSON.stringify(solicitud.solicitante));
-  }
-    
   formData.append("adolescente",JSON.stringify(solicitud.adolescente));
   formData.append("correo", solicitud.correo)
   formData.append("telefono", solicitud.telefono)

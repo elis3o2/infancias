@@ -68,15 +68,6 @@ class IdentidadBarrial(models.Model):
         db_table = 'identidad_barrial'
 
 
-class Localidad(models.Model):
-    id = models.IntegerField(primary_key=True)
-    nombre = models.CharField(max_length=64)
-    
-    class Meta:
-        managed = False
-        db_table = 'localidad'
-
-
 class DomicilioValidado(models.Model):
     id = models.AutoField(primary_key=True)
     codigo_calle = models.IntegerField(blank=True, null=True)
@@ -84,6 +75,8 @@ class DomicilioValidado(models.Model):
     bis = models.BooleanField()
     letra = models.CharField(max_length=1, blank=True, null=True)
     piso = models.IntegerField(blank=True, null=True)
+    nombreInterseccion = models.CharField(max_length=64, blank=True, null=True)
+    codigoInterseccion = models.IntegerField(blank=True, null=True)
     depto = models.CharField(max_length=10, blank=True, null=True)
     monoblock = models.IntegerField(blank=True, null=True)
     coordenada_x = models.FloatField(blank=True, null=True)
@@ -101,8 +94,7 @@ class DomicilioValidado(models.Model):
     radio_censal = models.IntegerField(blank=True, null=True)
     identidad_barrial = models.ForeignKey(
         IdentidadBarrial, models.DO_NOTHING, db_column="id_identidad_barrial", blank=True, null=True)
-    localidad = models.ForeignKey(
-        Localidad, models.DO_NOTHING, db_column="id_localidad", blank=True, null=True)
+    localidad = models.CharField(max_length=64, blank=True, null=True)
     puntoX = models.IntegerField(blank=True, null=True)
     puntoY = models.IntegerField(blank=True, null=True)
     latitud = models.IntegerField(blank=True, null=True)

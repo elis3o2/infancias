@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Box, List, ListItemButton, ListItemText, Alert } from "@mui/material";
-import type { Geolocalizacion } from "@/features/domicilio/types";
+import type { APIGeo1 } from "@/features/domicilio/types";
 import { getGeo } from "@/features/domicilio/api";
 import type { Setter } from "@/common/types";
 import { Mapa } from "./Mapa";
@@ -9,12 +9,12 @@ import { Mapa } from "./Mapa";
 type Props = {
     direccion: string;
     setCanConfirm: Setter<boolean>
-    setGeoSeleccionada: Setter<Geolocalizacion>
+    setGeoSeleccionada: Setter<APIGeo1 | null>
 };
 
 export const SelectDireccion = ({ direccion, setCanConfirm, setGeoSeleccionada }: Props) => {
-    const [resultados, setResultados] = useState<Geolocalizacion[]>([]);
-    const [ubicacionSeleccionada, setUbicacionSeleccionada] = useState<Geolocalizacion | null>(null);
+    const [resultados, setResultados] = useState<APIGeo1[]>([]);
+    const [ubicacionSeleccionada, setUbicacionSeleccionada] = useState<APIGeo1 | null>(null);
     const [buscado, setBuscado] = useState(false);
 
     useEffect(() => {
@@ -52,7 +52,7 @@ export const SelectDireccion = ({ direccion, setCanConfirm, setGeoSeleccionada }
             {resultados.length > 0 && (
                 <List sx={{ background: "#fff", borderRadius: 2, border: "1px solid #cbd5e1", maxHeight: 250, overflow: "auto" }}>
                     {resultados.map((resultado, index) => {
-                        const seleccionado = ubicacionSeleccionada?.properties.id === resultado.properties.id;
+                        const seleccionado = ubicacionSeleccionada?.id === resultado.id;
                         return (
                             <ListItemButton
                                 key={index}
@@ -65,7 +65,7 @@ export const SelectDireccion = ({ direccion, setCanConfirm, setGeoSeleccionada }
                                 }}
                             >
                                 <ListItemText
-                                    primary={resultado.properties.name}
+                                    primary={resultado.name}
                                     secondary={seleccionado ? "Dirección seleccionada" : undefined}
                                 />
                             </ListItemButton>
@@ -76,9 +76,9 @@ export const SelectDireccion = ({ direccion, setCanConfirm, setGeoSeleccionada }
 
             {ubicacionSeleccionada && (
                 <Mapa
-                    latitud={ubicacionSeleccionada.geometry.coordinates[0]}
-                    longitud={ubicacionSeleccionada.geometry.coordinates[1]}
-                    nombre={ubicacionSeleccionada.properties.name}
+                    latitud={ubicacionSeleccionada.latitud}
+                    longitud={ubicacionSeleccionada.longitud}
+                    nombre={ubicacionSeleccionada.name}
                 />
             )}
             {buscado && resultados.length === 0 && (

@@ -1,22 +1,21 @@
 import type { Setter } from "@/common/types"
 import { useState, useEffect } from "react"
-import { Stack, Button, Typography, CardContent, Card, CardHeader } from "@mui/material"
-import { InstitucionInicial, type Institucion,  } from "@/features/domicilio/types"
+import { Stack, Button, CardContent, Card, CardHeader } from "@mui/material"
+import type { InstitucionFormData  } from "@/features/domicilio/types"
+import { InstitucionInicial } from "@/features/domicilio/types"
 import { InstitucionForm } from "@/features/domicilio/components/Institucion/InstitucionForm"
 import { InstitucionesCard } from "./InstitucionesCard"
 
 type Props = {
-  instituciones: Institucion[]
-  setInstituciones: Setter<Institucion[]>
+  instituciones: InstitucionFormData[]
+  setInstituciones: Setter<InstitucionFormData[]>
   finishInstitucion: boolean
   setFinishInstitucion: Setter<boolean>
 }
 
 export const ReferenciaInstitucionComponent = ({ instituciones, setInstituciones, finishInstitucion, setFinishInstitucion }: Props) => {
-    const [mostrarForm, setMostrarForm] = useState(instituciones.length === 0)
-    const [institucionActual, setInstitucionActual] = useState<Institucion>(InstitucionInicial)
-    const [correoActual, setCorreoActual] = useState("")
-    const [telefonoActual, setTelefonoActual] = useState("")
+  const [mostrarForm, setMostrarForm] = useState(instituciones.length === 0)
+  const [institucionActual, setInstitucionActual] = useState<InstitucionFormData>(InstitucionInicial)
 
   useEffect(() => {
     if (finishInstitucion) {
@@ -30,7 +29,6 @@ export const ReferenciaInstitucionComponent = ({ instituciones, setInstituciones
   const handleEliminar = (index: number) => {
     setInstituciones(instituciones.filter((_, i) => i !== index))
   }
-          console.log("INSS", instituciones)
 
   return (
     <Card variant="outlined" sx={{ borderRadius: 2 }}>
@@ -52,10 +50,6 @@ export const ReferenciaInstitucionComponent = ({ instituciones, setInstituciones
                 institucion={institucionActual}
                 setInstitucion={setInstitucionActual}
                 setFinshInstitucion={setFinishInstitucion}
-                telefono={telefonoActual}
-                setTelefono={setTelefonoActual}
-                correo={correoActual}
-                setCorreo={setCorreoActual}
             />
           ) : (
             <Button variant="outlined" onClick={() => {setMostrarForm(true); setFinishInstitucion(false)}}>

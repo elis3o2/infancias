@@ -1,4 +1,4 @@
-import type { Hermano } from "../../types"
+import type { HermanoCreate } from "../../types"
 import type { Setter } from "@/common/types"
 import { DniForm } from "../DniForm"
 import { SexoForm } from "../SexoForm"
@@ -14,7 +14,7 @@ import {
 import { NombreForm } from "../NombreForm"
 
 type Props = {
-  setHermano: Setter<Hermano | null>
+  setHermano: Setter<HermanoCreate | null>
   setFinishHermano: Setter<boolean>
 }
 
@@ -35,7 +35,6 @@ export const HermanoForm = ({ setHermano, setFinishHermano }: Props) => {
     if (!formCompleto) return
 
     setHermano({
-      id: null,
       nombre: nombre.trim(),
       apellido: apellido.trim(),
       dni: dni.trim(),

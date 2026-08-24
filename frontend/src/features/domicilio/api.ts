@@ -1,8 +1,8 @@
 import http from '@/common/api/client'
-import type { Departamento, Geolocalizacion, Institucion, Provincia, Referencia, TipoInstitucion } from './types'
+import type { APIGeo1, Departamento, Geolocalizacion, Institucion, Provincia, Referencia, TipoInstitucion } from './types'
 
-export const getGeo = (direccion: string) : Promise<Geolocalizacion[]> => {
-    return http.get<Geolocalizacion[]>(`domicilio/geolocalizacion/features?domicilio=${direccion}`).then(res => res.data)
+export const getGeo = (direccion: string) : Promise<APIGeo1[]> => {
+    return http.get<APIGeo1[]>(`domicilio/geolocalizacion/features?domicilio=${direccion}`).then(res => res.data)
 }
 
 export const getDic = (direccion: string) : Promise<Geolocalizacion[]> => {

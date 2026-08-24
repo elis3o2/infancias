@@ -1,21 +1,20 @@
-import type { Hermano } from "../../types"
+import type { HermanoCreate } from "../../types"
 import type { Setter } from "@/common/types"
 import { useState } from "react"
-import { Stack, Button, Typography, Card, CardContent, CardHeader} from "@mui/material"
+import { Stack, Button, Card, CardContent, CardHeader} from "@mui/material"
 import { HermanoForm } from "./HermanoForm"
-import { HermanoView } from "./HermanoView"
-import { HermanoValidadoCard } from "./HermanoValidadoCard"
+import { HermanosCard } from "./HermanosCard"
 
 type Props = {
-  hermanos: Hermano[]
-  setHermanos: Setter<Hermano[]>
+  hermanos: HermanoCreate[]
+  setHermanos: Setter<HermanoCreate[]>
   finishHermano: boolean
   setFinishHermano: Setter<boolean>
 }
 
 export const HermanosComponent = ({ hermanos, setHermanos, finishHermano, setFinishHermano }: Props) => {
   const [mostrarForm, setMostrarForm] = useState(false)
-  const [hermanoActual, setHermanoActual] = useState<Hermano | null>(null)
+  const [hermanoActual, setHermanoActual] = useState<HermanoCreate | null>(null)
 
   if (finishHermano && hermanoActual != null) {
     setHermanos([...hermanos, hermanoActual])
@@ -36,7 +35,7 @@ export const HermanosComponent = ({ hermanos, setHermanos, finishHermano, setFin
       <CardContent>
         <Stack spacing={2} sx={{ minWidth: 1028 }}>
           {hermanos.length > 0 &&
-            <HermanoValidadoCard
+            <HermanosCard
               hermanos={hermanos}
               onEliminar={handleEliminar}
             />

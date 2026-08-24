@@ -98,37 +98,62 @@ class GeoDataViewSet(ViewSet):
                 proxies={"http": None, "https": None},  # type: ignore[arg-type]
                 verify=True,
             )
+
             if response.status_code == 404:
                 raise NotFound()
+
             response.raise_for_status()
+
             data = response.json()
-            result = data.get("features")
-            result = [
-                f
-                for f in result
+            features = data.get("features", [])
+
+            result = []
+
+            for feature in features:
+                geometry = feature.get("geometry")
+                properties = feature.get("properties", {})
+
                 if (
-                    f.get("geometry") is not None
-                    and f["geometry"].get("type") == "Point"
-                    and "nombreCalle" in f.get("properties", {})
+                    geometry is None
+                    or geometry.get("type") != "Point"
+                    or "nombreCalle" not in properties
+                ):
+                    continue
+
+                coordinates = geometry.get("coordinates")
+
+                if not coordinates or len(coordinates) < 2:
+                    continue
+
+                x, y = coordinates
+                lat, lon = transformar_coordenadas(x, y)
+
+                result.append(
+                    {
+                        "altura": properties.get("altura"),
+                        "bis": properties.get("bis"),
+                        "codigoCalle": properties.get("codigoCalle"),
+                        "codigoInterseccion": properties.get("codigoInterseccion"),
+                        "id": str(feature.get("id")),
+                        "letra": properties.get("letra"),
+                        "name": properties.get("name"),
+                        "nombreCalle": properties.get("nombreCalle"),
+                        "nombreInterseccion": properties.get("nombreInterseccion"),
+                        "coordenada_x": x,
+                        "coordenada_y": y,
+                        "longitud": lon,
+                        "latitud": lat,
+                    }
                 )
-            ]
 
-            for feature in result:
-                coordinates = feature["geometry"].get("coordinates")
-
-                if coordinates and len(coordinates) >= 2:
-                    x, y = coordinates
-
-                    lat, lon = transformar_coordenadas(x, y)
-
-                    feature["geometry"]["coordinates"] = [lat, lon]
-        
             return Response(result)
+
         except NotFound:
             raise
+
         except requests.RequestException as exc:
             raise APIException(detail=f"External API error: {str(exc)}")
-
+    
     @action(detail=False, methods=["get"], url_path="direccion")
     def direccion(self, request: Request) -> Response:
         codigo_calle: str | None = request.query_params.get("codigoCalle")
@@ -138,13 +163,16 @@ class GeoDataViewSet(ViewSet):
 
         if not (codigo_calle and altura and bis):
             return Response(
-                {"error": "`codigoCalle`, `altura` are required."},
+                {"error": "`codigoCalle`, `altura` and `bis` are required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         url = (
-            f"{config('API_GEO2')}?idCalle={codigo_calle}&altura={altura}&bis={bis}"
-            f"{f'&letra={letra}' if letra != '' else ''}"
+            f"{config('API_GEO2')}"
+            f"?idCalle={codigo_calle}"
+            f"&altura={altura}"
+            f"&bis={bis}"
+            f"{f'&letra={letra}' if letra else ''}"
         )
 
         try:
@@ -154,15 +182,79 @@ class GeoDataViewSet(ViewSet):
                 proxies={"http": None, "https": None},  # type: ignore[arg-type]
                 verify=True,
             )
+
             if response.status_code == 404:
                 raise NotFound()
+
             response.raise_for_status()
-            return Response(response.json())
+
+            data = response.json()
+
+            divs_admins = data.get("divsAdmins", [])
+
+            resultado = {
+                "distrito": None,
+                "vecinal": None,
+                "barrio": None,
+                "seccional_policia": None,
+                "fraccion_sensal": None,
+                "radio_sensal": None,
+                "identidad_barrial": None,
+                "localidad": data.get("localidad"),
+                "puntoX": data.get("puntoX"),
+                "puntoY": data.get("puntoY"),
+            }
+
+            for division in divs_admins:
+                tipo = division.get("nombreTipo")
+                codigo = division.get("codigo")
+                nombre = division.get("valor")
+
+                if tipo == "Distrito":
+                    resultado["distrito"] = {
+                        "id": int(codigo),
+                        "nombre": nombre,
+                    }
+
+                elif tipo == "Vecinal":
+                    resultado["vecinal"] = {
+                        "id": int(codigo),
+                        "nombre": nombre,
+                    }
+
+                elif tipo == "Barrio":
+                    resultado["barrio"] = {
+                        "id": int(codigo),
+                        "nombre": nombre,
+                    }
+
+                elif tipo == "Seccional Policial":
+                    resultado["seccional_policia"] = {
+                        "id": int(codigo),
+                        "nombre": nombre,
+                    }
+
+                elif tipo == "Fracción Censal":
+                    resultado["fraccion_sensal"] = int(codigo)
+
+                elif tipo == "Radio Censal":
+                    resultado["radio_sensal"] = int(codigo)
+
+                elif tipo == "Identidad Barrial":
+                    resultado["identidad_barrial"] = {
+                        "id": int(codigo),
+                        "nombre": nombre,
+                    }
+
+            return Response(resultado)
+
         except NotFound:
             raise
-        except requests.RequestException as exc:
-            raise APIException(detail=f"External API error: {str(exc)}")
 
+        except requests.RequestException as exc:
+            raise APIException(
+                detail=f"External API error: {str(exc)}"
+            )
     @action(detail=False, methods=["get"], url_path="latitud-longitud")
     def latitud_longitud(self, request: Request) -> Response:
         punto_x: str | None = request.query_params.get("punto_x")

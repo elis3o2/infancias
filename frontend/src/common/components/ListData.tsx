@@ -13,16 +13,18 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
 import { DatoItem } from "@/common/components/DatoItem"
-
+import NotesIcon from "@mui/icons-material/Notes";
 
 type Props = {
     nombre?: string
     apellido?: string
     dni?: string
     sexo?: "M" | "F"
-    escolarizado?: boolean
+    escolarizado?: boolean | null
     fecha_nacimiento?: string
+    vinculo?: string
     domicilio?: string
+    domicilio_observaciones?: string
     institucion_nombre?: string
     institucion_tipo?: string
     institucion_domicilio?: string
@@ -46,8 +48,8 @@ function formatFecha(fecha: string | null | undefined) {
   return `${dia}-${mes}-${anio}`;
 }
 
-export const ListData = ({ nombre, apellido, dni, sexo, escolarizado, fecha_nacimiento,
-             domicilio, institucion_nombre, institucion_tipo, institucion_domicilio, telefono, correo, onEditar}: Props) => {
+export const ListData = ({ nombre, apellido, dni, sexo, escolarizado, fecha_nacimiento, vinculo,
+             domicilio, domicilio_observaciones, institucion_nombre, institucion_tipo, institucion_domicilio, telefono, correo, onEditar}: Props) => {
   const sexoLabel = sexo === "M" ? "Masculino" : (sexo ==="F" ? "Femenino" : "-")
 
   return (<>
@@ -72,15 +74,16 @@ export const ListData = ({ nombre, apellido, dni, sexo, escolarizado, fecha_naci
                 label="Fecha de nacimiento"
                 valor={formatFecha(fecha_nacimiento)}
             />}
-            {escolarizado != null && <DatoItem
+            {escolarizado !== undefined && <DatoItem
                 icon={<SchoolIcon fontSize="small" />}
                 label={"Escolarizado"}
-                valor={escolarizado? "Si" : "No"}
+                valor={escolarizado == null ? "Desconsido" : escolarizado? "Si" : "No"}
             />}
+            {vinculo && <DatoItem icon={<BadgeIcon fontSize="small" />} label="Vínculo" valor={vinculo}/> }
             {domicilio && <DatoItem icon={<LocationIcon fontSize="small" /> } label="Domicilio" valor={domicilio} /> }
-            {institucion_nombre && <DatoItem icon={<BusinessIcon fontSize="small" />} label="Nombre" valor={institucion_nombre} />}
+            {domicilio_observaciones && (<DatoItem icon={<NotesIcon fontSize="small"/>} label="Observaciones" valor={domicilio_observaciones}/>)}            {institucion_nombre && <DatoItem icon={<BusinessIcon fontSize="small" />} label="Nombre" valor={institucion_nombre} />}
             {institucion_tipo && <DatoItem icon={<CategoryIcon fontSize="small" />} label="Tipo institución" valor={institucion_tipo} />}
-            { institucion_domicilio && <DatoItem icon={<LocationOnIcon fontSize="small" />} label="Direccion" valor={institucion_domicilio} />}
+            {institucion_domicilio && <DatoItem icon={<LocationOnIcon fontSize="small" />} label="Direccion" valor={institucion_domicilio} />}
             {telefono &&  <DatoItem icon={<PhoneIcon fontSize="small" />} label="Telefono" valor={telefono} />}
             {correo &&  <DatoItem icon={<EmailIcon fontSize="small" />} label="Correo" valor={correo}/>}
 

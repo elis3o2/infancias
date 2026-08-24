@@ -1,21 +1,20 @@
-import type { Familiar } from "../../types"
+import type { FamiliarCreate } from "../../types"
 import type { Setter } from "@/common/types"
 import { useState } from "react"
-import { Stack, Button, Typography,Card, CardHeader, CardContent } from "@mui/material"
+import { Stack, Button,Card, CardHeader, CardContent } from "@mui/material"
 import { FamiliarForm } from "./FamiliarForm"
-import { FamiliarView } from "./FamiliarView"
-import { FamiliaresCard } from "./FamiliarCard"
+import { FamiliaresList } from "./FamiliaresList"
 
 type Props = {
-  familiares: Familiar[]
-  setFamiliares: Setter<Familiar[]>
+  familiares: FamiliarCreate[]
+  setFamiliares: Setter<FamiliarCreate[]>
   finishFamiliar: boolean
   setFinishFamiliar: Setter<boolean>
 }
 
 export const FamiliaresComponent = ({ familiares, setFamiliares, finishFamiliar, setFinishFamiliar }: Props) => {
-  const [mostrarForm, setMostrarForm] = useState(familiares.length === 0)
-  const [familiarActual, setFamiliarActual] = useState<Familiar | null>(null)
+  const [mostrarForm, setMostrarForm] = useState(false)
+  const [familiarActual, setFamiliarActual] = useState<FamiliarCreate | null>(null)
 
   if (finishFamiliar && familiarActual != null) {
     setFamiliares([...familiares, familiarActual])
@@ -36,7 +35,7 @@ export const FamiliaresComponent = ({ familiares, setFamiliares, finishFamiliar,
       <CardContent>
         <Stack spacing={2}>
           {familiares.length > 0  && 
-            <FamiliaresCard
+            <FamiliaresList
               familiares={familiares}
               onEliminar={handleEliminar}
             />
@@ -51,12 +50,6 @@ export const FamiliaresComponent = ({ familiares, setFamiliares, finishFamiliar,
             <Button variant="outlined" onClick={() => {setMostrarForm(true); setFinishFamiliar(false)}}>
               Agregar otro familiar
             </Button>
-          )}
-
-          {familiares.length === 0 && !mostrarForm && (
-            <Typography color="error" variant="caption">
-              Debe cargar al menos un familiar o referente
-            </Typography>
           )}
         </Stack>
       </CardContent>

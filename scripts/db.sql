@@ -46,6 +46,8 @@ CREATE TABLE IF NOT EXISTS domicilio_validado (
     bis BOOLEAN NOT NULL,
     letra CHAR(1) NULL,
     piso INT NULL,
+    nombreInterseccion VARCHAR(64) NULL,
+    codigoInterseccion INT NULL,
     coordenada_x REAL NULL,
     coordenada_y REAL NULL,
     depto VARCHAR(10) NULL,

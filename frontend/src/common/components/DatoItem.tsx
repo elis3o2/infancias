@@ -18,7 +18,7 @@ export const DatoItem = ({ icon, label, valor }:Props) => (
         </Typography>
       }
       secondary={
-        <Typography variant="body1" fontWeight={600}>
+        <Typography variant="body1" sx ={{ fontWeight: 600 }}>
           {String(valor ?? "").trim() || "—"}
         </Typography>
       }

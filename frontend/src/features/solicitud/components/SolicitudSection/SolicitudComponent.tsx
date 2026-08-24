@@ -5,9 +5,9 @@ import { SolicitudForm } from "./SolicitudForm"
 import { SolicitudCard } from "./SolicitudCard"
 
 type Props = {
-    prioridadSeleccionada: PrioridadSolicitud
+    prioridadSeleccionada: PrioridadSolicitud | null 
     setPrioridadSeleccionada: Setter<PrioridadSolicitud | null>
-    motivoSeleccionado: MotivoSolicitud
+    motivoSeleccionado: MotivoSolicitud | null
     setMotivoSeleccionado: Setter<MotivoSolicitud | null>
     descripcion: string
     setDescripcion: Setter<string>

@@ -1,5 +1,5 @@
 from django.db import transaction
-from .models import (DomicilioValidado, Distrito, Vecinal, Barrio, SeccionalPolicial, IdentidadBarrial, Localidad)
+from .models import (DomicilioValidado, Distrito, Vecinal, Barrio, SeccionalPolicial,Institucion, IdentidadBarrial, Domicilio)
 
 @transaction.atomic
 def crear_domicilio_validado(datos_domicilio_validado: dict) -> DomicilioValidado:
@@ -10,7 +10,6 @@ def crear_domicilio_validado(datos_domicilio_validado: dict) -> DomicilioValidad
         "barrio": Barrio,
         "seccional_policial": SeccionalPolicial,
         "identidad_barrial": IdentidadBarrial,
-        "localidad": Localidad,
     }
 
     # Iteramos sobre las relaciones para extraerlas del diccionario principal

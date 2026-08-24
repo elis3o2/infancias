@@ -11,10 +11,6 @@ export const ContactoCard = ({ correo, telefono, onEditar }: Props) => {
   return (
     <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
       <CardContent>
-        <Typography variant="h6" lineHeight={1.2} sx={{ mb: 2 }}>
-          Datos de contacto
-        </Typography>
-
         <ListData
           correo={correo}
           telefono={telefono}

@@ -5,7 +5,7 @@ import { SexoForm } from "../SexoForm"
 import { getCiudadano } from "../../api"
 import type { Setter } from "@/common/types"
 import type { Ciudadano, Hermano } from "../../types"
-import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteSimpleCard"
+import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteList"
 
 
 interface AgregarHermanoProps {

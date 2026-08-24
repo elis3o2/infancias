@@ -12,7 +12,7 @@ type Props = {
     setFinishContacto: Setter<boolean>
 }
 
-export const InstitucionComponent = ({correo, setCorreo, telefono, setTelefono, finishContacto, setFinishContacto }: Props) => {
+export const ContactoComponent = ({correo, setCorreo, telefono, setTelefono, finishContacto, setFinishContacto }: Props) => {
   
     return (
     <Card variant="outlined" sx={{ borderRadius: 2 }}>

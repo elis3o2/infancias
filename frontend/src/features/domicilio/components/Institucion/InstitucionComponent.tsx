@@ -1,13 +1,13 @@
 import { Card, CardHeader, CardContent } from '@mui/material';
 import type { Setter } from "@/common/types"
-import type { Institucion } from "../../types"
+import type { InstitucionFormData } from "../../types"
 import { InstitucionForm } from "./InstitucionForm"
 import { InstitucionCard } from './InstitucionCard';
 
 
 type Props = {
-    institucion: Institucion 
-    setInstitucion: Setter<Institucion>
+    institucion: InstitucionFormData
+    setInstitucion: Setter<InstitucionFormData>
     finishInstitucion: boolean
     setFinishInstitucion: Setter<boolean>
 }

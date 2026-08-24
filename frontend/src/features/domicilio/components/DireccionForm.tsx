@@ -52,7 +52,7 @@ export const DireccionForm = ({direccion, setDireccion, setFinishDireccion}: Pro
             <Stack
                 direction="row"
                 spacing={1.5}
-                justifyContent="flex-end"
+                sx={{ justifyContent: "flex-end" }}
             >
                 <Button
                     variant="contained"

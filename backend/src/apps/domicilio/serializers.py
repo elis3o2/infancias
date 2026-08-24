@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import (Provincia, Departamento, Distrito, Vecinal, Barrio, SeccionalPolicial, IdentidadBarrial, Localidad,
+from .models import (Provincia, Departamento, Distrito, Vecinal, Barrio, SeccionalPolicial, IdentidadBarrial,
                     Domicilio, DomicilioValidado, TipoInstitucion, Institucion)
 
 
@@ -52,21 +52,12 @@ class IdentidadBarrialSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class LocalidadSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = Localidad
-        fields = "__all__"
-
-
-        
 class DomicilioValidadoSerializer(serializers.ModelSerializer):
     distrito = DistritoSerializer()
     vecinal  = VecinalSeializer()
     barrio   = BarrioSerializer()
     seccional_policial = SeccionalPolicialSerializer()
     identidad_barrial = IdentidadBarrialSerializer()
-    localidad = LocalidadSerializer()
 
     class Meta:
         model = DomicilioValidado

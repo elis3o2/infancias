@@ -1,19 +1,7 @@
-import type { Domicilio, Institucion } from "../domicilio/types"
+import type { Domicilio, DomicilioFormData, DomicilioInput, Institucion, InstitucionFormData, InstitucionInput, InstitucionNueva } from "../domicilio/types"
 
-export type Solicitante = {
-    id?: number,
-    dni: string,
-    nombre: string,
-    apellido: string
-}
 
-export const SolicitanteInicial : Solicitante = {
-    dni: "",
-    nombre: "",
-    apellido: "",
-}
-
-export type Adolescente = {
+export type AdolescenteCrud = {
     id: number,
     dni: string,
     sexo: "M" | "F",
@@ -21,12 +9,9 @@ export type Adolescente = {
     apellido: string,
     domicilio: Domicilio,
     fecha_nacimiento: string
-    escolarizado: boolean
+    escolarizado: boolean | null
     hermanos: Hermano[]
     familiares: Familiar[]
-    adolescente_validado: AdolescenteValidado | null
-    hermanos_validados: Hermano[]
-    referencias_instituciones: Institucion[]
 }
 
 export type AdolescenteCreate = {
@@ -34,14 +19,27 @@ export type AdolescenteCreate = {
     sexo: "M" | "F" | "",
     nombre: string,
     apellido: string,
-    domicilio: Domicilio | null,
+    domicilio: DomicilioFormData | null,
     fecha_nacimiento: string
-    escolarizado: boolean
-    hermanos: Hermano[]
-    familiares: Familiar[]
-    referencias_instituciones_data: (Institucion | {id: number})[]
+    escolarizado: boolean | null
+    hermanos: HermanoCreate[]
+    familiares: FamiliarCreate[]
+    referencias_instituciones_data: InstitucionFormData[]
 }
 
+
+export type AdolescenteInput = {
+    dni: string,
+    sexo: "M" | "F",
+    nombre: string,
+    apellido: string,
+    domicilio: DomicilioInput,
+    fecha_nacimiento: string
+    escolarizado: boolean | null
+    hermanos: HermanoInput[]
+    familiares: FamiliarInput[]
+    referencias_instituciones_data: InstitucionInput[]
+}
 
 export type AdolescenteValidado = {
     id: number,
@@ -59,7 +57,7 @@ export const AdolescenteInicial : AdolescenteCreate = {
     apellido: "",
     domicilio: null,
     fecha_nacimiento: "",
-    escolarizado: false,
+    escolarizado: null,
     hermanos: [],
     familiares: [],
     referencias_instituciones_data: []
@@ -72,21 +70,76 @@ export type Vinculo = {
 
 
 export type Familiar = {
-    id?: number
+    id: number
     nombre: string
     apellido: string
-    vinculo: Vinculo
-    telefono: string
+    sexo: "M" | "F" 
+    vinculo: Vinculo 
+    telefono: string | null 
+    dni: string | null 
+    domicilio: Domicilio | null
 }
 
 
+export type FamiliarCreate = {
+    nombre: string
+    apellido: string
+    sexo: "M" | "F" | ""
+    vinculo: Vinculo | null
+    telefono: string | null 
+    dni: string | null 
+    domicilio: DomicilioFormData | null
+}
+
+
+export type FamiliarInput = {
+    nombre: string
+    apellido: string
+    sexo: "M" | "F" 
+    id_vinculo: number
+    telefono: string | null 
+    dni: string | null 
+    domicilio: DomicilioFormData | null    
+}
+
 export type Hermano = {
-    id?: number
+    id: number
     dni: string
     sexo: "M" | "F"
     nombre: string
     apellido: string
     fecha_nacimiento: string
+}
+
+export type HermanoCreate = {
+    dni: string
+    sexo: "M" | "F" | ""
+    nombre: string
+    apellido: string
+    fecha_nacimiento: string
+}
+
+export type HermanoInput = {
+    dni: string
+    sexo: "M" | "F"
+    nombre: string
+    apellido: string
+    fecha_nacimiento: string
+}
+
+
+export type Equipo = {
+    id: number
+    nombre: string
+}
+
+
+export type Persona = {
+    nombre: string,
+    apellido: string,
+    dni: string
+    fecha_nacimiento: string
+    sexo: "M" | "F"
 }
 
 
