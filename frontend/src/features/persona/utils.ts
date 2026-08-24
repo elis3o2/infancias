@@ -1,12 +1,19 @@
 import type {
   AdolescenteCreate,
   AdolescenteInput,
+  Ciudadano,
   FamiliarCreate,
   FamiliarInput,
   HermanoCreate,
   HermanoInput,
+  Persona,
 } from "./types";
 import { domicilioFormToDomicilioInput, institucionFormToInstitucionInput } from "../domicilio/utils";
+
+export function correoEsValido(correo: string) : boolean {
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return correo.trim() !== "" && EMAIL_REGEX.test(correo.trim())
+}
 
 function sexoFormToSexoInput(sexo: "M" | "F" | ""): "M" | "F" {
   if (sexo === "") {
@@ -44,6 +51,7 @@ export function familiarCreateToFamiliarInput(familiar: FamiliarCreate): Familia
 }
 
 export function adolescenteCreateToAdolescenteInput(adolescente: AdolescenteCreate): AdolescenteInput {
+
   if (adolescente.domicilio == null) {
     throw new Error("El domicilio es obligatorio");
   }
@@ -63,4 +71,16 @@ export function adolescenteCreateToAdolescenteInput(adolescente: AdolescenteCrea
         institucionFormToInstitucionInput
       ),
   };
+}
+
+
+
+export function ciudadanoToPersona(ciudadano: Ciudadano): Persona {
+  return{
+    dni: ciudadano.nroDocumento,
+    sexo: ciudadano.sexo,
+    nombre: ciudadano.nombre,
+    apellido: ciudadano.apellido,
+    fecha_nacimiento: ciudadano.fechaNacimiento
+  }
 }

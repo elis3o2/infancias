@@ -1,4 +1,4 @@
-import type { Domicilio, DomicilioFormData, DomicilioInput, Institucion, InstitucionFormData, InstitucionInput, InstitucionNueva } from "../domicilio/types"
+import type { Domicilio, DomicilioFormData, DomicilioInput, Institucion, InstitucionFormData, InstitucionInput } from "../domicilio/types"
 
 
 export type AdolescenteCrud = {
@@ -12,6 +12,7 @@ export type AdolescenteCrud = {
     escolarizado: boolean | null
     hermanos: Hermano[]
     familiares: Familiar[]
+    referencias_instituciones: Institucion[]
 }
 
 export type AdolescenteCreate = {
@@ -140,6 +141,8 @@ export type Persona = {
     dni: string
     fecha_nacimiento: string
     sexo: "M" | "F"
+    telefono: string | null 
+    domicilio: Domicilio | null
 }
 
 

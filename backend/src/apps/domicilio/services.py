@@ -1,9 +1,22 @@
+import requests
+from decouple import config
 from django.db import transaction
 from .models import (DomicilioValidado, Distrito, Vecinal, Barrio, SeccionalPolicial,Institucion, IdentidadBarrial, Domicilio)
+from rest_framework.exceptions import APIException, NotFound
 
-@transaction.atomic
-def crear_domicilio_validado(datos_domicilio_validado: dict) -> DomicilioValidado:
+
+
     
+@transaction.atomic
+def crear_domicilio_validado(datos: dict) -> DomicilioValidado:
+
+    informacion_geo = obtener_direccion(
+        codigo_calle=datos["codigo_calle"],
+        altura=datos["altura"],
+        bis=datos["bis"],
+        letra=datos.get("letra"),
+    )
+
     relaciones = {
         "distrito": Distrito,
         "vecinal": Vecinal,
@@ -12,22 +25,52 @@ def crear_domicilio_validado(datos_domicilio_validado: dict) -> DomicilioValidad
         "identidad_barrial": IdentidadBarrial,
     }
 
-    # Iteramos sobre las relaciones para extraerlas del diccionario principal
     for campo, modelo in relaciones.items():
-        data = datos_domicilio_validado.pop(campo, None)
 
-        if data is not None:
-            objeto, _ = modelo.objects.get_or_create(
-                id=data["id"],
-                defaults={
-                    "nombre": data["nombre"],
-                },
-            )
-            
-            datos_domicilio_validado[campo] = objeto
+        valor = informacion_geo.get(campo)
 
-    return DomicilioValidado.objects.create(**datos_domicilio_validado)
+        if valor is None:
+            continue
 
+        objeto, _ = modelo.objects.get_or_create(
+            id=valor["id"],
+            defaults={
+                "nombre": valor["nombre"],
+            },
+        )
+
+        informacion_geo[campo] = objeto
+
+    return DomicilioValidado.objects.create(
+        codigo_calle=datos["codigo_calle"],
+        altura=datos["altura"],
+        bis=datos["bis"],
+        letra=datos.get("letra"),
+
+        nombreInterseccion=datos.get("nombreInterseccion"),
+        codigoInterseccion=datos.get("codigoInterseccion"),
+
+        coordenada_x=datos.get("coordenada_x"),
+        coordenada_y=datos.get("coordenada_y"),
+        latitud=datos.get("latitud"),
+        longitud=datos.get("longitud"),
+
+        distrito=informacion_geo.get("distrito"),
+        vecinal=informacion_geo.get("vecinal"),
+        barrio=informacion_geo.get("barrio"),
+        seccional_policial=informacion_geo.get("seccional_policial"),
+
+        fraccion_censal=informacion_geo.get("fraccion_censal"),
+        radio_censal=informacion_geo.get("radio_censal"),
+        zona_notificacion=informacion_geo.get("zona_notificacion"),
+
+        identidad_barrial=informacion_geo.get("identidad_barrial"),
+        localidad=informacion_geo.get("localidad"),
+
+        puntoX=informacion_geo.get("puntoX"),
+        puntoY=informacion_geo.get("puntoY"),
+    )
+    
 
 @transaction.atomic
 def crear_domicilio(datos_domicilio: dict) -> Domicilio:
@@ -62,3 +105,105 @@ def crear_institucion(datos_institucion: dict) -> Institucion:
         domicilio=domicilio_obj,
         **datos_institucion,
     )
+
+def obtener_direccion(
+    codigo_calle: int,
+    altura: int,
+    bis: bool,
+    letra: str | None = None,
+) -> dict:
+
+    url = (
+        f"{config('API_GEO2')}"
+        f"?idCalle={codigo_calle}"
+        f"&altura={altura}"
+        f"&bis={bis}"
+        f"{f'&letra={letra}' if letra else ''}"
+    )
+
+    try:
+        response = requests.get(
+            url,
+            timeout=10,
+            proxies={"http": None, "https": None},
+            verify=True,
+        )
+
+        if response.status_code == 404:
+            raise NotFound("No se encontró la dirección.")
+
+        response.raise_for_status()
+
+        data = response.json()
+
+        print("RESPONSE:", data)
+
+    except NotFound:
+        raise
+
+    except requests.RequestException as exc:
+        raise APIException(
+            detail=f"External API error: {str(exc)}"
+        )
+
+    resultado = {
+        "distrito": None,
+        "vecinal": None,
+        "barrio": None,
+        "seccional_policial": None,
+        "fraccion_censal": None,
+        "radio_censal": None,
+        "zona_notificacion": None,
+        "identidad_barrial": None,
+        "localidad": data.get("localidad"),
+        "puntoX": data.get("puntoX"),
+        "puntoY": data.get("puntoY"),
+    }
+
+    for division in data.get("divsAdmins", []):
+        tipo = division.get("nombreTipo")
+        codigo = division.get("codigo")
+        nombre = division.get("valor")
+
+        if codigo is None:
+            continue
+
+        if tipo == "Distrito":
+            resultado["distrito"] = {
+                "id": int(codigo),
+                "nombre": nombre,
+            }
+
+        elif tipo == "Vecinal":
+            resultado["vecinal"] = {
+                "id": int(codigo),
+                "nombre": nombre,
+            }
+
+        elif tipo == "Barrio":
+            resultado["barrio"] = {
+                "id": int(codigo),
+                "nombre": nombre,
+            }
+
+        elif tipo == "Seccional Policial":
+            resultado["seccional_policial"] = {
+                "id": int(codigo),
+                "nombre": nombre,
+            }
+
+        elif tipo == "Fracción Censal":
+            resultado["fraccion_censal"] = int(codigo)
+
+        elif tipo == "Radio Censal":
+            resultado["radio_censal"] = int(codigo)
+
+        elif tipo == "Identidad Barrial":
+            resultado["identidad_barrial"] = {
+                "id": int(codigo),
+                "nombre": nombre,
+            }
+
+    print("RESULTADO:", resultado)
+
+    return resultado

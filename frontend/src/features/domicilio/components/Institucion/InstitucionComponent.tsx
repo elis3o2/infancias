@@ -2,8 +2,7 @@ import { Card, CardHeader, CardContent } from '@mui/material';
 import type { Setter } from "@/common/types"
 import type { InstitucionFormData } from "../../types"
 import { InstitucionForm } from "./InstitucionForm"
-import { InstitucionCard } from './InstitucionCard';
-
+import { InstitucionList } from './InstitucionList';
 
 type Props = {
     institucion: InstitucionFormData
@@ -15,14 +14,14 @@ type Props = {
 export const InstitucionComponent = ({ institucion, setInstitucion, finishInstitucion, setFinishInstitucion}: Props) => {
   
     return (
-    <Card variant="outlined" sx={{ borderRadius: 2 }}>
+    <Card variant="outlined" sx={{ minWidth: 1028, borderRadius: 2 }}>
       <CardHeader
         title="Institución solicitante"
         titleTypographyProps={{ variant: 'h6', fontWeight: 600 }}
       />
       <CardContent>
         {finishInstitucion && institucion != null ? (
-          <InstitucionCard
+          <InstitucionList
             institucion={institucion}
             onEditar={() =>setFinishInstitucion(false)}
           />

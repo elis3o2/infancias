@@ -1,35 +1,20 @@
-import { Card, CardContent, Stack, Typography, Divider, Box } from "@mui/material"
-import type { InstitucionFormData } from "@/features/domicilio/types"
-import { InstitucionCard } from "./InstitucionCard";
+import { Card, CardContent } from "@mui/material"
+import type { Institucion } from "../../types"
+import { InstitucionesList } from "./InstitucionesList"
 
 type Props = {
-  instituciones: InstitucionFormData[]
-  onEliminar?: (n: number) => void
+  instituciones: Institucion[]
 }
 
-export const InstitucionesCard = ({instituciones, onEliminar }: Props) => {
+export const InstitucionesCard = ({instituciones }: Props) => {
   return (
-    <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
+    <Card sx={{minWidth: 1028}}>
+        Instituciones de referencia
       <CardContent>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          Instituciones de referencia
-        </Typography>
-
-        <Stack spacing={2}>
-          {instituciones.map((institucion, index) => (
-            <Box key={index}>
-              <InstitucionCard
-                institucion={institucion}
-                {...(onEliminar != null && {onEditar: () => onEliminar(index)})}
-              />
-
-              {index < instituciones.length - 1 && (
-                <Divider sx={{ mt: 2 }} />
-              )}
-            </Box>
-          ))}
-        </Stack>
+        <InstitucionesList
+          instituciones={instituciones}
+        />
       </CardContent>
     </Card>
-  );
-};
+  )
+}

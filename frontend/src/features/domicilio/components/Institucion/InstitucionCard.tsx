@@ -1,27 +1,23 @@
-import type { Institucion, InstitucionFormData } from "../../types"
-import { Card, CardContent } from "@mui/material"
-
-import { ListData } from "@/common/components/ListData";
+import { Card, CardContent, CardHeader } from "@mui/material"
+import { InstitucionList } from "./InstitucionList"
+import type { Institucion } from "../../types"
 
 type Props = {
-  institucion: InstitucionFormData | Institucion
-  onEditar?: () => void
+  institucion: Institucion
 }
 
-
-export const InstitucionCard = ({ institucion, onEditar }: Props) => {
-
+export const InstitucionCard = ({institucion}: Props) => {
   return (
-    <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
+    <Card sx={{minWidth: 1028}}>
+    <CardHeader
+          title="Institucion solicitante"
+          titleTypographyProps={{ variant: 'h6', fontWeight: 300 }}
+        />
       <CardContent>
-        <ListData
-          institucion_nombre={institucion.nombre}
-          institucion_domicilio={institucion.domicilio.nombre}
-          institucion_tipo={institucion.tipo?.nombre}
-          onEditar={onEditar}
+        <InstitucionList
+          institucion={institucion}
         />
       </CardContent>
-
     </Card>
   )
 }

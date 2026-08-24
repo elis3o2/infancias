@@ -1,9 +1,18 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+
+class Equipo(models.Model):
+    id = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=64)
+
+    class Meta:
+        managed = False
+        db_table = "equipo"
+
 class Usuario(AbstractUser):
     equipo = models.ForeignKey(
-        'src.Equipo',         
+        Equipo,
         on_delete=models.SET_NULL,  
         null=True,                  
         blank=True,

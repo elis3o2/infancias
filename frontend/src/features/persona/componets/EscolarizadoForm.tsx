@@ -48,6 +48,15 @@ export const EscolarizadoForm = ({escolarizado, setEscolarizado}: Props) => {
                 exclusive
                 onChange={handleChange}
                 size="small"
+                sx={{
+                    "& .MuiToggleButton-root.Mui-selected": {
+                        backgroundColor: "primary.main",
+                        color: "primary.contrastText",
+                        "&:hover": {
+                            backgroundColor: "primary.dark",
+                        },
+                    },
+                }}
             >
                 <ToggleButton value="si">
                     Sí

@@ -1,5 +1,5 @@
 import json
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -13,6 +13,7 @@ from .models import PrioridadSolicitud, MotivoSolicitud, Solicitud, Archivo
 from .serializers import (PrioridadSolicitudSerializer, MotivoSolicitudSerializer, ArchivoSerializer, 
                         SolicitudListSerializer, SolicitudCreateSerializer, SolicitudReadSerializer, SolicitudValReadSerializer, SolicitudWriteSerializer)
 from .permissions import SolicitudPermission
+from .services import crear_solicitud
 from src.permissions import ReadOnly
 from src.utils import enviar_correo
 
@@ -119,7 +120,7 @@ class SolicitudViewSet(viewsets.ModelViewSet):
                 continue
             data[key] = value
 
-        for campo in ("adolescente", "solicitante", "institucion"):
+        for campo in ("adolescente", "institucion"):
             if campo in data and isinstance(data[campo], str):
                 try:
                     data[campo] = json.loads(data[campo])
@@ -130,15 +131,24 @@ class SolicitudViewSet(viewsets.ModelViewSet):
                     )
 
         serializer = SolicitudCreateSerializer(data=data)
-        
-        serializer.is_valid(raise_exception=True)
 
+        if not serializer.is_valid():
+            print(serializer.errors)
+            raise serializers.ValidationError(serializer.errors)
+        
         archivos = request.FILES.getlist("archivos")
         
-        solicitud = crear_solicitud(
-            datos_solicitud=serializer.validated_data,
-            archivos=archivos
-        )
+        try:
+            solicitud = crear_solicitud(
+                datos_solicitud=serializer.validated_data,
+                archivos=archivos,
+            )
+        except Exception as exc:
+            import traceback
+
+            print("ERROR:", repr(exc))
+            traceback.print_exc()
+            raise
 
         return Response(
             SolicitudCreateSerializer(solicitud).data,

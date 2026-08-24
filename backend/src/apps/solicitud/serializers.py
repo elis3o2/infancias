@@ -83,7 +83,6 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
         model = Solicitud
         fields = [
             "adolescente",
-            "solicitante",
             "institucion",
             "id_institucion",
             "id_motivo",
@@ -107,7 +106,6 @@ class SolicitudReadSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "institucion",
-            "solicitante",
             "adolescente",
             "motivo",
             "correo",
@@ -134,7 +132,6 @@ class SolicitudValReadSerializer(serializers.ModelSerializer):
         fields =  [
             "id",
             "institucion",
-            "solicitante",
             "adolescente",
             "motivo",
             "correo",

@@ -53,16 +53,20 @@ class IdentidadBarrialSerializer(serializers.ModelSerializer):
 
 
 class DomicilioValidadoSerializer(serializers.ModelSerializer):
-    distrito = DistritoSerializer()
-    vecinal  = VecinalSeializer()
-    barrio   = BarrioSerializer()
-    seccional_policial = SeccionalPolicialSerializer()
-    identidad_barrial = IdentidadBarrialSerializer()
+    codigoCalle = serializers.IntegerField(source="codigo_calle")
+    distrito = DistritoSerializer(read_only=True)
+    vecinal = VecinalSeializer(read_only=True)
+    barrio = BarrioSerializer(read_only=True)
+    seccional_policial = SeccionalPolicialSerializer(read_only=True)
+    identidad_barrial = IdentidadBarrialSerializer(read_only=True)
+    puntoX = serializers.FloatField(read_only=True)
+    puntoY = serializers.FloatField(read_only=True)
+    fraccion_censal = serializers.IntegerField(read_only=True)
+    radio_censal = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = DomicilioValidado
         fields = "__all__"
-
 
 
 class DomicilioSerializer(serializers.ModelSerializer):

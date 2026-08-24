@@ -33,25 +33,17 @@ CREATE TABLE IF NOT EXISTS identidad_barrial(
 );
 
 
-CREATE TABLE IF NOT EXISTS localidad (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(64) NOT NULL
-);
-
 
 CREATE TABLE IF NOT EXISTS domicilio_validado (
     id INT AUTO_INCREMENT PRIMARY KEY,
     codigo_calle INT NULL,
     altura INT NOT NULL,
     bis BOOLEAN NOT NULL,
-    letra CHAR(1) NULL,
-    piso INT NULL,
+    letra CHAR NULL,
     nombreInterseccion VARCHAR(64) NULL,
     codigoInterseccion INT NULL,
     coordenada_x REAL NULL,
     coordenada_y REAL NULL,
-    depto VARCHAR(10) NULL,
-    monoblock INT NULL,
     id_distrito INT NULL,
     id_vecinal INT NULL,
     id_barrio INT NULL,
@@ -59,8 +51,8 @@ CREATE TABLE IF NOT EXISTS domicilio_validado (
     fraccion_censal INT NULL,
     radio_censal INT NULL,
     zona_notificacion INT NULL,
-    id_identidad_barrial INT NULL.
-    id_localidad INT NOT NULL,
+    id_identidad_barrial INT NULL,
+    localidad VARCHAR(32) NULL,
     puntoX REAL NULL,
     puntoY REAL NULL,
     latitud REAL NULL,
@@ -69,8 +61,7 @@ CREATE TABLE IF NOT EXISTS domicilio_validado (
     FOREIGN KEY (id_vecinal) REFERENCES vecinal(id),
     FOREIGN KEY (id_barrio) REFERENCES barrio(id),
     FOREIGN KEY (id_seccional_policial) REFERENCES seccional_policial(id),
-    FOREIGN KEY (id_identidad_barrial) REFERENCES identidad_barrial(id),
-    FOREIGN KEY (id_localidad) REFERENCES localidad(id)
+    FOREIGN KEY (id_identidad_barrial) REFERENCES identidad_barrial(id)
 );
 
 
@@ -138,7 +129,7 @@ CREATE TABLE IF NOT EXISTS persona (
     nombre VARCHAR(32) NOT NULL,
     apellido VARCHAR(32) NOT NULL,
     fecha_nacimiento DATE NOT NULL,
-    id_legajo NOT NULL,
+    id_legajo INT NOT NULL,
     FOREIGN KEY (id_legajo) REFERENCES legajo(id)
 );
 
@@ -167,7 +158,7 @@ CREATE TABLE IF NOT EXISTS persona_domicilio (
     fecha_carga DATETIME NOT NULL,
     FOREIGN KEY (id_persona) REFERENCES persona(id),
     FOREIGN KEY (id_domicilio) REFERENCES domicilio(id)
-)
+);
 
 
 CREATE TABLE IF NOT EXISTS persona_telefono (
@@ -264,7 +255,6 @@ CREATE TABLE IF NOT EXISTS solicitud (
     id_usuario_entrada INT NULL,
     id_usuario_admision INT NULL,
     FOREIGN KEY (id_institucion) REFERENCES institucion(id),
-    FOREIGN KEY (id_solicitante) REFERENCES solicitante(id),
     FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
     FOREIGN KEY (id_motivo) REFERENCES motivo_solicitud(id),
     FOREIGN KEY (id_prioridad) REFERENCES prioridad_solicitud(id),

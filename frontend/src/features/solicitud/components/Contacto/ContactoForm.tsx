@@ -2,7 +2,8 @@ import { useState } from "react"
 import type { Setter } from "@/common/types"
 import { TelefonoComponent } from "@/features/persona/componets/TelefonoComponent"
 import { CorreoForm } from "@/features/persona/componets/CorreoForm"
-import { Button } from "@mui/material"
+import { Box, Button } from "@mui/material"
+import { correoEsValido } from "@/features/persona/utils"
 
 type Props = {
   telefono: string
@@ -13,10 +14,10 @@ type Props = {
 }
 
 export const ContactoForm = ({telefono, setTelefono, correo, setCorreo, setFinishContacto}: Props) => {
-  const [correoValido, setCorreoValido] = useState(false)
+  const [correoValido, setCorreoValido] = useState(correoEsValido(correo))
 
   return (
-    <>
+    <Box sx={{minWidth: 1028, display: 'flex', flexDirection: 'column', gap: 2}}>
       <TelefonoComponent telefono={telefono} setTelefono={setTelefono} />
       <CorreoForm correo={correo} setCorreo={setCorreo} onValidChange={setCorreoValido} />
       <Button
@@ -27,6 +28,6 @@ export const ContactoForm = ({telefono, setTelefono, correo, setCorreo, setFinis
       >
         Guardar
       </Button>
-    </>
+    </Box>
   )
 }

@@ -134,7 +134,7 @@ class GeoDataViewSet(ViewSet):
                         "bis": properties.get("bis"),
                         "codigoCalle": properties.get("codigoCalle"),
                         "codigoInterseccion": properties.get("codigoInterseccion"),
-                        "id": str(feature.get("id")),
+                        "id": str(properties.get("id")),
                         "letra": properties.get("letra"),
                         "name": properties.get("name"),
                         "nombreCalle": properties.get("nombreCalle"),
@@ -196,7 +196,7 @@ class GeoDataViewSet(ViewSet):
                 "distrito": None,
                 "vecinal": None,
                 "barrio": None,
-                "seccional_policia": None,
+                "seccional_policial": None,
                 "fraccion_sensal": None,
                 "radio_sensal": None,
                 "identidad_barrial": None,
@@ -229,7 +229,7 @@ class GeoDataViewSet(ViewSet):
                     }
 
                 elif tipo == "Seccional Policial":
-                    resultado["seccional_policia"] = {
+                    resultado["seccional_policial"] = {
                         "id": int(codigo),
                         "nombre": nombre,
                     }

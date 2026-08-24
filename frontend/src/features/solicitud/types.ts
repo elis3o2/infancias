@@ -37,6 +37,8 @@ export type SolicitudCrud = {
     validado: false
     rechazado: false
     equipo: Equipo
+    telefono: string 
+    correo: string
 }
 
 

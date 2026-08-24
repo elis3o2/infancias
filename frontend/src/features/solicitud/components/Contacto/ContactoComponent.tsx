@@ -1,7 +1,7 @@
 import type { Setter } from "@/common/types";
 import { ContactoForm } from "./ContactoForm";
 import { Card, CardHeader, CardContent } from "@mui/material";
-import { ContactoCard } from "./ContactoCard";
+import {  ContactoList } from "./ContactoList";
 
 type Props = {
     correo: string
@@ -22,7 +22,7 @@ export const ContactoComponent = ({correo, setCorreo, telefono, setTelefono, fin
       />
       <CardContent>
         {finishContacto? (
-          <ContactoCard
+          <ContactoList
           correo={correo}
           telefono={telefono}
           onEditar={()=> setFinishContacto(false)}

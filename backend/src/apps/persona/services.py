@@ -60,11 +60,11 @@ def crear_adolescente(datos_adolescente: dict) -> Adolescente:
     hermanos_data = datos_adolescente.pop("hermanos", [])
     familiares_data = datos_adolescente.pop("familiares", [])
     referencias_data = datos_adolescente.pop("referencias_instituciones_data", [])
-    
+    print(domicilio_data)
     domicilio_obj = None 
     if domicilio_data:
         domicilio_obj = crear_domicilio(domicilio_data)
-    
+    print(domicilio_obj)
     adolescente = Adolescente.objects.create(
         domicilio=domicilio_obj, 
         **datos_adolescente

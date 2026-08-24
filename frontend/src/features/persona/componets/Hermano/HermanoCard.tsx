@@ -16,7 +16,7 @@ import { getCiudadano } from "../../api"
 import { useState } from "react"
 import { ValidarButtons} from "../Validacion/ValidarButtons"
 import type { Setter } from "@/common/types"
-import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteList"
+import { AdolescenteList } from "../Adolescente/AdolescenteList"
 import { AgregarHermano } from "./AgregarHemano"
 import { HermanosNuevos } from "./HemanosNuevos"
 
@@ -85,7 +85,6 @@ export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiud
             const ciudadano = ciudadanos[index]
             const loading = loadingIndex === index
             const error = errores[index]
-            console.log(hermano)
             return (
               <Stack direction="row" spacing={2} key={hermano.dni ?? index}>
                 <Box sx={{ flex: 1 }}>
@@ -100,7 +99,7 @@ export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiud
 
                   </Stack>
                       
-                      <AdolescenteSimpleCard
+                      <AdolescenteList
                         nombre={hermano.nombre}
                         apellido={hermano.apellido}
                         dni={hermano.dni}
@@ -145,7 +144,7 @@ export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiud
                         Validación con RENAPER
                       </Typography>
                       
-                      <AdolescenteSimpleCard
+                      <AdolescenteList
                         nombre={ciudadano.nombre}
                         apellido={ciudadano.apellido}
                         fecha_nacimiento={ciudadano.fechaNacimiento}
@@ -175,7 +174,7 @@ export const HermanoCard = ({ hermanos, estados, setEstados, ciudadanos, setCiud
                       </Typography>
                     </Stack>
 
-                    <AdolescenteSimpleCard
+                    <AdolescenteList
                       nombre={hermano.nombre}
                       apellido={hermano.apellido}
                       dni={hermano.dni}

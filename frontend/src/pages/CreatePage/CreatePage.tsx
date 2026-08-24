@@ -32,6 +32,7 @@ export const CreatePage = () => {
   const [hermanos, setHermanos] = useState<HermanoCreate[]>([])
   const [finishHermano, setFinishHermano] = useState(true)
   const [finishAdolescente, setFinishAdolescente] = useState(false)
+  const [finishSolicitudSection, setFinishSolicitudSection] = useState(false)
   const [prioridadSeleccionada, setPrioridadSeleccionada] = useState<PrioridadSolicitud | null>(null)
   const [motivoSeleccionado, setMotivoSeleccionado] = useState<MotivoSolicitud | null>(null)
   const [descripcion, setDescripcion] = useState("")
@@ -45,8 +46,8 @@ export const CreatePage = () => {
   
 
 async function handleEnviar() {
-  if (!motivoSeleccionado || !prioridadSeleccionada) return
-
+  setAdolescente({ ...adolescente, familiares, hermanos})
+  console.log("ADOLESCENTE", adolescente)
   const institucionInput = institucionFormToInstitucionInput(institucion);
   const adolescenteInput = adolescenteCreateToAdolescenteInput(adolescente);
 
@@ -64,6 +65,7 @@ async function handleEnviar() {
   const solicitud: SolicitudCreate = esInstitucionExistente(institucionInput)
     ? { ...base, id_institucion: institucionInput.id_institucion }
     : { ...base, institucion: institucionInput };
+    console.log(solicitud)
 
     try {
       await postSolicitud(solicitud)
@@ -134,6 +136,8 @@ return (
             setMotivoSeleccionado={setMotivoSeleccionado}
             descripcion={descripcion}
             setDescripcion={setDescripcion}
+            finishSolicitudSection={finishSolicitudSection}
+            setFinishSolicitudSection={setFinishSolicitudSection}
           />
           <FamiliaresComponent
             familiares={familiares}
@@ -159,8 +163,7 @@ return (
             variant="outlined"
             onClick={() => handleEnviar()}
             disabled={
-              !finishInstitucion || !finishAdolescente || 
-              !finishHermano || !finishFamiliar
+              !finishInstitucion || !finishAdolescente || !finishContacto || !finishSolicitudSection
             }>
             Enviar
           </Button>

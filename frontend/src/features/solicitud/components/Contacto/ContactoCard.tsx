@@ -1,20 +1,22 @@
-import { Card, CardContent, Typography } from "@mui/material"
-import { ListData } from "@/common/components/ListData";
+import { Card, CardContent, CardHeader} from "@mui/material"
+import { ContactoList } from "./ContactoList"
 
 type Props = {
-  correo: string
   telefono: string
-  onEditar?: () => void
+  correo: string
 }
 
-export const ContactoCard = ({ correo, telefono, onEditar }: Props) => {
+export const ContactoCard = ({telefono, correo}: Props) => {
   return (
-    <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
+    <Card sx={{minWidth: 1028}}> 
+    <CardHeader
+          title="Datos de contacto"
+          titleTypographyProps={{ variant: 'h6', fontWeight: 300 }}
+        />
       <CardContent>
-        <ListData
-          correo={correo}
+        <ContactoList
           telefono={telefono}
-          onEditar={onEditar}
+          correo={correo}
         />
       </CardContent>
     </Card>

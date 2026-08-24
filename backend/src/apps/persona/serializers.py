@@ -47,7 +47,7 @@ class HermanoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Hermano
-        fields = "__all__"
+        exclude = ["adolescente"]
 
 
 class VinculoSerializer(serializers.ModelSerializer):
@@ -70,7 +70,7 @@ class FamiliarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Familiar
-        fields = "__all__"
+        exclude = ["adolescente"]
 
 
 

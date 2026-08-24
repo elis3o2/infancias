@@ -1,4 +1,4 @@
-import type { Hermano, Ciudadano, Familiar } from "../../types"
+import type { Hermano, Ciudadano, Familiar, Persona } from "../../types"
 import {
   Alert,
   Box,
@@ -17,6 +17,9 @@ import { useState } from "react"
 import { ValidarButtons} from "../Validacion/ValidarButtons"
 import type { Setter } from "@/common/types"
 import { FamiliarList } from "../Familiar/FamiliarList"
+import { CiudadanoList } from "./CiudadanoList"
+import { PersonaList } from "./PersonaList"
+import { NuevaPersona } from "./NuevaPersona"
 
 type Props = {
   familiares: Familiar[]
@@ -24,12 +27,12 @@ type Props = {
   setEstados: Setter<(null | "confirmado" | "rechazado")[]>
   ciudadanos: (Ciudadano | null)[]
   setCiudadanos: Setter<(Ciudadano | null)[]>
-  nuevosHermanos: Hermano[]
-  setNuevosHermanos: Setter<Hermano[]>
+  nuevosFamiliares: Persona[]
+  setNuevosFamiliares: Setter<Persona[]>
 }
 
 
-export const ValidarFamiliares = ({ familiares, estados, setEstados, ciudadanos, setCiudadanos, nuevosHermanos, setNuevosHermanos }: Props) => {
+export const ValidarFamiliares = ({ familiares, estados, setEstados, ciudadanos, setCiudadanos, nuevosFamiliares, setNuevosFamiliares }: Props) => {
   
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null)
   const [errores, setErrores] = useState<(string | null)[]>(familiares.map(() => null))
@@ -135,14 +138,12 @@ export const ValidarFamiliares = ({ familiares, estados, setEstados, ciudadanos,
                 <Collapse in={Boolean(ciudadano)} orientation="horizontal" sx={{ flex: ciudadano ? 1 : 0 }}>
                   {ciudadano && (
                     <Box>
-                      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
+                      <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
                         Validación con RENAPER
                       </Typography>
                       
-                      <AdolescenteSimpleCard
-                        nombre={ciudadano.nombre}
-                        apellido={ciudadano.apellido}
-                        fecha_nacimiento={ciudadano.fechaNacimiento}
+                      <CiudadanoList
+                        ciudadano={ciudadano}
                       />
 
                       {ciudadano.fallecido === "SI" && (
@@ -158,42 +159,39 @@ export const ValidarFamiliares = ({ familiares, estados, setEstados, ciudadanos,
               </Stack>
             )
           })}
-          <Stack spacing={3}>
-            {nuevosHermanos.map((hermano, index) => {
-              return (
-                <Stack direction="row" spacing={2} key={hermano.dni ?? index}>
-                  <Box sx={{ flex: 1 }}>
-                    <Stack direction="row" alignItems="center" sx={{ mb: 1 }}>
-                      <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
-                        Datos del hermano
-                      </Typography>
-                    </Stack>
+        </Stack>
 
-                    <AdolescenteSimpleCard
-                      nombre={hermano.nombre}
-                      apellido={hermano.apellido}
-                      dni={hermano.dni}
-                      sexo={hermano.sexo}
-                      fecha_nacimiento={hermano.fecha_nacimiento}
-                    />
+        <Stack spacing={3}>
+          {nuevosFamiliares.map((familiar, index) => {
+            return (
+              <Stack direction="row" spacing={2} key={index}>
+                <Box sx={{ flex: 1 }}>
+                  <Stack direction="row" sx={{ mb: 1, alignItems: "center" }}>
+                    <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
+                      Datos del hermano
+                    </Typography>
+                  </Stack>
 
-                    <Button
-                      onClick={() =>
-                        setNuevosHermanos(nuevosHermanos.filter((_, i) => i !== index))
-                      }
-                      variant="contained"
-                      color="error"
-                      sx={{ mt: 2 }}
-                    >
-                      Eliminar
-                    </Button>
-                  </Box>
-                </Stack>
-              )
-            })}
+                  <PersonaList
+                    persona={familiar}
+                  />
 
-            <HermanosNuevos hermanos={nuevosHermanos} setHermanos={setNuevosHermanos} />
-          </Stack>
+                  <Button
+                    onClick={() =>
+                      setNuevosFamiliares(nuevosFamiliares.filter((_, i) => i !== index))
+                    }
+                    variant="contained"
+                    color="error"
+                    sx={{ mt: 2 }}
+                  >
+                    Eliminar
+                  </Button>
+                </Box>
+              </Stack>
+            )
+          })}
+
+          <NuevaPersona personas={nuevosFamiliares} setPersonas={setNuevosFamiliares} />
         </Stack>
       </CardContent>
     </Card>

@@ -1,6 +1,5 @@
 import type { Setter } from "@/common/types"
 import type { PrioridadSolicitud, MotivoSolicitud } from "../../types"
-import { useState } from "react"
 import { SolicitudForm } from "./SolicitudForm"
 import { SolicitudCard } from "./SolicitudCard"
 
@@ -11,11 +10,12 @@ type Props = {
     setMotivoSeleccionado: Setter<MotivoSolicitud | null>
     descripcion: string
     setDescripcion: Setter<string>
+    finishSolicitudSection: boolean
+    setFinishSolicitudSection: Setter<boolean>
 }
 
 export const SolicitudComponent = ({ prioridadSeleccionada, setPrioridadSeleccionada, motivoSeleccionado,
-                                            setMotivoSeleccionado, descripcion, setDescripcion }: Props) => {
-  const [finishSolicitudSection, setFinishSolicitudSection] = useState(false)
+          setMotivoSeleccionado, descripcion, setDescripcion, finishSolicitudSection, setFinishSolicitudSection }: Props) => {
 
   return (
     <>

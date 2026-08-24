@@ -4,18 +4,18 @@ from rest_framework.exceptions import ValidationError
 from .models import Solicitud, Archivo
 from src.apps.domicilio.models import Institucion
 from src.apps.domicilio.services import crear_institucion 
-from src.apps.persona.models import Equipo
+from src.models import Equipo
 from src.apps.persona.services import (crear_adolescente, validar_adolescente, validar_hermano, validar_familiar)
 from src.utils import enviar_correo
+from django.core.files.uploadedfile import UploadedFile
 
-
+ID_ENTRADA  = 1
 ID_ADMISION = 2
 
 @transaction.atomic
-def crear_solicitud(datos_solicitud: dict) -> Solicitud:
+def crear_solicitud(datos_solicitud: dict, archivos: list[UploadedFile] | None = None) -> Solicitud:
 
     adolescente_data = datos_solicitud.pop("adolescente")
-    solicitante_data = datos_solicitud.pop("solicitante")
     institucion_data = datos_solicitud.pop("institucion", None)
 
     correo = datos_solicitud.get("correo")
@@ -28,9 +28,9 @@ def crear_solicitud(datos_solicitud: dict) -> Solicitud:
     elif isinstance(institucion_data, Institucion):
         institucion_obj = institucion_data
         institucion_obj.save()
-
+    print("ANTES")
     adolescente_obj = crear_adolescente(adolescente_data)
-
+    print(adolescente_obj)
     datos_solicitud["institucion"] = institucion_obj
     datos_solicitud["adolescente"] = adolescente_obj
     
@@ -38,7 +38,7 @@ def crear_solicitud(datos_solicitud: dict) -> Solicitud:
     datos_solicitud["validado"] = False
     datos_solicitud["rechazado"] = False
 
-    solicitud = Solicitud.objects.create(**datos_solicitud)
+    solicitud = Solicitud.objects.create(equipo_id=ID_ENTRADA, **datos_solicitud)
 
     if archivos:
         for file in archivos:

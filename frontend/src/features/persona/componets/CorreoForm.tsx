@@ -1,24 +1,22 @@
 import type { Setter } from "@/common/types"
 import { useState } from "react"
 import { TextField } from "@mui/material"
+import { correoEsValido } from "../utils"
 
 type Props = {
   correo: string
   setCorreo: Setter<string>
   onValidChange?: (esValido: boolean) => void
 }
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 export const CorreoForm = ({ correo, setCorreo, onValidChange }: Props) => {
   const [tocado, setTocado] = useState(false)
 
-  const esValido = correo.trim() === "" || EMAIL_REGEX.test(correo.trim())
+  const esValido = correoEsValido(correo)
   const mostrarError = tocado && correo.trim() !== "" && !esValido
 
   const handleChange = (value: string) => {
     setCorreo(value)
-    onValidChange?.(value.trim() !== "" && EMAIL_REGEX.test(value.trim()))
+    onValidChange?.(value.trim() !== "" && correoEsValido(correo))
   }
 
   return (

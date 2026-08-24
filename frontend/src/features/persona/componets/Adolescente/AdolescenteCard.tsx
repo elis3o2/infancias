@@ -18,7 +18,7 @@ import { useState } from "react"
 import { Mapa } from "@/features/domicilio/components/Mapa"
 import { ValidarButtons } from "../Validacion/ValidarButtons"
 import type { Setter } from "@/common/types"
-import { AdolescenteSimpleCard } from "./AdolescenteList"
+import { AdolescenteList } from "./AdolescenteList"
 import type { Domicilio } from "@/features/domicilio/types"
 import { DomicilioComponent } from "@/features/domicilio/components/DomicilioComponent"
 import { CambiarDomicilio } from "@/features/domicilio/components/CambiarDomicilio"
@@ -79,7 +79,7 @@ return (
         <Stack direction="row" spacing={3}>
           {/* Columna izquierda: datos cargados del adolescente */}
           <Box sx={{ flex: 1 }}>
-            <AdolescenteSimpleCard
+            <AdolescenteList
               nombre={adolescente.nombre}
               apellido={adolescente.apellido}
               dni={adolescente.dni}
@@ -120,7 +120,7 @@ return (
                   Validación con RENAPER
                 </Typography>
 
-                <AdolescenteSimpleCard
+                <AdolescenteList
                   nombre={ciudadano.nombre}
                   apellido={ciudadano.apellido}
                   fecha_nacimiento={ciudadano.fechaNacimiento}

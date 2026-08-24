@@ -3,7 +3,7 @@ import type { Setter } from "@/common/types"
 import { useState } from "react"
 import { Stack, Button, Card, CardContent, CardHeader} from "@mui/material"
 import { HermanoForm } from "./HermanoForm"
-import { HermanosCard } from "./HermanosCard"
+import { HermanosList } from "./HermanosList"
 
 type Props = {
   hermanos: HermanoCreate[]
@@ -35,7 +35,7 @@ export const HermanosComponent = ({ hermanos, setHermanos, finishHermano, setFin
       <CardContent>
         <Stack spacing={2} sx={{ minWidth: 1028 }}>
           {hermanos.length > 0 &&
-            <HermanosCard
+            <HermanosList
               hermanos={hermanos}
               onEliminar={handleEliminar}
             />

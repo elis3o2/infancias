@@ -20,8 +20,6 @@ type Props = {
 
 export const Mapa = ({ latitud, longitud, nombre } : Props) => {
     
-    console.log("MAPA", nombre)
-    console.log(latitud, longitud);
     function RecenterMap({lat, lon }: { lat: number; lon: number }) {
         const map = useMap();
         useEffect(() => {

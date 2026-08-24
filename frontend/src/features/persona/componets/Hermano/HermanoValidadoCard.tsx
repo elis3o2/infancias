@@ -9,7 +9,7 @@ import {
   Button, 
   Divider
 } from "@mui/material"
-import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteList"
+import { AdolescenteList } from "../Adolescente/AdolescenteList"
 
 type Props = {
   hermanos: Hermano[]
@@ -40,7 +40,7 @@ export const HermanoValidadoCard = ({ hermanos, onEliminar }: Props) => {
                     </Typography>
 
                   </Stack>
-                    <AdolescenteSimpleCard
+                    <AdolescenteList
                       nombre={hermano.nombre}
                       apellido={hermano.apellido}
                       sexo={hermano.sexo}

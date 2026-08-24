@@ -20,6 +20,7 @@ export const AdolescenteList = ({ adolescente, onEditar }: Props) => {
               domicilio={adolescente.domicilio?.nombre}
               domicilio_observaciones={adolescente.domicilio?.observaciones == null? undefined : adolescente.domicilio?.observaciones}
               onEditar={onEditar}
+              texto="Editar"
             />
           </>)
 }

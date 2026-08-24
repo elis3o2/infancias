@@ -12,7 +12,6 @@ import {
   TextField,
 } from "@mui/material"
 import { getDerivaciones } from "../../api"
-import type { Derivacion } from "../../types"
 
 type Props = {
   disabledConfirmar: boolean

@@ -30,6 +30,7 @@ type Props = {
     institucion_domicilio?: string
     telefono?: string
     correo?: string
+    texto?: string
     onEditar?: () => void
 }
 
@@ -49,7 +50,7 @@ function formatFecha(fecha: string | null | undefined) {
 }
 
 export const ListData = ({ nombre, apellido, dni, sexo, escolarizado, fecha_nacimiento, vinculo,
-             domicilio, domicilio_observaciones, institucion_nombre, institucion_tipo, institucion_domicilio, telefono, correo, onEditar}: Props) => {
+             domicilio, domicilio_observaciones, institucion_nombre, institucion_tipo, institucion_domicilio, telefono, correo, onEditar, texto}: Props) => {
   const sexoLabel = sexo === "M" ? "Masculino" : (sexo ==="F" ? "Femenino" : "-")
 
   return (<>
@@ -88,9 +89,9 @@ export const ListData = ({ nombre, apellido, dni, sexo, escolarizado, fecha_naci
             {correo &&  <DatoItem icon={<EmailIcon fontSize="small" />} label="Correo" valor={correo}/>}
 
         </List>
-    {onEditar && 
+    {onEditar && texto && 
       <CardActions>
-        <Button onClick={onEditar}>Editar</Button>
+        <Button onClick={onEditar}>{texto}</Button>
       </CardActions>}
     </>)
 }

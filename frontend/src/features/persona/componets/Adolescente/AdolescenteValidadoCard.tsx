@@ -5,7 +5,7 @@ import {
   Box, Stack, Typography
 } from "@mui/material"
 import { Mapa } from "@/features/domicilio/components/Mapa"
-import { AdolescenteSimpleCard } from "./AdolescenteList"
+import { AdolescenteList } from "./AdolescenteList"
 
 type Props = {
   adolescente: Adolescente
@@ -27,7 +27,7 @@ export const AdolescenteValidadoCard = ({ adolescente, adolescente_validao }: Pr
 
             <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
               <CardContent>
-                <AdolescenteSimpleCard
+                <AdolescenteList
                   nombre={adolescente_validao.nombre}
                   apellido={adolescente_validao.apellido}
                   dni={adolescente_validao.dni}

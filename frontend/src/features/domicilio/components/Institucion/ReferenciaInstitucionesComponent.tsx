@@ -4,7 +4,7 @@ import { Stack, Button, CardContent, Card, CardHeader } from "@mui/material"
 import type { InstitucionFormData  } from "@/features/domicilio/types"
 import { InstitucionInicial } from "@/features/domicilio/types"
 import { InstitucionForm } from "@/features/domicilio/components/Institucion/InstitucionForm"
-import { InstitucionesCard } from "./InstitucionesCard"
+import { InstitucionesList } from "./InstitucionesList"
 
 type Props = {
   instituciones: InstitucionFormData[]
@@ -31,7 +31,7 @@ export const ReferenciaInstitucionComponent = ({ instituciones, setInstituciones
   }
 
   return (
-    <Card variant="outlined" sx={{ borderRadius: 2 }}>
+    <Card variant="outlined" sx={{ minWidth:1028, borderRadius: 2 }}>
       <CardHeader
           title="Instituciones de referencia"
           titleTypographyProps={{ variant: 'h6', fontWeight: 600 }}
@@ -39,7 +39,7 @@ export const ReferenciaInstitucionComponent = ({ instituciones, setInstituciones
       <CardContent>
         <Stack spacing={2}>
           {instituciones.length > 0  && 
-            <InstitucionesCard
+            <InstitucionesList
               instituciones={instituciones}
               onEliminar={handleEliminar}
             />

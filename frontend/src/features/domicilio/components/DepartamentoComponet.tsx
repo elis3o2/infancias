@@ -20,28 +20,25 @@ export const DepartamentoComponent = ({ departamento, setDepartamento, id_provin
 
 
     useEffect(() => {
-        setDepartamento(null)
-
         if (id_provincia === null) {
             setDepartamentos([])
-            setLoading(false)
             return
         }
 
         let cancelado = false
+
         const fetchDepartamentos = async () => {
             try {
                 setLoading(true)
+
                 const data = await getDepartamentos(id_provincia)
+
                 if (!cancelado) {
                     setDepartamentos(data)
                 }
             } catch (error) {
                 if (!cancelado) {
-                    console.error(
-                        "Error al obtener departamentos:",
-                        error
-                    )
+                    console.error("Error al obtener departamentos:", error)
                     setDepartamentos([])
                 }
             } finally {
@@ -50,12 +47,13 @@ export const DepartamentoComponent = ({ departamento, setDepartamento, id_provin
                 }
             }
         }
+
         fetchDepartamentos()
+
         return () => {
             cancelado = true
         }
-    }, [id_provincia, setDepartamento])
-
+    }, [id_provincia])
 
     return (
         <Autocomplete

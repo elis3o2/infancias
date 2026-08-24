@@ -47,7 +47,6 @@ export const ValidarSolicitud = () => {
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState(null)
 
-  console.log("SOLICITUD",solicitud)
   
   useEffect(() => {
     if (!id) return

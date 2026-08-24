@@ -3,6 +3,7 @@ import { Button,  Stack } from "@mui/material"
 import AddIcon from "@mui/icons-material/Add"
 import type { Setter } from "@/common/types"
 import type { Persona } from "../../types"
+import { AgregarPersona } from "./AgregarPersona"
 type Props = {
   personas: Persona[]
   setPersonas: Setter<Persona[]>
@@ -12,22 +13,22 @@ export const NuevaPersona = ({ personas, setPersonas }: Props) => {
   const [mostrarForm, setMostrarForm] = useState(false)
 
   const handlePersonaAgregado = (persona: Persona) => {
-    if (hermanos.some((h) => h.dni === hermano.dni)) return
-    setHermanos([...hermanos, hermano])
+    if (personas.some((h) => h.dni === persona.dni)) return
+      setPersonas([...personas, persona])
     setMostrarForm(false) // ocultamos el form despues de agregar
   }
 
   return (
     <Stack spacing={2}>
       {mostrarForm ? (
-        <AgregarHermano onHermanoAgregado={handleHermanoAgregado} />
+        <AgregarPersona onPersonaAgregado={handlePersonaAgregado} />
       ) : (
         <Button
           variant="outlined"
           startIcon={<AddIcon />}
           onClick={() => setMostrarForm(true)}
         >
-          Agregar hermano
+          Agregar
         </Button>
       )}
     </Stack>

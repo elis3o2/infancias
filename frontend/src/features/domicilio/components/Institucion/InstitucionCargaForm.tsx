@@ -29,7 +29,9 @@ export const InstitucionCargaForm = ({ institucion, setInstitucion, tipo, onVali
     setInstitucion((prev) => ({ ...prev, tipo }))
   }, [tipo])
 
-    
+  useEffect(() => {
+    setDepartamento(null)
+  }, [institucion.domicilio.provincia])
 
   const setNombre = (nombre: string) => {
     setInstitucion((prev) => ({ ...prev, nombre }))
@@ -49,6 +51,7 @@ export const InstitucionCargaForm = ({ institucion, setInstitucion, tipo, onVali
         }))
     }
 
+    console.log("ISTITUCION",institucion)
     const setDepartamento = (departamento: Departamento | null) => {
         setInstitucion((prev) => ({
             ...prev,

@@ -14,7 +14,6 @@ type Props = {
 export const DomicilioComponent = ({ domicilio, setDomicilio, finishDomicilio, setFinishDomicilio }: Props) => {
   const [apiRespuesta, setApiRespuesta] = useState<APIGeo1 | null>(null)
   const [observaciones, setObservaciones] = useState("")
-
   useEffect(() => {
     if (apiRespuesta == null) {
       return
@@ -27,13 +26,14 @@ export const DomicilioComponent = ({ domicilio, setDomicilio, finishDomicilio, s
       id_departamento: 520,
       observaciones: observaciones
     })
-  }, [apiRespuesta])
+  }, [finishDomicilio])
 
   return (
     <>
       {finishDomicilio && domicilio != null ? (
         <DomicilioView
           domicilio={domicilio.nombre}
+          observaciones={domicilio.observaciones}
           setFinishDomicilio={setFinishDomicilio}
         />
       ) : (

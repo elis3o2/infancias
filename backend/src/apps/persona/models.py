@@ -155,12 +155,3 @@ class AdolescenteInstitucion(models.Model):
     class Meta:
         managed = False
         db_table = "adolescente_institucion"
-
-
-class Equipo(models.Model):
-    id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=64)
-
-    class Meta:
-        managed = False
-        db_table = "equipo"

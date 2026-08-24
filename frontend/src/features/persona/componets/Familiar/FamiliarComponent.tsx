@@ -27,7 +27,7 @@ export const FamiliaresComponent = ({ familiares, setFamiliares, finishFamiliar,
   }
 
   return (
-    <Card variant="outlined" sx={{ borderRadius: 2 }}>
+    <Card variant="outlined" sx={{ minWidth: 1028, borderRadius: 2 }}>
       <CardHeader
           title="Familiares / referentes"
           titleTypographyProps={{ variant: 'h6', fontWeight: 600 }}
@@ -48,7 +48,7 @@ export const FamiliaresComponent = ({ familiares, setFamiliares, finishFamiliar,
             />
           ) : (
             <Button variant="outlined" onClick={() => {setMostrarForm(true); setFinishFamiliar(false)}}>
-              Agregar otro familiar
+              Agregar
             </Button>
           )}
         </Stack>

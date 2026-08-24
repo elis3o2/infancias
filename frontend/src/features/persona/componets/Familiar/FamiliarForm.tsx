@@ -2,7 +2,7 @@ import type { FamiliarCreate, Vinculo } from "../../types"
 import type { Setter } from "@/common/types"
 import { TelefonoComponent } from "../TelefonoComponent"
 import { useState } from "react"
-import { Box, Button, IconButton, Stack,TextField, Typography, Card, CardContent, CardActions } from "@mui/material";
+import { Box, Button, IconButton, Stack,TextField, Card, CardContent, CardActions } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { NombreForm } from "../NombreForm"
 import { VinculoForm } from "../VinculoForm"
@@ -48,9 +48,9 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
     nombre.trim() !== "" &&
     apellido.trim() !== "" &&
     vinculoSeleccionado !== null &&
-    camposVisibles.telefono? telefono.length == 10 : true
-    camposVisibles.domicilio? depatamento != null && provincia !=null : true
-    camposVisibles.dni? dni.length == 8 || dni.length == 7 : true
+    (camposVisibles.telefono? telefono.length == 10 : true) &&
+    (camposVisibles.domicilio? depatamento != null && provincia !=null : true) &&
+    (camposVisibles.dni? dni.length == 8 || dni.length == 7 : true)
 
   const handleCargar = () => {
     if (!formCompleto) return
@@ -80,9 +80,6 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
   return (
     <Card  sx={{ minWidth: 1028 }}>
     <CardContent>
-      <Typography variant="h6" gutterBottom>
-        Datos del familiar / referente
-      </Typography>
       <Stack spacing={2}>
         <NombreForm
           label="Nombre"
@@ -94,6 +91,11 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
           value={apellido}
           setNombre={setApellido}
         />
+        <VinculoForm
+          vinculoSeleccionado={vinculoSeleccionado}
+          setVinculoSeleccionado={setVinculoSeleccionado}
+        />
+
         <SexoForm sexo={sexo} setSexo={setSexo}/>
         {/* DNI */}
         {camposVisibles.dni ? (
@@ -151,25 +153,34 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
 
         {/* Domicilio */}
         {camposVisibles.domicilio ? (
-          <Stack direction="row" sx={{ alignItems: "center"}} spacing={1}>
-            <ProvinciaComponent provincia={provincia} setProvincia={setProvincia}/>
-            <DepartamentoComponent 
-              departamento={depatamento}
-              setDepartamento={setDepartamento}
-              id_provincia={provincia == null? null : provincia.id}/>
-            <TextField
-              fullWidth
-              label="Domicilio"
-              value={domicilio}
-              onChange={(e) => setDomicilio(e.target.value)}
-            />
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={1}>
+              <Box sx={{ flex: 1 }}>
+                <ProvinciaComponent provincia={provincia} setProvincia={setProvincia}/>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <DepartamentoComponent
+                  departamento={depatamento}
+                  setDepartamento={setDepartamento}
+                  id_provincia={provincia == null ? null : provincia.id}
+                />
+              </Box>
+            </Stack>
 
-            <IconButton
-              size="small"
-              onClick={() => ocultarCampo("domicilio")}
-            >
-              <CloseIcon fontSize="small" />
-            </IconButton>
+            <Stack direction="row" sx={{ alignItems: "center" }} spacing={1}>
+              <TextField
+                fullWidth
+                label="Domicilio"
+                value={domicilio}
+                onChange={(e) => setDomicilio(e.target.value)}
+              />
+              <IconButton
+                size="small"
+                onClick={() => ocultarCampo("domicilio")}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Stack>
           </Stack>
         ) : (
           <Button
@@ -211,11 +222,6 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
             + Cargar observaciones del domicilio
           </Button>
         )}
-
-        <VinculoForm
-          vinculoSeleccionado={vinculoSeleccionado}
-          setVinculoSeleccionado={setVinculoSeleccionado}
-        />
 
       </Stack>
     </CardContent>

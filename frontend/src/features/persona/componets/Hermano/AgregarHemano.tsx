@@ -5,7 +5,7 @@ import { SexoForm } from "../SexoForm"
 import { getCiudadano } from "../../api"
 import type { Setter } from "@/common/types"
 import type { Ciudadano, Hermano } from "../../types"
-import { AdolescenteSimpleCard } from "../Adolescente/AdolescenteList"
+import { AdolescenteList } from "../Adolescente/AdolescenteList"
 
 
 interface AgregarHermanoProps {
@@ -72,7 +72,7 @@ export const AgregarHermano = ({ onHermanoAgregado }: AgregarHermanoProps) => {
         <Box sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1, p: 2 }}>
           <Stack spacing={1}>
             
-            <AdolescenteSimpleCard
+            <AdolescenteList
                 nombre={ciudadano.nombre}
                 apellido={ciudadano.apellido}
                 sexo={ciudadano.sexo}

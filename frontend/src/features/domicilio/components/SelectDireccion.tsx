@@ -52,6 +52,7 @@ export const SelectDireccion = ({ direccion, setCanConfirm, setGeoSeleccionada }
             {resultados.length > 0 && (
                 <List sx={{ background: "#fff", borderRadius: 2, border: "1px solid #cbd5e1", maxHeight: 250, overflow: "auto" }}>
                     {resultados.map((resultado, index) => {
+                        console.log(resultado)
                         const seleccionado = ubicacionSeleccionada?.id === resultado.id;
                         return (
                             <ListItemButton

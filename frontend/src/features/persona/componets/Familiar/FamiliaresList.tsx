@@ -20,6 +20,7 @@ export const FamiliaresList = ({ familiares, onEliminar }: Props) => {
               {...(familiar.domicilio?.nombre != null && { domicilio: familiar.domicilio.nombre})}
               {...(familiar.telefono != null && { telefono: familiar.telefono })}
               {...(onEliminar != null && {onEditar: () => onEliminar(index) })}
+              texto="Eliminar"
             />
             {index < familiares.length - 1 && (
                 <Divider sx={{ mt: 2 }} />
