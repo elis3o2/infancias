@@ -144,13 +144,13 @@ class SolicitudValReadSerializer(serializers.ModelSerializer):
             "archivos",
             "validado",
             "rechazado",
-            "motivo_rechazo"
+            "motivo_rechazo",
+            "equipo"
         ]
 
     def get_archivos(self, obj):
         archivos = Archivo.objects.filter(
             solicitud=obj,
-            valido=True
         )
 
         return ArchivoSerializer(

@@ -1,5 +1,5 @@
 import type { Institucion, InstitucionInput } from "../domicilio/types"
-import type { AdolescenteCrud, AdolescenteInput, Equipo } from "../persona/types"
+import type { Adolescente, AdolescenteCrud, AdolescenteInput, Equipo } from "../persona/types"
 
 export type MotivoSolicitud = {
     id: number
@@ -37,6 +37,24 @@ export type SolicitudCrud = {
     validado: false
     rechazado: false
     equipo: Equipo
+    telefono: string 
+    correo: string
+}
+
+export type Solicitud = {
+    id: number
+    institucion: Institucion
+    adolescente: Adolescente
+    motivo: MotivoSolicitud
+    prioridad: PrioridadSolicitud
+    descripcion: string
+    descripcion_extra: string
+    archivos: ArchivoSimple[]
+    fecha_hora_creacion: string
+    fecha_hora_entrada: string
+    validado: false
+    rechazado: false
+    equipo: number
     telefono: string 
     correo: string
 }

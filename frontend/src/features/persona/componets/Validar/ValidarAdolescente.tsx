@@ -1,155 +1,102 @@
-import type { AdolescenteCrud, Ciudadano, Salud } from "../../types"
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  CircularProgress,
-  Collapse,
-  Divider,
-  Stack,
-  Typography,
-} from "@mui/material"
-import FactCheckIcon from "@mui/icons-material/FactCheck"
-import { getSalud, getCiudadano } from "../../api"
-import { useState } from "react"
+import type { AdolescenteCrud, PersonaCreate } from "../../types"
+import { Card, CardContent, Stack } from "@mui/material"
+
 import { Mapa } from "@/features/domicilio/components/Mapa"
-import { ValidarButtons } from "../Validacion/ValidarButtons"
 import type { Setter } from "@/common/types"
-import { AdolescenteList } from "../Adolescente/AdolescenteList"
-import { CiudadanoList } from "./CiudadanoList"
+import { ValidarAdolescenteDatos } from "./ValidarAdolescenteDatos"
+import { useState } from "react"
+import { CarpetaForm } from "./CarpetaForm"
+import { LegajoForm } from "./LegajoForm"
 
 type Props = {
   adolescente: AdolescenteCrud
-  estado:"confirmado" | "rechazado" | null
+  estado: "confirmado" | "rechazado" | null
   setEstado: Setter<"confirmado" | "rechazado" | null>
-  ciudadano: Ciudadano | null
-  setCiudadano: Setter<Ciudadano | null>
+  persona: PersonaCreate | null
+  setPersona: Setter<PersonaCreate | null>
 }
 
+export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, setPersona }: Props) => {
 
-export const ValidarAdolescente = ({ adolescente, estado, setEstado, ciudadano, setCiudadano }: Props) => {
-  const [salud, setSalud] = useState<Salud | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [tieneLegajo, setTieneLegajo] = useState(false)
+  const [tieneCarpeta, setTieneCarpeta] = useState(false)
 
-  const handleValidar = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const [ciudadanoRes, saludRes] = await Promise.all([
-        getCiudadano(adolescente.dni, adolescente.sexo),
-        getSalud(adolescente.dni, adolescente.sexo),
-      ])
-      setCiudadano(ciudadanoRes)
-      setSalud(saludRes)
-    } catch (e) {
-      setError("No se encontro a la persona.")
-      setEstado("rechazado")
-    } finally {
-      setLoading(false)
-    }
+  const actualizarLegajo = ( cambios: Partial<NonNullable<PersonaCreate["legajo"]>>) => {
+    if (!persona) return
+
+    setPersona({
+      ...persona,
+      legajo: {
+        id_insert: persona.legajo?.id_insert ?? null,
+        letra: persona.legajo?.letra ?? null,
+        carpeta_id: persona.legajo?.carpeta_id ?? null,
+        ...cambios,
+      },
+    })
   }
 
-return (
-  <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
-    <CardContent>
-      <Stack
-        direction="row"
-        sx={{ mb: 2, width: "100%", alignItems: "center"}}
-      >
-        {/* Título */}
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Datos del niño, niña o adolescente
-        </Typography>
+  const cambiarTieneCarpeta = (valor: boolean) => {
+    setTieneCarpeta(valor)
 
-        {/* Botones */}
-       {ciudadano != null &&
-       <ValidarButtons estado={estado} setEstado={setEstado}/> }
+    actualizarLegajo({
+      carpeta_id: valor
+        ? persona?.legajo?.carpeta_id ?? null
+        : null,
+    })
+  }
 
-      </Stack>
-        <Stack direction="row" spacing={3}>
-          {/* Columna izquierda: datos cargados del adolescente */}
-          <Box sx={{ flex: 1 }}>
-            <AdolescenteList
-              adolescente={adolescente}
+  const cambiarTieneLegajo = (valor: boolean) => {
+    setTieneLegajo(valor)
+
+    actualizarLegajo({
+      id_insert: valor
+        ? persona?.legajo?.id_insert ?? null
+        : null,
+    })
+  }
+
+  return (
+    <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
+      <CardContent>
+
+        <Stack spacing={2}>
+
+          <ValidarAdolescenteDatos
+            adolescente={adolescente}
+            estado={estado}
+            setEstado={setEstado}
+            setPersona={setPersona}
+          />
+
+          {adolescente.domicilio?.domicilio_validado && (
+            <Mapa
+              latitud={adolescente.domicilio.domicilio_validado.latitud}
+              longitud={adolescente.domicilio.domicilio_validado.longitud}
+              nombre={adolescente.domicilio.nombre}
             />
+          )}
 
-            <Button
-              onClick={handleValidar}
-              disabled={loading}
-              variant="contained"
-              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <FactCheckIcon />}
-              sx={{ mt: 3, borderRadius: 2, textTransform: "none", fontWeight: 600 }}
-            >
-              {loading ? "Validando..." : "VALIDAR"}
-            </Button>
+          {persona && (
+            <>
+              <CarpetaForm
+                carpeta={persona.legajo?.carpeta_id ?? null}
+                setCarpeta={(valor) => actualizarLegajo({ carpeta_id: valor })}
+                tieneCarpeta={tieneCarpeta}
+                setTieneCarpeta={cambiarTieneCarpeta}
+              />
 
-            {error && (
-              <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
-                {error}
-              </Alert>
-            )}
-          </Box>
-
-          {/* Columna derecha: comparación contra Registro Civil + Salud */}
-          {ciudadano && <Divider orientation="vertical" flexItem />}
-
-          <Collapse
-            in={Boolean(ciudadano)}
-            orientation="horizontal"
-            sx={{ flex: ciudadano ? 1 : 0 }}
-          >
-            {ciudadano && (
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
-                  Validación con RENAPER
-                </Typography>
-
-                <CiudadanoList
-                    ciudadano={ciudadano}
-                />
-
-                {ciudadano.fallecido === "SI" && (
-                  <Alert severity="warning" sx={{ mt: 2, borderRadius: 2 }}>
-                    La persona esta fallecida.
-                  </Alert>
-                )}
-
-                <Typography
-                  variant="subtitle1"
-                  sx={{ fontWeight: 600,mt: 3, mb: 1.5 }}
-                >
-                  Centro de salud adscripto
-                </Typography>
-
-
-                  {salud?.adscripcion?.length ? (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap"}} useFlexGap>
-                      {salud.adscripcion.map((a) => (
-                        <Chip key={a} label={a} size="small" />
-                      ))}
-                    </Stack>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      Niniguno.
-                    </Typography>
-                  )}
-              </Box>
-            )}
-          </Collapse>
+              <LegajoForm
+                legajo={persona.legajo?.id_insert ?? null}
+                setLegajo={(valor) => actualizarLegajo({ id_insert: valor })}
+                tieneLegajo={tieneLegajo}
+                setTieneLegajo={cambiarTieneLegajo}
+              />
+            </>
+          )}
 
         </Stack>
-        {adolescente.domicilio.domicilio_validado &&
-        <Mapa 
-            latitud={adolescente.domicilio.domicilio_validado?.latitud}
-            longitud={adolescente.domicilio.domicilio_validado?.longitud}
-            nombre={adolescente.domicilio.nombre}
-        />}
-      </CardContent>
 
+      </CardContent>
     </Card>
   )
 }

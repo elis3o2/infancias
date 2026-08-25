@@ -2,8 +2,8 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { AceptarButtons } from "./AceptarButtons";
 import type { PrioridadSolicitud,  SolicitudCrud } from "../../types"
-import { rechazarSolicitud  } from "../../api"
-import type { Ciudadano, Persona } from "@/features/persona/types"
+import { rechazarSolicitud, validarSolicitud  } from "../../api"
+import type { Ciudadano, PersonaCreate } from "@/features/persona/types"
 import { TextField } from "@mui/material"
 import { PrioridadSelector } from "../PrioridadSelector"
 import { ValidarAdolescente } from "@/features/persona/componets/Validar/ValidarAdolescente"
@@ -14,6 +14,7 @@ import { ValidarHermanos } from "@/features/persona/componets/Validar/ValidarHer
 import { DescripcionCard } from "../SolicitudSection/DescripcionCard";
 import { ArchivoVistaCard } from "../Archivo/ArchivoVistaCard";
 import { InstitucionesCard } from "@/features/domicilio/components/Institucion/InstitucionesCard";
+import { formAdolescenteWrite } from "@/features/persona/utils";
 
 
 type Props = {
@@ -23,33 +24,33 @@ const MAX_DESCRIPCION = 256
 
 export const SolicitudValidar = ({solicitud} : Props) => {
     const navigate = useNavigate()
-    const [ciudadanoAdolescente, setCiudadanoAdolescente] = useState<Ciudadano | null>(null)
+    const [personaAdolescente, setPersonaAdolescente] = useState<PersonaCreate | null>(null)
     const [estadoAdolescente, setEstadoAdolescente] = useState<null | "confirmado" | "rechazado">(null)
-    const [ciudadanosHermanos, setCiudadanosHermanos] = useState<(Ciudadano | null)[]>([])
+    const [personasHermanos, setPersonasHermanos] = useState<(PersonaCreate | null)[]>([])
     const [estadosHermanos, setEstadosHermanos] = useState<(null | "confirmado" | "rechazado")[]>([])
-    const [hermanosNuevos, setHermanosNuevos] = useState<Persona[]>([])
-    const [ciudadanosFamiliares, setCiudadanosFamiliares] = useState<(Ciudadano | null)[]>([])
+    const [hermanosNuevos, setHermanosNuevos] = useState<PersonaCreate[]>([])
+    const [personasFamiliares, setPersonasFamiliares] = useState<(PersonaCreate | null)[]>([])
     const [estadosFamiliares, setEstadosFamiliares] = useState<(null | "confirmado" | "rechazado")[]>([])
-    const [familiaresNuevos, setFamiliaresNuevos] = useState<Persona[]>([])
+    const [familiaresNuevos, setFamiliaresNuevos] = useState<PersonaCreate[]>([])
     const [nuevaDescripcion, setNuevaDescripcion] = useState("") 
     const [nuevaPrioridad, setNuevaPrioridad] = useState<PrioridadSolicitud>(solicitud.prioridad)
 
 
     const hayHermanosSinResolver = estadosHermanos.some((e) => e == null)
-    const disabledConfirmar = estadoAdolescente !== "confirmado" || hayHermanosSinResolver || !ciudadanoAdolescente
+    const disabledConfirmar = estadoAdolescente !== "confirmado" || hayHermanosSinResolver || !personaAdolescente
     const disabledRechazar = estadoAdolescente == null || hayHermanosSinResolver 
     
 
-
+    console.log(solicitud)
     useEffect(() => {
         if (!solicitud) return
         const listaNullHer = solicitud.adolescente.hermanos.map(() => null) 
         setEstadosHermanos(listaNullHer)
-        setCiudadanosHermanos(listaNullHer)
+        setPersonasHermanos(listaNullHer)
  
         const listaNullFam = solicitud.adolescente.familiares.map(() => null) 
-        setEstadosHermanos(listaNullFam)
-        setCiudadanosHermanos(listaNullFam)
+        setEstadosFamiliares(listaNullFam)
+        setPersonasFamiliares(listaNullFam)
     }, [solicitud])
 
     async function rechazar(motivo: string) {
@@ -58,8 +59,13 @@ export const SolicitudValidar = ({solicitud} : Props) => {
     }
 
     function aceptar () {
-        
+        if (!personaAdolescente) return
+        const adolescenteWrite = formAdolescenteWrite(personaAdolescente, personasHermanos.filter((p)=> p!= null), hermanosNuevos,
+            personasFamiliares.filter((p)=> p!= null), familiaresNuevos)
+        validarSolicitud(solicitud.id, nuevaDescripcion, nuevaPrioridad.id, adolescenteWrite)
+        navigate(`/solicitud/`)
     }
+    
 
 
     return (<>
@@ -72,15 +78,15 @@ export const SolicitudValidar = ({solicitud} : Props) => {
             adolescente={solicitud.adolescente}
             estado={estadoAdolescente}
             setEstado={setEstadoAdolescente}
-            ciudadano={ciudadanoAdolescente}     
-            setCiudadano={setCiudadanoAdolescente}
+            persona={personaAdolescente}     
+            setPersona={setPersonaAdolescente}
         />
         <ValidarFamiliares
             familiares={solicitud.adolescente.familiares}
             estados={estadosFamiliares}
             setEstados={setEstadosFamiliares}
-            ciudadanos={ciudadanosFamiliares}
-            setCiudadanos={setCiudadanosFamiliares}
+            personas={personasFamiliares}
+            setPersonas={setPersonasFamiliares}
             nuevosFamiliares={familiaresNuevos}
             setNuevosFamiliares={setFamiliaresNuevos}
         />
@@ -88,8 +94,10 @@ export const SolicitudValidar = ({solicitud} : Props) => {
             hermanos={solicitud.adolescente.hermanos}
             estados={estadosHermanos}
             setEstados={setEstadosHermanos}
-            ciudadanos={ciudadanosHermanos}
-            setCiudadanos={setCiudadanosHermanos}
+            personas={personasHermanos}
+            setPersonas={setPersonasHermanos}
+            nuevosHermanos={hermanosNuevos}
+            setNuevosHermanos={setHermanosNuevos}
         />
         <DescripcionCard nombre="Descripción" texto={solicitud.descripcion}/>
         

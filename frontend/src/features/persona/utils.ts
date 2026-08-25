@@ -1,12 +1,14 @@
 import type {
   AdolescenteCreate,
   AdolescenteInput,
+  AdolescenteWriteInput,
   Ciudadano,
   FamiliarCreate,
   FamiliarInput,
   HermanoCreate,
   HermanoInput,
   Persona,
+  PersonaCreate,
 } from "./types";
 import { domicilioFormToDomicilioInput, institucionFormToInstitucionInput } from "../domicilio/utils";
 
@@ -75,12 +77,48 @@ export function adolescenteCreateToAdolescenteInput(adolescente: AdolescenteCrea
 
 
 
-export function ciudadanoToPersona(ciudadano: Ciudadano): Persona {
+export function ciudadanoToPersona(ciudadano: Ciudadano): PersonaCreate {
   return{
     dni: ciudadano.nroDocumento,
     sexo: ciudadano.sexo,
     nombre: ciudadano.nombre,
     apellido: ciudadano.apellido,
-    fecha_nacimiento: ciudadano.fechaNacimiento
+    fecha_nacimiento: ciudadano.fechaNacimiento,
+    telefono: null,
+    vinculo: null,
+    domicilio: null,
+    legajo: null
+  }
+}
+
+
+export function formAdolescenteWrite(
+  adolescente: PersonaCreate,
+  hermanos: PersonaCreate[],
+  hermanos_nuevos: PersonaCreate[],
+  familiares: PersonaCreate[],
+  familiaresNuevos: PersonaCreate[]
+): AdolescenteWriteInput {
+
+  const formatearFecha = (fecha: string): string =>
+    new Date(fecha).toISOString().split("T")[0]
+
+  const transformarPersona = (persona: PersonaCreate): PersonaCreate => ({
+    ...persona,
+    fecha_nacimiento: formatearFecha(persona.fecha_nacimiento),
+  })
+
+  return {
+    adolescente_validado: transformarPersona(adolescente),
+
+    hermanos_validados: [
+      ...hermanos.map(transformarPersona),
+      ...hermanos_nuevos.map(transformarPersona),
+    ],
+
+    familiares_validados: [
+      ...familiares.map(transformarPersona),
+      ...familiaresNuevos.map(transformarPersona),
+    ],
   }
 }

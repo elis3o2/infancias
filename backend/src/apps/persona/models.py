@@ -35,7 +35,7 @@ class Persona(models.Model):
 
     class Meta:
         managed = False
-        db_table = "adolescente_validado"
+        db_table = "persona"
 
 
 class Vinculo(models.Model):

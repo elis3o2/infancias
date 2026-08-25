@@ -4,24 +4,47 @@ import { DniForm } from "../DniForm"
 import { SexoForm } from "../SexoForm"
 import { getCiudadano } from "../../api"
 import type { Setter } from "@/common/types"
-import type { Persona } from "../../types"
+import type { PersonaCreate, Vinculo } from "../../types"
 import { PersonaList } from "./PersonaList"
 import { ciudadanoToPersona } from "../../utils"
+import { VinculoForm } from "../VinculoForm"
+import { TelefonoOpcionalForm } from "../TelefonoOpcionalForm"
+import { DomicilioOpcionalForm } from "@/features/domicilio/components/DomicilioOpcionalForm"
+import type { Departamento, Provincia } from "@/features/domicilio/types"
 
 
 type Props = {
-  onPersonaAgregado: (persona: Persona) => void
+  onPersonaAgregado: (persona: PersonaCreate) => void
+  datos_extra: boolean
 }
 
-export const AgregarPersona = ({ onPersonaAgregado }: Props) => {
+export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
     const [dni, setDni] = useState("")
     const [sexo, setSexo] = useState<"M" | "F" | "">("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
-    const [persona, setPersona] = useState<Persona | null>(null)
-
+    const [persona, setPersona] = useState<PersonaCreate | null>(null)
+    const [vinculo, setVinculo] = useState<Vinculo | null> (null)
+    
     const dniValido = /^\d{7,8}$/.test(dni)
     const puedeBuscar = dniValido && sexo !== "" && !loading
+
+    const [telefono, setTelefono] = useState("")
+    const [provincia, setProvincia] = useState<Provincia | null>(null)
+    const [departamento, setDepartamento] = useState<Departamento | null>(null)
+    const [domicilio, setDomicilo] = useState("")
+
+    const [camposVisibles, setCamposVisibles] = useState({
+        telefono: false,
+        domicilio: false,
+    });
+
+    const formCompleto = !datos_extra || (vinculo && (telefono.length == 10 || !camposVisibles.telefono)
+                        && ((departamento && provincia && domicilio != "") || !camposVisibles.domicilio))  
+
+    const cambiarCampo = (campo: keyof typeof camposVisibles, valor: boolean) => {
+        setCamposVisibles(prev => ({...prev, [campo]: valor}));
+    };
 
     const handleBuscar = async () => {
         if (!puedeBuscar) return
@@ -43,14 +66,40 @@ export const AgregarPersona = ({ onPersonaAgregado }: Props) => {
     }
 
     const handleAgregar = () => {
-    if (!persona) return
-    onPersonaAgregado(persona)
-    // reset para poder cargar otro hermano
-    setDni("")
-    setSexo("")
-    setPersona(null)
-    setError("")
+        if (!persona) return
+
+        const personaActualizada: PersonaCreate = {
+            ...persona,
+            vinculo,
+            telefono: camposVisibles.telefono ? telefono : null,
+            domicilio: camposVisibles.domicilio && departamento
+                ? {
+                    nombre: domicilio,
+                    id_departamento: departamento.id,
+                    observaciones: null,
+                    domicilio_validado: null
+                }
+                : null,
+        }
+
+        onPersonaAgregado(personaActualizada)
+
+        // reset
+        setDni("")
+        setSexo("")
+        setPersona(null)
+        setVinculo(null)
+        setTelefono("")
+        setProvincia(null)
+        setDepartamento(null)
+        setDomicilo("")
+        setCamposVisibles({
+            telefono: false,
+            domicilio: false,
+        })
+        setError("")
     }
+
 
     return (
     <Stack spacing={2}>
@@ -73,10 +122,34 @@ export const AgregarPersona = ({ onPersonaAgregado }: Props) => {
             <Stack spacing={1}>
             <PersonaList
                 persona={persona}
-            />
-            <Button variant="contained" onClick={handleAgregar}>
+            />{datos_extra && (
+                <>
+                    <VinculoForm
+                        vinculoSeleccionado={vinculo}
+                        setVinculoSeleccionado={setVinculo}
+                    />
+                    <TelefonoOpcionalForm
+                        condicion={camposVisibles.telefono}
+                        telefono={telefono}
+                        setTelefono={setTelefono}
+                        mostrar={(v) => cambiarCampo("telefono", v)}
+                    />
+                    <DomicilioOpcionalForm
+                        condicion={camposVisibles.domicilio}
+                        domicilio={domicilio}
+                        setDomicilio={setDomicilo}
+                        provincia={provincia}
+                        setProvincia={setProvincia}
+                        departamento={departamento}
+                        setDepartamento={setDepartamento}
+                        mostrar={(v) => cambiarCampo("domicilio", v)}
+                    />
+                </>
+            )}
+            <Button variant="contained" onClick={handleAgregar} disabled={!formCompleto}>
                 Agregar
             </Button>
+
             </Stack>
         </Box>
         )}

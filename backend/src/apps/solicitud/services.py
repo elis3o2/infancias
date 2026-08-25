@@ -49,12 +49,12 @@ def crear_solicitud(datos_solicitud: dict, archivos: list[UploadedFile] | None =
                 contenido=file.read(),
             )
 
-    if solicitud.correo:
-        enviar_correo(
-            subject="FORMULARIO PROBLEMÁTICA",
-            body="La solicitud fue enviada correctamente.",
-            to_emails=[solicitud.correo],
-        )
+    #if solicitud.correo:
+    #    enviar_correo(
+    #        subject="FORMULARIO PROBLEMÁTICA",
+    #        body="La solicitud fue enviada correctamente.",
+    #        to_emails=[solicitud.correo],
+    #    )
 
     return solicitud
 
@@ -66,6 +66,7 @@ def validar_solicitud(solicitud: Solicitud, data: dict) -> Solicitud:
     
     data = data.copy()
 
+    print("DATA", data)
     adolescente_data = data.pop("adolescente", None)
 
     if adolescente_data:
@@ -95,13 +96,13 @@ def validar_solicitud(solicitud: Solicitud, data: dict) -> Solicitud:
     solicitud.equipo_id = ID_ADMISION
     solicitud.save()
 
-    if solicitud.correo:
-        enviar_correo(
-            subject="FORMULARIO PROBLEMÁTICA",
-            body="Su solicitud fue aprobada.",
-            to_emails=[solicitud.correo],
-        )
-
+    #if solicitud.correo:
+    #    enviar_correo(
+    #        subject="FORMULARIO PROBLEMÁTICA",
+    #        body="Su solicitud fue aprobada.",
+    #        to_emails=[solicitud.correo],
+    #    )
+#
     return solicitud
 
 
@@ -126,17 +127,17 @@ def rechazar_solicitud(solicitud, motivo: str):
         ]
     )
 
-    if solicitud.correo:
-        enviar_correo(
-            subject="FORMULARIO PROBLEMÁTICA",
-            body=(
-                "Su solicitud fue rechazada. "
-                "A continuación se detallan los motivos.\n\n"
-                f"{motivo}"
-            ),
-            to_emails=[solicitud.correo],
-        )
-
+    #if solicitud.correo:
+    #    enviar_correo(
+    #        subject="FORMULARIO PROBLEMÁTICA",
+    #        body=(
+    #            "Su solicitud fue rechazada. "
+    #            "A continuación se detallan los motivos.\n\n"
+    #            f"{motivo}"
+    #        ),
+    #        to_emails=[solicitud.correo],
+    #    )
+#
     return solicitud
 
 
@@ -158,14 +159,14 @@ def derivar_solicitud(solicitud: Solicitud, equipo_id: str) -> Solicitud:
 
     solicitud.save(update_fields=["equipo", "fecha_hora_admision"])
 
-    if solicitud.correo:
-        enviar_correo(
-            subject="FORMULARIO PROBLEMÁTICA",
-            body=(
-                "Su solicitud fue derivada al siguiente equipo: "
-                f"{equipo.nombre}"
-            ),
-            to_emails=[solicitud.correo],
-        )
+    #if solicitud.correo:
+    #    enviar_correo(
+    #        subject="FORMULARIO PROBLEMÁTICA",
+    #        body=(
+    #            "Su solicitud fue derivada al siguiente equipo: "
+    #            f"{equipo.nombre}"
+    #        ),
+    #        to_emails=[solicitud.correo],
+    #    )
 
     return solicitud

@@ -1,4 +1,4 @@
-import type { DomicilioFormData, DomicilioInput, InstitucionFormData, InstitucionInput } from "./types";
+import type { Domicilio, DomicilioFormData, DomicilioInput, InstitucionFormData, InstitucionInput } from "./types";
 
 
 export function esInstitucionExistente(institucion: InstitucionInput):
@@ -50,4 +50,17 @@ export function domicilioFormToDomicilioInput(domicilio: DomicilioFormData): Dom
     observaciones: domicilio.observaciones,
     domicilio_validado: domicilio.domicilio_validado,
   };
+}
+
+export function domicilioToFormData ( domicilio: Domicilio | null): DomicilioFormData | null {
+    if (!domicilio) {
+        return null
+    }
+
+    return {
+        nombre: domicilio.nombre,
+        observaciones: domicilio.observaciones,
+        id_departamento: domicilio.departamento?.id ?? null,
+        domicilio_validado: null,
+    }
 }

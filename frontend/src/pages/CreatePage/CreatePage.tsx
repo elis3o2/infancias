@@ -44,12 +44,19 @@ export const CreatePage = () => {
   const [alertSeverity, setAlertSeverity] = useState<AlertSeverity>("success")
   const [enviado, setEnviado] = useState(false)
   
-
+  console.log(familiares)
 async function handleEnviar() {
-  setAdolescente({ ...adolescente, familiares, hermanos})
-  console.log("ADOLESCENTE", adolescente)
-  const institucionInput = institucionFormToInstitucionInput(institucion);
-  const adolescenteInput = adolescenteCreateToAdolescenteInput(adolescente);
+
+  const adolescenteActualizado = {
+      ...adolescente,
+      familiares,
+      hermanos,
+  }
+
+  console.log("ADOLESCENTE", adolescenteActualizado)
+  setAdolescente(adolescenteActualizado)
+  const institucionInput = institucionFormToInstitucionInput(institucion)
+  const adolescenteInput = adolescenteCreateToAdolescenteInput(adolescenteActualizado)
 
   const base = {
     adolescente: adolescenteInput,
@@ -68,6 +75,7 @@ async function handleEnviar() {
     console.log(solicitud)
 
     try {
+      console.log("SOLICITUD", solicitud)
       await postSolicitud(solicitud)
 
       setAlertMessage("El formulario fue enviado correctamente")

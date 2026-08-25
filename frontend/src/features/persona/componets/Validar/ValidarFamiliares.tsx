@@ -1,199 +1,282 @@
-import type { Hermano, Ciudadano, Familiar, Persona } from "../../types"
+import type { Familiar, PersonaCreate } from "../../types"
+
 import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  Collapse,
-  Divider,
-  Stack,
-  Typography,
+    Card,
+    CardContent,
+    Divider,
+    Stack,
+    Typography,
 } from "@mui/material"
-import FactCheckIcon from "@mui/icons-material/FactCheck"
-import { getCiudadano } from "../../api"
-import { useState } from "react"
-import { ValidarButtons} from "../Validacion/ValidarButtons"
+
 import type { Setter } from "@/common/types"
-import { FamiliarList } from "../Familiar/FamiliarList"
-import { CiudadanoList } from "./CiudadanoList"
-import { PersonaList } from "./PersonaList"
-import { NuevaPersona } from "./NuevaPersona"
+
+import { ValidarFamiliarDatos } from "./ValidarFamiliarDatos"
+import { NuevasPersonas } from "./NuevasPersonas"
+
+import { TelefonoOpcionalForm } from "../TelefonoOpcionalForm"
+import { DomicilioOpcionalForm } from "@/features/domicilio/components/DomicilioOpcionalForm"
+
+import type {
+    Departamento,
+    Provincia,
+} from "@/features/domicilio/types"
+
+import { useState } from "react"
 
 type Props = {
-  familiares: Familiar[]
-  estados: (null | "confirmado" | "rechazado")[]
-  setEstados: Setter<(null | "confirmado" | "rechazado")[]>
-  ciudadanos: (Ciudadano | null)[]
-  setCiudadanos: Setter<(Ciudadano | null)[]>
-  nuevosFamiliares: Persona[]
-  setNuevosFamiliares: Setter<Persona[]>
+    familiares: Familiar[]
+
+    estados: ("confirmado" | "rechazado" | null)[]
+    setEstados: Setter<("confirmado" | "rechazado" | null)[]>
+
+    personas: (PersonaCreate | null)[]
+    setPersonas: Setter<(PersonaCreate | null)[]>
+
+    nuevosFamiliares: PersonaCreate[]
+    setNuevosFamiliares: Setter<PersonaCreate[]>
 }
 
+export const ValidarFamiliares = ({
+    familiares,
+    estados,
+    setEstados,
+    personas,
+    setPersonas,
+    nuevosFamiliares,
+    setNuevosFamiliares,
+}: Props) => {
 
-export const ValidarFamiliares = ({ familiares, estados, setEstados, ciudadanos, setCiudadanos, nuevosFamiliares, setNuevosFamiliares }: Props) => {
-  
-  const [loadingIndex, setLoadingIndex] = useState<number | null>(null)
-  const [errores, setErrores] = useState<(string | null)[]>(familiares.map(() => null))
+    const [telefonos, setTelefonos] = useState<string[]>(familiares.map((familiar) => familiar.telefono ?? ""))
 
-  const handleValidar = async (familiar: Familiar, index: number) => {
-    if (!familiar.dni) return
-    setLoadingIndex(index)
-    setErrores((prev) => {
-      const next = [...prev]
-      next[index] = null
-      return next
-    })
-    try {
-      const ciudadanoRes = await getCiudadano(familiar.dni, familiar.sexo)
-      setCiudadanos((prev) => {
-        const next = [...prev]
-        next[index] = ciudadanoRes
-        return next
-      })
-    } catch (e) {
-      setErrores((prev) => {
-        const next = [...prev]
-        next[index] = "No se encontro a la persona."
-        return next
-      })
-      setEstado("rechazado", index)
-    } finally {
-      setLoadingIndex(null)
+    const [provincias, setProvincias] = useState<(Provincia | null)[]>(familiares.map(() => null))
+
+    const [departamentos, setDepartamentos] = useState<(Departamento | null)[]>(familiares.map(() => null))
+
+    const [domicilios, setDomicilios] = useState<string[]>(familiares.map((familiar) => familiar.domicilio?.nombre ?? ""))
+
+    const [camposVisibles, setCamposVisibles] = useState<
+        { telefono: boolean; domicilio: boolean }[]
+    >(
+        familiares.map((familiar) => ({
+            telefono: !!familiar.telefono,
+            domicilio: !!familiar.domicilio,
+        }))
+    )
+
+    const cambiarCampo = (
+        index: number,
+        campo: "telefono" | "domicilio",
+        valor: boolean
+    ) => {
+        setCamposVisibles((prev) => {
+            const next = [...prev]
+            next[index] = {
+                ...next[index],
+                [campo]: valor,
+            }
+            return next
+        })
     }
-  }
 
+    const actualizarPersona = (
+        index: number,
+        cambios: Partial<PersonaCreate>
+    ) => {
+        setPersonas((prev) => {
+            const next = [...prev]
 
-  function setEstado (e: null | "confirmado" | "rechazado", index: number){
-    setEstados((prev) => {
-      const next = [...prev]
-      next[index] = e
-      return next
-    })
-  }
+            if (!next[index]) {
+                return next
+            }
+
+            next[index] = {
+                ...next[index]!,
+                ...cambios,
+            }
+
+            return next
+        })
+    }
 
     return (
-    <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
-      <CardContent>
-        <Stack direction="row" sx={{ alignItems: "center", justifyContent:"space-between", mb: 2 }}>
-          <Typography variant="h6" sx={{ lineHeight: 1.2}}>
-            Familiares / referentes
-          </Typography>
-        </Stack>
+        <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
+            <CardContent>
 
-        <Stack spacing={3}>
-          {familiares.map((familiar, index) => {
-            const ciudadano = ciudadanos[index]
-            const loading = loadingIndex === index
-            const error = errores[index]
-            return (
-              <Stack direction="row" spacing={2} key={index}>
-                <Box sx={{ flex: 1 }}>
-                  <Stack
+                <Stack
                     direction="row"
-                    sx={{ mb: 1, alignItems: "center" }}
-                  >
-                    <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
-                      Datos del Familiar
-                    </Typography>
-
-                  </Stack>
-                      
-                      <FamiliarList
-                        familiar={familiar}
-                      />
-
-                    {familiar.dni &&
-                    <Button
-                      onClick={() => handleValidar(familiar, index)}
-                      disabled={loading}
-                      variant="contained"
-                      startIcon={
-                        loading ? (
-                          <CircularProgress size={16} color="inherit" />
-                        ) : (
-                          <FactCheckIcon />
-                        )
-                      }
-                      sx={{
-                        mt: 3,
-                        borderRadius: 2,
-                        textTransform: "none",
-                        fontWeight: 600,
-                      }}
+                    sx={{
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        mb: 2,
+                    }}
+                >
+                    <Typography
+                        variant="h6"
+                        sx={{ lineHeight: 1.2 }}
                     >
-                      {loading ? "Validando..." : "VALIDAR"}
-                    </Button> }
-
-                  {error && (
-                    <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
-                      {error}
-                    </Alert>
-                  )}
-                </Box>
-
-                {ciudadano && <Divider orientation="vertical" flexItem />}
-
-                <Collapse in={Boolean(ciudadano)} orientation="horizontal" sx={{ flex: ciudadano ? 1 : 0 }}>
-                  {ciudadano && (
-                    <Box>
-                      <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
-                        Validación con RENAPER
-                      </Typography>
-                      
-                      <CiudadanoList
-                        ciudadano={ciudadano}
-                      />
-
-                      {ciudadano.fallecido === "SI" && (
-                        <Alert severity="warning" sx={{ mt: 2, borderRadius: 2 }}>
-                          La persona esta fallecida.
-                        </Alert>
-                      )}
-                      <ValidarButtons estado={estados[index]} setEstado={(e) => setEstado(e, index)}/>
-                          
-                    </Box>
-                  )}
-                </Collapse>
-              </Stack>
-            )
-          })}
-        </Stack>
-
-        <Stack spacing={3}>
-          {nuevosFamiliares.map((familiar, index) => {
-            return (
-              <Stack direction="row" spacing={2} key={index}>
-                <Box sx={{ flex: 1 }}>
-                  <Stack direction="row" sx={{ mb: 1, alignItems: "center" }}>
-                    <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
-                      Datos del hermano
+                        Familiares / referentes
                     </Typography>
-                  </Stack>
+                </Stack>
 
-                  <PersonaList
-                    persona={familiar}
-                  />
+                <Stack spacing={3}>
 
-                  <Button
-                    onClick={() =>
-                      setNuevosFamiliares(nuevosFamiliares.filter((_, i) => i !== index))
-                    }
-                    variant="contained"
-                    color="error"
-                    sx={{ mt: 2 }}
-                  >
-                    Eliminar
-                  </Button>
-                </Box>
-              </Stack>
-            )
-          })}
+                    {familiares.map((familiar, index) => {
 
-          <NuevaPersona personas={nuevosFamiliares} setPersonas={setNuevosFamiliares} />
-        </Stack>
-      </CardContent>
-    </Card>
-  )
+                        const persona = personas[index]
+                        const confirmado =
+                            estados[index] === "confirmado"
+
+                        return (
+                            <Stack
+                                spacing={2}
+                                key={familiar.dni ?? index}
+                            >
+
+                                <ValidarFamiliarDatos
+                                    familiar={familiar}
+                                    estado={estados[index]}
+                                    setEstado={(estado) => {
+                                        setEstados((prev) => {
+                                            const next = [...prev]
+                                            next[index] = estado
+                                            return next
+                                        })
+                                    }}
+                                    setPersona={(nuevaPersona) => {
+                                        setPersonas((prev) => {
+                                            const next = [...prev]
+                                            next[index] = nuevaPersona
+                                            return next
+                                        })
+                                    }}
+                                />
+
+                                {confirmado && persona && (
+                                    <>
+                                        <TelefonoOpcionalForm
+                                            condicion={
+                                                camposVisibles[index].telefono
+                                            }
+                                            telefono={
+                                                telefonos[index]
+                                            }
+                                            setTelefono={(valor) => {
+                                                setTelefonos((prev) => {
+                                                    const next = [...prev]
+                                                    next[index] = valor
+                                                    return next
+                                                })
+
+                                                actualizarPersona(index, {
+                                                    telefono:
+                                                        valor === ""
+                                                            ? null
+                                                            : valor,
+                                                })
+                                            }}
+                                            mostrar={(valor) =>
+                                                cambiarCampo(
+                                                    index,
+                                                    "telefono",
+                                                    valor
+                                                )
+                                            }
+                                        />
+
+                                        <DomicilioOpcionalForm
+                                            condicion={
+                                                camposVisibles[index].domicilio
+                                            }
+                                            domicilio={
+                                                domicilios[index]
+                                            }
+                                            setDomicilio={(valor) => {
+                                                setDomicilios((prev) => {
+                                                    const next = [...prev]
+                                                    next[index] = valor
+                                                    return next
+                                                })
+
+                                                actualizarPersona(index, {
+                                                    domicilio:
+                                                        valor === ""
+                                                            ? null
+                                                            : {
+                                                                nombre: valor,
+                                                                provincia:
+                                                                    provincias[index],
+                                                                departamento:
+                                                                    departamentos[index],
+                                                            } as any,
+                                                })
+                                            }}
+                                            provincia={
+                                                provincias[index]
+                                            }
+                                            setProvincia={(valor) => {
+                                                setProvincias((prev) => {
+                                                    const next = [...prev]
+                                                    next[index] = valor
+                                                    return next
+                                                })
+
+                                                actualizarPersona(index, {
+                                                    domicilio: persona.domicilio
+                                                        ? {
+                                                            ...persona.domicilio,
+                                                            provincia: valor,
+                                                        }
+                                                        : null,
+                                                })
+                                            }}
+                                            departamento={
+                                                departamentos[index]
+                                            }
+                                            setDepartamento={(valor) => {
+                                                setDepartamentos((prev) => {
+                                                    const next = [...prev]
+                                                    next[index] = valor
+                                                    return next
+                                                })
+
+                                                actualizarPersona(index, {
+                                                    domicilio: persona.domicilio
+                                                        ? {
+                                                            ...persona.domicilio,
+                                                            departamento: valor,
+                                                        }
+                                                        : null,
+                                                })
+                                            }}
+                                            mostrar={(valor) =>
+                                                cambiarCampo(
+                                                    index,
+                                                    "domicilio",
+                                                    valor
+                                                )
+                                            }
+                                        />
+                                    </>
+                                )}
+
+                            </Stack>
+                        )
+                    })}
+
+                </Stack>
+
+                <Divider
+                    variant="middle"
+                    sx={{ my: 3 }}
+                />
+
+                <NuevasPersonas
+                    nuevasPersonas={nuevosFamiliares}
+                    setNuevasPersonas={setNuevosFamiliares}
+                    datos_extra={true}
+                />
+
+            </CardContent>
+        </Card>
+    )
 }

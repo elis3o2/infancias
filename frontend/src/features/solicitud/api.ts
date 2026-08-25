@@ -1,5 +1,6 @@
 import http from '@/common/api/client'
 import type { Derivacion, MotivoSolicitud, PrioridadSolicitud, Solicitud, SolicitudCreate, SolicitudSimple } from './types'
+import type { AdolescenteWriteInput, Equipo } from '../persona/types'
 
 
 export const getMotivos = (): Promise<MotivoSolicitud[]> => {
@@ -63,40 +64,17 @@ export const getDerivaciones = (): Promise<Derivacion[]> => {
 
 
 
-type ValidarSolicitudParams = {
-  solicitudId: number
-  descripcionExtra: string | null
-  idPrioridad: number
-  idDerivacion: number
-  adolescenteData: unknown
-  archivoSeleccionado: Set<number>
-  archivosNuevos: { file: File }[]
-}
-
-export const validarSolicitud = ({
-  solicitudId,
-  descripcionExtra,
-  idPrioridad,
-  idDerivacion,
-  adolescenteData,
-  archivoSeleccionado,
-  archivosNuevos,
-}: ValidarSolicitudParams) => {
+export const validarSolicitud = (
+  solicitudId : number,
+  descripcionExtra : string,
+  idPrioridad : number,
+  adolescenteData : AdolescenteWriteInput) => {
   const formData = new FormData()
   formData.append("descripcion_extra", descripcionExtra ?? "")
   formData.append("id_prioridad", String(idPrioridad))
-  formData.append("id_derivacion", String(idDerivacion))
   formData.append("adolescente", JSON.stringify(adolescenteData))
 
   // archivos existentes que quedaron seleccionados -> se validan (valido=true)
-  archivoSeleccionado.forEach((id) => {
-    formData.append("id_archivos", String(id))
-  })
-
-  // archivos nuevos subidos por el usuario
-  archivosNuevos.forEach(({ file }) => {
-    formData.append("archivos", file)
-  })
 
   return http.put(`solicitud/solicitud/${solicitudId}/validar/`, formData, {
     headers: {
@@ -114,4 +92,10 @@ export const getSolicitudSimple = (): Promise<SolicitudSimple[]> => {
   return http.get<SolicitudSimple[]>(`solicitud/solicitud/`).then(res => res.data)
 }
 
+export const derivarSolicitud = (idSolicitud: number, idDerivacion: number) => {
+  return http.put(`solicitud/solicitud/${idSolicitud}/derivar/?equipo_id=${idDerivacion}`)
+}
 
+export const getEquipos = (): Promise<Equipo[]> => {
+  return http.get<Equipo[]>('equipos/').then(res => res.data)
+}

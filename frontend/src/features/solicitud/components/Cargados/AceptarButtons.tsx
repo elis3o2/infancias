@@ -4,41 +4,23 @@ import {
   Card,
   CardContent,
   Collapse,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
+
   Stack,
   TextField,
 } from "@mui/material"
-import { getDerivaciones } from "../../api"
 
 type Props = {
   disabledConfirmar: boolean
   disabledRechazar: boolean
-  onConfirmar: (idDerivacion: number) => void
+  onConfirmar: () => void
   onRechazar: (motivo: string) => void
 }
 
 export const AceptarButtons = ({ disabledConfirmar, disabledRechazar, onConfirmar, onRechazar }: Props) => {
   const [mostrarRechazo, setMostrarRechazo] = useState(false)
-  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false)
 
   const [motivo, setMotivo] = useState("")
-  const [derivaciones, setDerivaciones] = useState<Derivacion[]>([])
-  const [idDerivacion, setIdDerivacion] = useState<number | "">("")
 
-  const handleConfirmar = async () => {
-    const data = await getDerivaciones()
-    setDerivaciones(data)
-    setMostrarConfirmacion(true)
-    setMostrarRechazo(false)
-  }
-
-  const handleEnviarConfirmacion = () => {
-    if (idDerivacion === "") return
-    onConfirmar(idDerivacion)
-  }
 
   const handleEnviarRechazo = () => {
     onRechazar(motivo)
@@ -54,7 +36,7 @@ export const AceptarButtons = ({ disabledConfirmar, disabledRechazar, onConfirma
             <Button
               variant="contained"
               color="success"
-              onClick={handleConfirmar}
+              onClick={onConfirmar}
               disabled={disabledConfirmar}
             >
               Confirmar
@@ -63,40 +45,12 @@ export const AceptarButtons = ({ disabledConfirmar, disabledRechazar, onConfirma
             <Button
               variant="contained"
               color="error"
-              onClick={() => {setMostrarRechazo((v) => !v); setMostrarConfirmacion(false)}}
+              onClick={() => {setMostrarRechazo((v) => !v) }}
               disabled={disabledRechazar}
             >
               Rechazar
             </Button>
           </Stack>
-
-          <Collapse in={mostrarConfirmacion}>
-            <Stack spacing={2}>
-              <FormControl fullWidth>
-                <InputLabel>Derivación</InputLabel>
-                <Select
-                  value={idDerivacion}
-                  label="Derivación"
-                  onChange={(e) => setIdDerivacion(Number(e.target.value))}
-                >
-                  {derivaciones.map((d) => (
-                    <MenuItem key={d.id} value={d.id}>
-                      {d.nombre}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <Button
-                variant="contained"
-                color="success"
-                disabled={idDerivacion === ""}
-                onClick={handleEnviarConfirmacion}
-              >
-                Confirmar derivación
-              </Button>
-            </Stack>
-          </Collapse>
 
           <Collapse in={mostrarRechazo}>
             <Stack spacing={2}>

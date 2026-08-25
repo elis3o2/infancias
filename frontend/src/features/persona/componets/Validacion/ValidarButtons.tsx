@@ -4,12 +4,11 @@ import CancelIcon from "@mui/icons-material/Cancel"
 import CloseIcon from "@mui/icons-material/Close"
 import IconButton from "@mui/material/IconButton"
 import Tooltip from "@mui/material/Tooltip"
-import type { Setter } from "@/common/types"
 
 
 type Props = {
     estado: null | "confirmado" | "rechazado"
-    setEstado: Setter<null | "confirmado" | "rechazado">
+    setEstado: (v : null | "confirmado" | "rechazado") => void
 }
 
 export const ValidarButtons = ({ estado, setEstado } : Props) => {

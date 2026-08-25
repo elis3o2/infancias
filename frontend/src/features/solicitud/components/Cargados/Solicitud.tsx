@@ -79,6 +79,7 @@ export const ValidarSolicitud = () => {
         <Alert severity="info">Solicitud no encontrada.</Alert>
       </Container>
     )
+  console.log(solicitud)
 
   const prioridadColor = PRIORIDAD_COLOR[solicitud.prioridad?.id] ?? "default"
   // ── Vista ──────────────────────────────────────────────────────────────────
@@ -127,7 +128,6 @@ export const ValidarSolicitud = () => {
             )}
       </Alert>
         )}
-
 
         {solicitud.rechazado && (
         <Alert severity="error" icon={<CancelOutlinedIcon />}>

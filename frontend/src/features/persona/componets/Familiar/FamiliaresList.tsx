@@ -1,9 +1,9 @@
-import type { FamiliarCreate } from "../../types"
+import type { Familiar, FamiliarCreate } from "../../types"
 import { Stack, Divider, Box } from "@mui/material"
 import { ListData } from "@/common/components/ListData"
 
 type Props = {
-  familiares: FamiliarCreate[]
+  familiares: FamiliarCreate[] | Familiar[]
   onEliminar?: (n: number) => void
 }
 
@@ -19,6 +19,7 @@ export const FamiliaresList = ({ familiares, onEliminar }: Props) => {
               {...(familiar.sexo != "" && { sexo: familiar.sexo })}
               {...(familiar.domicilio?.nombre != null && { domicilio: familiar.domicilio.nombre})}
               {...(familiar.telefono != null && { telefono: familiar.telefono })}
+              {...(familiar.vinculo != null && { vinculo: familiar.vinculo.nombre })}
               {...(onEliminar != null && {onEditar: () => onEliminar(index) })}
               texto="Eliminar"
             />

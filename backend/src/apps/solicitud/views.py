@@ -13,10 +13,10 @@ from .models import PrioridadSolicitud, MotivoSolicitud, Solicitud, Archivo
 from .serializers import (PrioridadSolicitudSerializer, MotivoSolicitudSerializer, ArchivoSerializer, 
                         SolicitudListSerializer, SolicitudCreateSerializer, SolicitudReadSerializer, SolicitudValReadSerializer, SolicitudWriteSerializer)
 from .permissions import SolicitudPermission
-from .services import crear_solicitud
+from .services import crear_solicitud, validar_solicitud
 from src.permissions import ReadOnly
 from src.utils import enviar_correo
-
+from rest_framework.exceptions import ValidationError
 
 class PrioridadSolicitudViewSet(viewsets.ModelViewSet):
     queryset = PrioridadSolicitud.objects.all()
@@ -175,18 +175,50 @@ class SolicitudViewSet(viewsets.ModelViewSet):
     # VALIDAR
     @action(detail=True, methods=["put"])
     def validar(self, request, *args, **kwargs):
+
         solicitud = self.get_object()
 
-        data = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
+        # Convertir QueryDict a dict normal
+        data = {
+            key: request.data.get(key)
+            for key in request.data.keys()
+        }
 
-        if "adolescente" in data and isinstance(data["adolescente"], str):
-            try:
-                data["adolescente"] = json.loads(data["adolescente"])
-            except json.JSONDecodeError:
-                return Response(
-                    {"adolescente": "El campo adolescente debe contener JSON válido."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        # Normalizar adolescente
+        if "adolescente" in data:
+
+            adolescente_data = data["adolescente"]
+
+            if isinstance(adolescente_data, str):
+                try:
+                    adolescente_data = json.loads(adolescente_data)
+                except json.JSONDecodeError:
+                    return Response(
+                        {
+                            "adolescente": (
+                                "El campo adolescente debe contener JSON válido."
+                            )
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            elif isinstance(adolescente_data, list):
+                if not adolescente_data:
+                    return Response(
+                        {
+                            "adolescente": (
+                                "Los datos del adolescente son obligatorios."
+                            )
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                adolescente_data = adolescente_data[0]
+
+            data["adolescente"] = adolescente_data
+
+        print("\n========== DATA NORMALIZADA ==========")
+        print(data)
 
         serializer = SolicitudWriteSerializer(
             instance=solicitud,
@@ -194,15 +226,51 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             partial=True,
             context={"request": request},
         )
-        serializer.is_valid(raise_exception=True)
 
-        solicitud = validar_solicitud(
-            solicitud=solicitud,
-            datos_validados=serializer.validated_data,
-        )
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "detail": "Error de validación",
+                    "errors": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        return Response(SolicitudWriteSerializer(solicitud).data)
+        print("\n========== VALIDATED DATA ==========")
+        print(serializer.validated_data)
 
+        try:
+            solicitud = validar_solicitud(
+                solicitud=solicitud,
+                data=serializer.validated_data,
+            )
+
+        except ValidationError as e:
+            print("\n========== VALIDATION ERROR ==========")
+            print("TYPE:", type(e).__name__)
+            print("DETAIL:", repr(e.detail))
+            print("======================================\n")
+
+            return Response(
+                {
+                    "detail": "Error al validar la solicitud",
+                    "errors": e.detail,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except Exception as e:
+            import traceback
+
+            print("\n========== UNEXPECTED ERROR ==========")
+            print("TYPE:", type(e).__name__)
+            print("ERROR:", str(e))
+            traceback.print_exc()
+            print("======================================\n")
+
+            raise
+
+        return Response(status=status.HTTP_200_OK)
     # RECHAZAR
     @action(detail=True, methods=["put"])
     def rechazar(self, request, pk=None):

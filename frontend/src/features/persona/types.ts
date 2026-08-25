@@ -28,6 +28,18 @@ export type AdolescenteCreate = {
     referencias_instituciones_data: InstitucionFormData[]
 }
 
+export type Adolescente = {
+    id: number,
+    persona: Persona
+    domicilio: Domicilio,
+    fecha_nacimiento: string
+    escolarizado: boolean | null
+    hermanos: Hermano[]
+    hermanos_validados: Persona[]
+    familiares: Familiar[]
+    familiares_validados: Persona[]
+    referencias_instituciones: Institucion[]
+}
 
 export type AdolescenteInput = {
     dni: string,
@@ -63,6 +75,13 @@ export const AdolescenteInicial : AdolescenteCreate = {
     familiares: [],
     referencias_instituciones_data: []
 }
+
+export type AdolescenteWriteInput = {
+    adolescente_validado: PersonaCreate
+    hermanos_validados: PersonaCreate[]
+    familiares_validados: PersonaCreate[]
+}
+
 
 export type Vinculo = {
     id: number,
@@ -134,6 +153,11 @@ export type Equipo = {
     nombre: string
 }
 
+export type LegajoInsert = {
+    id_insert: number | null
+    letra: "A" | "B" | "C" | null
+    carpeta_id: number | null
+}
 
 export type Persona = {
     nombre: string,
@@ -143,6 +167,38 @@ export type Persona = {
     sexo: "M" | "F"
     telefono: string | null 
     domicilio: Domicilio | null
+    vinculo: Vinculo | null
+    legajo: LegajoInsert
+}
+
+
+
+export type PersonaInput = {
+    nombre: string,
+    apellido: string,
+    dni: string
+    fecha_nacimiento: string
+    sexo: "M" | "F"
+    telefono: string | null 
+    domicilio: DomicilioFormData | null
+    id_vinculo: number | null 
+    legajo: LegajoInsert
+
+}
+
+
+export type PersonaCreate = {
+    nombre: string,
+    apellido: string,
+    dni: string
+    fecha_nacimiento: string
+    sexo: "M" | "F" 
+    telefono: string | null 
+    domicilio: DomicilioFormData | null
+    vinculo: Vinculo | null
+    legajo: LegajoInsert | null
+    id_familiar?: number
+    id_hermano?: number
 }
 
 

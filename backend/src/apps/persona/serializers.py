@@ -67,7 +67,7 @@ class FamiliarSerializer(serializers.ModelSerializer):
 
     vinculo = VinculoSerializer(read_only=True)
     persona = PersonaSerializer(read_only=True)
-
+    domicilio = DomicilioSerializer(required=False, allow_null=True)
     class Meta:
         model = Familiar
         exclude = ["adolescente"]
@@ -122,10 +122,10 @@ class AdolescenteReadSerializer(serializers.ModelSerializer):
 
 
 class AdolescenteValReadSerializer(serializers.ModelSerializer):
-    domicilio = DomicilioSerializer(source="domicilio_extra")
+    domicilio = DomicilioSerializer()
     familiares = serializers.SerializerMethodField()
     familiares_validados = serializers.SerializerMethodField()
-    adolescente_validado = serializers.SerializerMethodField()
+    persona = PersonaSerializer()
     hermanos = serializers.SerializerMethodField() 
     hermanos_validados = serializers.SerializerMethodField()
     referencias_instituciones = serializers.SerializerMethodField()
@@ -135,23 +135,18 @@ class AdolescenteValReadSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "domicilio",
-            "domicilio_observaciones",
             "familiares",
             "familiares_validados",
             "escolarizado",
-            "adolescente_validado",
+            "persona",
             "hermanos", 
             "hermanos_validados",
             "referencias_instituciones",
         ]
 
-    def get_adolescente_validado(self, obj):
-        if obj.adolescente_validado is None:
-            return None
-        return PersonaSerializer(obj.persona).data
 
     def get_hermanos(self, obj):
-        if obj.adolescente_validado is None:
+        if obj.persona is None:
             return []
         
         hermanos = Hermano.objects.filter(
@@ -161,7 +156,7 @@ class AdolescenteValReadSerializer(serializers.ModelSerializer):
         return HermanoSerializer(hermanos, many=True).data
     
     def get_hermanos_validados(self, obj):
-            if obj.adolescente_validado is None:
+            if obj.persona is None:
                 return []
 
             legajos = Legajo.objects.filter(
@@ -197,7 +192,6 @@ class AdolescenteValReadSerializer(serializers.ModelSerializer):
     def get_referencias_instituciones(self, obj):
         referencias = AdolescenteInstitucion.objects.filter(
             adolescente=obj,
-            valido=True
         )
         instituciones = [ref.institucion for ref in referencias]
         return InstitucionSerializer(instituciones, many=True).data

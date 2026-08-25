@@ -4,18 +4,19 @@ from django.db import transaction
 from .models import (DomicilioValidado, Distrito, Vecinal, Barrio, SeccionalPolicial,Institucion, IdentidadBarrial, Domicilio)
 from rest_framework.exceptions import APIException, NotFound
 
-
-
-    
 @transaction.atomic
 def crear_domicilio_validado(datos: dict) -> DomicilioValidado:
 
-    informacion_geo = obtener_direccion(
-        codigo_calle=datos["codigo_calle"],
-        altura=datos["altura"],
-        bis=datos["bis"],
-        letra=datos.get("letra"),
-    )
+    try:
+        informacion_geo = obtener_direccion(
+            codigo_calle=datos["codigo_calle"],
+            altura=datos["altura"],
+            bis=datos["bis"],
+            letra=datos.get("letra"),
+        )
+    except Exception as exc:
+        print(f"ERROR API GEO2: {exc}")
+        informacion_geo = {}
 
     relaciones = {
         "distrito": Distrito,
@@ -26,7 +27,6 @@ def crear_domicilio_validado(datos: dict) -> DomicilioValidado:
     }
 
     for campo, modelo in relaciones.items():
-
         valor = informacion_geo.get(campo)
 
         if valor is None:
@@ -46,10 +46,8 @@ def crear_domicilio_validado(datos: dict) -> DomicilioValidado:
         altura=datos["altura"],
         bis=datos["bis"],
         letra=datos.get("letra"),
-
         nombreInterseccion=datos.get("nombreInterseccion"),
         codigoInterseccion=datos.get("codigoInterseccion"),
-
         coordenada_x=datos.get("coordenada_x"),
         coordenada_y=datos.get("coordenada_y"),
         latitud=datos.get("latitud"),
@@ -70,7 +68,6 @@ def crear_domicilio_validado(datos: dict) -> DomicilioValidado:
         puntoX=informacion_geo.get("puntoX"),
         puntoY=informacion_geo.get("puntoY"),
     )
-    
 
 @transaction.atomic
 def crear_domicilio(datos_domicilio: dict) -> Domicilio:
@@ -106,6 +103,8 @@ def crear_institucion(datos_institucion: dict) -> Institucion:
         **datos_institucion,
     )
 
+
+
 def obtener_direccion(
     codigo_calle: int,
     altura: int,
@@ -130,21 +129,15 @@ def obtener_direccion(
         )
 
         if response.status_code == 404:
-            raise NotFound("No se encontró la dirección.")
+            return {}
 
         response.raise_for_status()
 
         data = response.json()
 
-        print("RESPONSE:", data)
-
-    except NotFound:
-        raise
-
     except requests.RequestException as exc:
-        raise APIException(
-            detail=f"External API error: {str(exc)}"
-        )
+        print(f"ERROR GEO2: {exc}")
+        return {}
 
     resultado = {
         "distrito": None,
@@ -203,7 +196,5 @@ def obtener_direccion(
                 "id": int(codigo),
                 "nombre": nombre,
             }
-
-    print("RESULTADO:", resultado)
 
     return resultado

@@ -14,6 +14,7 @@ export const FamiliarList = ({ familiar }: Props) => {
               {...(familiar.sexo != null && { sexo: familiar.sexo })}
               {...(familiar.domicilio?.nombre != null && { domicilio: familiar.domicilio.nombre})}
               {...(familiar.telefono != null && { telefono: familiar.telefono })}
+              {...(familiar.vinculo != null && { vinculo: familiar.vinculo.nombre })}
             />
   )
 }
