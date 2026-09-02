@@ -3,7 +3,7 @@ import { ListData } from "@/common/components/ListData";
 
 
 type Props = {
-    adolescente : AdolescenteCreate | AdolescenteCrud
+    adolescente : AdolescenteCreate | AdolescenteCrud 
     onEditar?: () => void
 }
 

@@ -20,7 +20,7 @@ export const DireccionForm = ({direccion, setDireccion, setFinishDireccion}: Pro
 
         <Stack spacing={2}>
             <TextField
-                label="Dirección"
+                label="Domicilio"
                 placeholder="Ej: Av. Pellegrini 1234"
                 value={escribiendo}
                 onChange={(e) => setEscribiendo(e.target.value)}

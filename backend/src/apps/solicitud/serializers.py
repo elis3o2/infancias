@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from django.utils import timezone
 from django.db import transaction
-from .models import MotivoSolicitud, PrioridadSolicitud, Solicitud, Archivo
-from src.apps.persona.serializers import ( AdolescenteCreateSerializer, AdolescenteReadSerializer, AdolescenteWriteSerializer,
+from .models import MotivoSolicitud, PrioridadSolicitud, Solicitud, Archivo, SolicitudComentario
+from src.serializers import EquipoSerializer
+from src.apps.persona.serializers import (AdolescenteCreateSerializer, AdolescenteReadSerializer, AdolescenteWriteSerializer,
                                             AdolescenteValReadSerializer)
 from src.apps.domicilio.serializers import InstitucionSerializer
 from src.apps.domicilio.models import Institucion
@@ -12,6 +13,7 @@ class MotivoSolicitudSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoSolicitud
         fields = '__all__'
+
 
 class PrioridadSolicitudSerializer(serializers.ModelSerializer):
 
@@ -26,12 +28,22 @@ class ArchivoSerializer(serializers.ModelSerializer):
         fields = ("id", "nombre", "tipo_mime")
 
 
+class SolicitudComentarioSerializer(serializers.ModelSerializer):
 
+    class Meta:
+        model = SolicitudComentario
+        fields = [
+            "id",
+            "comentario",
+            "fecha_hora_creacion",
+            "fecha_hora_ultmod",
+            "usuario",
+        ]
 
 class SolicitudListSerializer(serializers.ModelSerializer):
-    motivo = MotivoSolicitudSerializer(read_only=True)
+    motivo    = MotivoSolicitudSerializer(read_only=True)
     prioridad = serializers.SerializerMethodField()
-    validado = serializers.BooleanField(read_only=True)
+    validado  = serializers.BooleanField(read_only=True)
     rechazado = serializers.BooleanField(read_only=True)
 
     class Meta:
@@ -46,19 +58,9 @@ class SolicitudListSerializer(serializers.ModelSerializer):
             'rechazado',
         ]
 
-    def get_prioridad(self, obj):
-        if obj.validado and obj.prioridad_extra is not None:
-            return PrioridadSolicitudSerializer(
-                obj.prioridad_extra
-            ).data
-
-        return PrioridadSolicitudSerializer(
-            obj.prioridad
-        ).data
-
 
 class SolicitudCreateSerializer(serializers.ModelSerializer):
-    adolescente    = AdolescenteCreateSerializer()
+    adolescentes   = AdolescenteCreateSerializer(many=True)
     institucion    = InstitucionSerializer(required=False)
     id_institucion = serializers.PrimaryKeyRelatedField(
         queryset=Institucion.objects.all(),
@@ -66,13 +68,11 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
-
     id_motivo = serializers.PrimaryKeyRelatedField(
         queryset=MotivoSolicitud.objects.all(),
         source="motivo",
         write_only=True,
     )
-
     id_prioridad = serializers.PrimaryKeyRelatedField(
         queryset=PrioridadSolicitud.objects.all(),
         source="prioridad",
@@ -93,13 +93,13 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
         ]
 
 
-
 class SolicitudReadSerializer(serializers.ModelSerializer):
-    adolescente = AdolescenteReadSerializer(read_only=True)
-    institucion = InstitucionSerializer(read_only=True)
-    motivo      = MotivoSolicitudSerializer(read_only=True)
-    prioridad   = PrioridadSolicitudSerializer(read_only=True)
-    archivos    = ArchivoSerializer(many=True, read_only=True, source="archivo_set")
+    adolescentes = AdolescenteReadSerializer(many=True, read_only=True)
+    institucion  = InstitucionSerializer(read_only=True)
+    motivo       = MotivoSolicitudSerializer(read_only=True)
+    prioridad    = PrioridadSolicitudSerializer(read_only=True)
+    archivos     = ArchivoSerializer(many=True, read_only=True, source="archivo_set")
+    equipo       = EquipoSerializer()
 
     class Meta:
         model = Solicitud
@@ -116,7 +116,8 @@ class SolicitudReadSerializer(serializers.ModelSerializer):
             "archivos",
             "validado",
             "rechazado",
-            "motivo_rechazo"
+            "motivo_rechazo",
+            "equipo"
         ]
 
 
@@ -126,6 +127,12 @@ class SolicitudValReadSerializer(serializers.ModelSerializer):
     motivo      = MotivoSolicitudSerializer(read_only=True)
     prioridad   = PrioridadSolicitudSerializer(read_only=True, source="prioridad_extra")
     archivos    = serializers.SerializerMethodField()
+    equipo      = EquipoSerializer()
+    comentarios = SolicitudComentarioSerializer(
+        source="solicitudcomentario_set",
+        many=True,
+        read_only=True
+    )
 
     class Meta:
         model = Solicitud
@@ -145,7 +152,8 @@ class SolicitudValReadSerializer(serializers.ModelSerializer):
             "validado",
             "rechazado",
             "motivo_rechazo",
-            "equipo"
+            "equipo",
+            "comentarios"
         ]
 
     def get_archivos(self, obj):
@@ -159,31 +167,12 @@ class SolicitudValReadSerializer(serializers.ModelSerializer):
         ).data
 
 
-
 class SolicitudWriteSerializer(serializers.ModelSerializer):
-
     adolescente = AdolescenteWriteSerializer(required=True)
-    descripcion_extra = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        allow_null=True,
-    )
-
-    id_prioridad = serializers.PrimaryKeyRelatedField(
-        queryset=PrioridadSolicitud.objects.all(),
-        source="prioridad_extra",
-        write_only=True,
-    )
     
-
     class Meta:
         model = Solicitud
         fields = [
             "id",
-            "descripcion_extra",
-            "id_prioridad",
             "adolescente",
         ]
-
-
-

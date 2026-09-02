@@ -1,0 +1,3 @@
+﻿distrito,nombre,direccion,telefonos,titular,clasificacion,motivo
+CENTRO,Escuela Municipal de Artes Urbanas,ESTEVEZ BOERO GUILLERMO 670,4802427,Municipal,Centros culturales y Bibliotecas,fallo DB insert: 1366 (22007): Incorrect integer value: 'Sin Fracción Censal' for column `infancias`.`domicilio_validado`.`fraccion_censal` at row 1
+CENTRO,Estación Rosario 300,ESTEVEZ BOERO GUILLERMO 640,,Municipal,Centros culturales y Bibliotecas,fallo DB insert: 1366 (22007): Incorrect integer value: 'Sin Fracción Censal' for column `infancias`.`domicilio_validado`.`fraccion_censal` at row 1

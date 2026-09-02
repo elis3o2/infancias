@@ -1,10 +1,10 @@
 import type { FamiliarCreate, Vinculo } from "../../types"
 import type { Setter } from "@/common/types"
 import { useState } from "react"
-import { Button, Stack, Card, CardContent, CardActions } from "@mui/material";
+import { Button, Stack } from "@mui/material";
 import { NombreForm } from "../NombreForm"
 import { VinculoForm } from "../VinculoForm"
-import type { Departamento, Provincia } from "@/features/domicilio/types";
+import type { Departamento, DomicilioFormData, Provincia } from "@/features/domicilio/types";
 import { SexoForm } from "../SexoForm";
 import { DniOpcionalForm } from "../DniOpcionalForm";
 import { TelefonoOpcionalForm } from "../TelefonoOpcionalForm";
@@ -13,16 +13,17 @@ import { DomicilioOpcionalForm } from "@/features/domicilio/components/Domicilio
 type Props = {
   setFamiliar: Setter<FamiliarCreate | null>
   setFinishFamiliar: Setter<boolean>
+  domicilios: DomicilioFormData[]
 }
 
-export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
+export const FamiliarForm = ({ setFamiliar, setFinishFamiliar, domicilios }: Props) => {
   const [nombre, setNombre] = useState("")
   const [apellido, setApellido] = useState("")
   const [telefono, setTelefono] = useState("")
   const [vinculoSeleccionado, setVinculoSeleccionado] = useState<Vinculo | null>(null)
   const [sexo, setSexo] = useState<"M" | "F" | "">("")
   const [dni, setDni] = useState("")
-  const [domicilio, setDomicilio] = useState("")
+  const [domicilio, setDomicilio] = useState<DomicilioFormData>(null)
   const [depatamento, setDepartamento] = useState<Departamento | null> (null)
   const [provincia, setProvincia] = useState<Provincia | null>(null)
 
@@ -43,27 +44,18 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
     apellido.trim() !== "" &&
     vinculoSeleccionado !== null &&
     (camposVisibles.telefono? telefono.length == 10 : true) &&
-    (camposVisibles.domicilio? depatamento != null && provincia !=null : true) &&
+    (camposVisibles.domicilio? domicilio != null : true) &&
     (camposVisibles.dni? dni.length == 8 || dni.length == 7 : true)
 
   const handleCargar = () => {
     if (!formCompleto) return
     
-    let domSeleccionado
-    if (domicilio == "" || depatamento == null || vinculoSeleccionado == null)
-      domSeleccionado = null
-    else
-      domSeleccionado = {nombre: domicilio,
-                      id_departamento: depatamento.id,
-                      domicilio_validado: null,
-                      observaciones:  null
-                    }
     setFamiliar({
       nombre,
       apellido,
       telefono: camposVisibles.telefono? telefono : null,
       vinculo: vinculoSeleccionado,
-      domicilio: domSeleccionado,
+      domicilio: domicilio,
       dni,
       sexo
     })
@@ -71,9 +63,7 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
     setFinishFamiliar(true)
   }
 
-  return (
-    <Card  sx={{ minWidth: 1028 }}>
-    <CardContent>
+  return (<>
       <Stack spacing={2}>
         <NombreForm
           label="Nombre"
@@ -111,6 +101,7 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
         <DomicilioOpcionalForm
           condicion={camposVisibles.domicilio}
           domicilio={domicilio}
+          domicilios={domicilios}
           setDomicilio={setDomicilio}
           provincia={provincia}
           setProvincia={setProvincia}
@@ -119,17 +110,15 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar }: Props) => {
           mostrar={(v) => cambiarCampo("domicilio", v)}
         />
       </Stack>
-    </CardContent>
-      <CardActions>
-        <Button
-          variant="contained"
-          onClick={handleCargar}
-          disabled={!formCompleto}
-          fullWidth
-        >
-          Cargar familiar / referente
-        </Button>
-      </CardActions>
-    </Card>
+
+      <Button
+        variant="contained"
+        onClick={handleCargar}
+        disabled={!formCompleto}
+        fullWidth
+      >
+        Cargar familiar / referente
+      </Button>
+  </>
   )
 }

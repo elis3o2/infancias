@@ -5,7 +5,7 @@ from .models import Solicitud, Archivo
 from src.apps.domicilio.models import Institucion
 from src.apps.domicilio.services import crear_institucion 
 from src.models import Equipo
-from src.apps.persona.services import (crear_adolescente, validar_adolescente, validar_hermano, validar_familiar)
+from src.apps.persona.services import (crear_adolescente, validar_adolescente, validar_familiar)
 from src.utils import enviar_correo
 from django.core.files.uploadedfile import UploadedFile
 
@@ -28,9 +28,8 @@ def crear_solicitud(datos_solicitud: dict, archivos: list[UploadedFile] | None =
     elif isinstance(institucion_data, Institucion):
         institucion_obj = institucion_data
         institucion_obj.save()
-    print("ANTES")
+
     adolescente_obj = crear_adolescente(adolescente_data)
-    print(adolescente_obj)
     datos_solicitud["institucion"] = institucion_obj
     datos_solicitud["adolescente"] = adolescente_obj
     
@@ -49,12 +48,12 @@ def crear_solicitud(datos_solicitud: dict, archivos: list[UploadedFile] | None =
                 contenido=file.read(),
             )
 
-    #if solicitud.correo:
-    #    enviar_correo(
-    #        subject="FORMULARIO PROBLEMÁTICA",
-    #        body="La solicitud fue enviada correctamente.",
-    #        to_emails=[solicitud.correo],
-    #    )
+    if solicitud.correo:
+        enviar_correo(
+            subject="FORMULARIO PROBLEMÁTICA",
+            body="La solicitud fue enviada correctamente.",
+            to_emails=[solicitud.correo],
+        )
 
     return solicitud
 
@@ -66,7 +65,6 @@ def validar_solicitud(solicitud: Solicitud, data: dict) -> Solicitud:
     
     data = data.copy()
 
-    print("DATA", data)
     adolescente_data = data.pop("adolescente", None)
 
     if adolescente_data:
@@ -75,12 +73,6 @@ def validar_solicitud(solicitud: Solicitud, data: dict) -> Solicitud:
             data=adolescente_data.get("adolescente_validado"), 
         )
 
-        for hermano_data in adolescente_data.get("hermanos_validados", []):
-            validar_hermano(
-                adolescente=solicitud.adolescente,
-                persona_adolescente=persona_adolescente,
-                data=hermano_data,
-            )
 
         for familiar_data in adolescente_data.get("familiares_validados", []):
             validar_familiar(
@@ -96,13 +88,13 @@ def validar_solicitud(solicitud: Solicitud, data: dict) -> Solicitud:
     solicitud.equipo_id = ID_ADMISION
     solicitud.save()
 
-    #if solicitud.correo:
-    #    enviar_correo(
-    #        subject="FORMULARIO PROBLEMÁTICA",
-    #        body="Su solicitud fue aprobada.",
-    #        to_emails=[solicitud.correo],
-    #    )
-#
+    if solicitud.correo:
+        enviar_correo(
+            subject="FORMULARIO PROBLEMÁTICA",
+            body="Su solicitud fue derivada al equipo de admisión.",
+            to_emails=[solicitud.correo],
+        )
+
     return solicitud
 
 
@@ -127,17 +119,17 @@ def rechazar_solicitud(solicitud, motivo: str):
         ]
     )
 
-    #if solicitud.correo:
-    #    enviar_correo(
-    #        subject="FORMULARIO PROBLEMÁTICA",
-    #        body=(
-    #            "Su solicitud fue rechazada. "
-    #            "A continuación se detallan los motivos.\n\n"
-    #            f"{motivo}"
-    #        ),
-    #        to_emails=[solicitud.correo],
-    #    )
-#
+    if solicitud.correo:
+        enviar_correo(
+            subject="FORMULARIO PROBLEMÁTICA",
+            body=(
+                "Su solicitud fue rechazada. "
+                "A continuación se detallan los motivos.\n\n"
+                f"{motivo}"
+            ),
+            to_emails=[solicitud.correo],
+        )
+
     return solicitud
 
 
@@ -159,14 +151,14 @@ def derivar_solicitud(solicitud: Solicitud, equipo_id: str) -> Solicitud:
 
     solicitud.save(update_fields=["equipo", "fecha_hora_admision"])
 
-    #if solicitud.correo:
-    #    enviar_correo(
-    #        subject="FORMULARIO PROBLEMÁTICA",
-    #        body=(
-    #            "Su solicitud fue derivada al siguiente equipo: "
-    #            f"{equipo.nombre}"
-    #        ),
-    #        to_emails=[solicitud.correo],
-    #    )
+    if solicitud.correo:
+        enviar_correo(
+            subject="FORMULARIO PROBLEMÁTICA",
+            body=(
+                "Su solicitud fue derivada al siguiente equipo: "
+                f"{equipo.nombre}"
+            ),
+            to_emails=[solicitud.correo],
+        )
 
     return solicitud

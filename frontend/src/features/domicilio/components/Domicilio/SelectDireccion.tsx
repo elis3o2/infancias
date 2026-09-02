@@ -3,7 +3,7 @@ import { Box, List, ListItemButton, ListItemText, Alert } from "@mui/material";
 import type { APIGeo1 } from "@/features/domicilio/types";
 import { getGeo } from "@/features/domicilio/api";
 import type { Setter } from "@/common/types";
-import { Mapa } from "./Mapa";
+import { Mapa } from "../Mapa";
 
 
 type Props = {

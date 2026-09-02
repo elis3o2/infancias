@@ -1,4 +1,5 @@
-import { Box, Card, CardContent, Stack, Typography } from "@mui/material"
+import { TitledCard } from "@/common/components/TitleCard"
+import { Box, Typography } from "@mui/material"
 
 type Props = {
   nombre: string
@@ -7,14 +8,10 @@ type Props = {
 
 export const DescripcionCard = ({ nombre, texto }: Props) => {
   return (
-    <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
-      <CardContent>
-        <Stack spacing={2}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <Typography variant="h6">{nombre}</Typography>
-          </Stack>
-
-          <Box
+    <TitledCard
+      titulo={nombre}
+      componente={
+        <Box
             sx={{
               bgcolor: "action.hover",
               borderRadius: 2,
@@ -24,13 +21,12 @@ export const DescripcionCard = ({ nombre, texto }: Props) => {
           >
             <Typography
               variant="body1"
-              sx={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+              sx={{whiteSpace: "pre-wrap", wordBreak: "break-word" }}
             >
               {texto || "Sin datos"}
             </Typography>
-          </Box>
-        </Stack>
-      </CardContent>
-    </Card>
+        </Box>
+      }
+    />
   )
 }

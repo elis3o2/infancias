@@ -33,7 +33,6 @@ CREATE TABLE IF NOT EXISTS identidad_barrial(
 );
 
 
-
 CREATE TABLE IF NOT EXISTS domicilio_validado (
     id INT AUTO_INCREMENT PRIMARY KEY,
     codigo_calle INT NULL,
@@ -129,7 +128,7 @@ CREATE TABLE IF NOT EXISTS persona (
     nombre VARCHAR(32) NOT NULL,
     apellido VARCHAR(32) NOT NULL,
     fecha_nacimiento DATE NOT NULL,
-    id_legajo INT NOT NULL,
+    id_legajo INT NULL,
     FOREIGN KEY (id_legajo) REFERENCES legajo(id)
 );
 
@@ -169,52 +168,6 @@ CREATE TABLE IF NOT EXISTS persona_telefono (
     FOREIGN KEY (id_persona) REFERENCES persona(id)
 );
 
-CREATE TABLE IF NOT EXISTS adolescente (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    dni VARCHAR(9) NOT NULL,
-    sexo  CHAR NOT NULL,
-    nombre VARCHAR(32) NOT NULL,
-    apellido VARCHAR(32) NOT NULL,
-    id_domicilio INT NOT NULL,
-    fecha_nacimiento DATE NOT NULL,
-    escolarizado BOOLEAN NULL,
-    id_persona INT NULL,
-    FOREIGN KEY (id_domicilio) REFERENCES domicilio (id),
-    FOREIGN KEY (id_persona) REFERENCES persona (id)
-);
-
-
-CREATE TABLE IF NOT EXISTS hermano (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    dni VARCHAR(9) NOT NULL,
-    sexo  CHAR NOT NULL,
-    nombre VARCHAR(32) NOT NULL,
-    apellido VARCHAR(32) NOT NULL,
-    fecha_nacimiento DATE NOT NULL,
-    id_adolescente INT NOT NULL,
-    id_persona INT NULL,
-    FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
-    FOREIGN KEY (id_persona) REFERENCES persona (id)
-);
-
-
-CREATE TABLE IF NOT EXISTS familiar (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(32) NOT NULL,
-    apellido VARCHAR(32) NOT NULL,
-    sexo CHAR NULL,
-    dni VARCHAR(9) NULL,
-    id_adolescente INT NOT NULL,
-    id_vinculo INT NOT NULL,
-    telefono VARCHAR(16) NULL,
-    id_persona INT NULL,
-    id_domicilio INT NULL,
-    FOREIGN KEY (id_adolescente) REFERENCES adolescente (id),
-    FOREIGN KEY (id_vinculo) REFERENCES vinculo (id),
-    FOREIGN KEY (id_persona) REFERENCES persona (id),
-    FOREIGN KEY (id_domicilio) REFERENCES domicilio(id)
-);
-
 
 CREATE TABLE IF NOT EXISTS motivo_solicitud (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -239,12 +192,9 @@ CREATE TABLE IF NOT EXISTS solicitud (
     id_institucion INT NOT NULL,
     correo VARCHAR(32) NOT NULL,
     telefono VARCHAR(32) NOT NULL,
-    id_adolescente INT NOT NULL,
     id_motivo INT NOT NULL,
     id_prioridad INT NOT NULL,
-    id_prioridad_extra INT NULL,
     descripcion VARCHAR(256) NULL,
-    descripcion_extra VARCHAR(256) NULL,
     fecha_hora_creacion DATETIME NOT NULL,
     fecha_hora_entrada DATETIME NULL,
     fecha_hora_admision DATETIME NULL,
@@ -255,10 +205,45 @@ CREATE TABLE IF NOT EXISTS solicitud (
     id_usuario_entrada INT NULL,
     id_usuario_admision INT NULL,
     FOREIGN KEY (id_institucion) REFERENCES institucion(id),
-    FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
     FOREIGN KEY (id_motivo) REFERENCES motivo_solicitud(id),
     FOREIGN KEY (id_prioridad) REFERENCES prioridad_solicitud(id),
     FOREIGN KEY (id_equipo) REFERENCES equipo(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS adolescente (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    dni VARCHAR(9) NOT NULL,
+    sexo  CHAR NOT NULL,
+    nombre VARCHAR(32) NOT NULL,
+    apellido VARCHAR(32) NOT NULL,
+    id_domicilio INT NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
+    escolarizado BOOLEAN NULL,
+    id_persona INT NULL,
+    id_solicitud INT NOT NULL
+    FOREIGN KEY (id_domicilio) REFERENCES domicilio (id),
+    FOREIGN KEY (id_persona) REFERENCES persona (id),
+    FOREIGN KEY (id_solicitud) REFERENCES solicitud(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS familiar (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(32) NOT NULL,
+    apellido VARCHAR(32) NOT NULL,
+    sexo CHAR NULL,
+    dni VARCHAR(9) NULL,
+    id_adolescente INT NOT NULL,
+    id_vinculo INT NOT NULL,
+    telefono VARCHAR(16) NULL,
+    id_persona INT NULL,
+    id_domicilio INT NULL,
+    convive BOOLEAN NOT NULL,
+    FOREIGN KEY (id_adolescente) REFERENCES adolescente (id),
+    FOREIGN KEY (id_vinculo) REFERENCES vinculo (id),
+    FOREIGN KEY (id_persona) REFERENCES persona (id),
+    FOREIGN KEY (id_domicilio) REFERENCES domicilio(id)
 );
 
 
@@ -278,4 +263,15 @@ CREATE TABLE IF NOT EXISTS adolescente_institucion (
     id_institucion INT NOT NULL,
     FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
     FOREIGN KEY (id_institucion) REFERENCES institucion(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS solicitud_comentario (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_solicitud INT NOT NULL,
+    comentario VARCHAR(256) NOT NULL,
+    fecha_hora_creacion DATETIME NOT NULL,
+    fecha_hora_ultmod DATETIME NOT NULL,
+    id_usuario INT NOT NULL,
+    FOREIGN KEY (id_solicitud) REFERENCES solicitud(id)
 );

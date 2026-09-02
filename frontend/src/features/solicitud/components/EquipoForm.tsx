@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react"
-import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  type SelectChangeEvent,
-} from "@mui/material"
+import { FormControl, InputLabel, MenuItem, Select, type SelectChangeEvent } from "@mui/material"
 
 import { getEquipos } from "../api"
 import type { Equipo } from "@/features/persona/types"
@@ -15,10 +9,7 @@ type Props = {
   onChange: (equipoId: number) => void
 }
 
-export default function EquipoSelect({
-  equipoId,
-  onChange,
-}: Props) {
+export default function EquipoSelect({ equipoId, onChange }: Props) {
 
   const [equipos, setEquipos] = useState<Equipo[]>([])
   const [cargando, setCargando] = useState(true)

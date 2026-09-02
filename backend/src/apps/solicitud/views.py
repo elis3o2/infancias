@@ -1,4 +1,5 @@
 import json
+import traceback
 from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from rest_framework.views import APIView
@@ -9,11 +10,11 @@ from django.http import HttpResponse
 from django.db import transaction
 from django.utils import timezone
 from django.db.models.functions import Coalesce
-from .models import PrioridadSolicitud, MotivoSolicitud, Solicitud, Archivo
+from .models import PrioridadSolicitud, MotivoSolicitud, Solicitud, Archivo, SolicitudComentario
 from .serializers import (PrioridadSolicitudSerializer, MotivoSolicitudSerializer, ArchivoSerializer, 
                         SolicitudListSerializer, SolicitudCreateSerializer, SolicitudReadSerializer, SolicitudValReadSerializer, SolicitudWriteSerializer)
 from .permissions import SolicitudPermission
-from .services import crear_solicitud, validar_solicitud
+from .services import crear_solicitud, validar_solicitud, derivar_solicitud, rechazar_solicitud
 from src.permissions import ReadOnly
 from src.utils import enviar_correo
 from rest_framework.exceptions import ValidationError
@@ -31,8 +32,6 @@ class MotivoSolicitudViewSet(viewsets.ModelViewSet):
 
 
 class SolicitudViewSet(viewsets.ModelViewSet):
-
-    permission_classes = [SolicitudPermission]
 
     queryset = Solicitud.objects.annotate(
         fecha_orden=Coalesce(
@@ -58,7 +57,7 @@ class SolicitudViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         solicitud = self.get_object()
 
-        if solicitud.validado:
+        if solicitud.validado or solicitud.rechazado:
             serializer = SolicitudValReadSerializer(
                 solicitud,
                 context={"request": request}
@@ -74,44 +73,27 @@ class SolicitudViewSet(viewsets.ModelViewSet):
     # QUERYSET SEGUN GRUPO
     def get_queryset(self):
         qs = super().get_queryset()
+
+        user = self.request.user
+
+        if not user.is_authenticated:
+            return qs.none()
+
+        if not user.equipo:
+            return qs.none()
+
+        qs = qs.filter(equipo=user.equipo)
+        
         desde = self.request.query_params.get("desde")
         hasta = self.request.query_params.get("hasta")
-
         if desde:
             qs = qs.filter(fecha_orden__date__gte=desde)
 
         if hasta:
             qs = qs.filter(fecha_orden__date__lte=hasta)
 
-        if not self.request.user.is_authenticated:
-            return qs.none()
-
-        user = self.request.user
-
-        # ENTRADA:
-        # puede ver todas las solicitudes.
-        if user.groups.filter(name="entrada").exists():
-            return qs
-
-        # GUARDIA:
-        # solamente solicitudes validadas y derivadas a guardia.
-        if user.groups.filter(name="guardia").exists():
-            return qs.filter(
-                validado=True,
-                rechazado=False,
-            )
-
-        # ADMISION:
-        # solamente solicitudes validadas y derivadas a admision.
-        if user.groups.filter(name="admision").exists():
-            return qs.filter(
-                validado=True,
-                rechazado=False,
-            )
-
-        # Usuario autenticado pero sin grupo
-        return qs.none()
-
+        return qs
+    
     # CREAR
     def create(self, request, *args, **kwargs):
         data = {}
@@ -228,14 +210,13 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         )
 
         if not serializer.is_valid():
-            return Response(
-                {
-                    "detail": "Error de validación",
-                    "errors": serializer.errors,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            print("ERROR SERIALIZER:")
+            print(serializer.errors)
 
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
         print("\n========== VALIDATED DATA ==========")
         print(serializer.validated_data)
 
@@ -293,19 +274,79 @@ class SolicitudViewSet(viewsets.ModelViewSet):
     def derivar(self, request, pk=None):
         solicitud = self.get_object()
 
-        equipo_id = request.data.get("equipo_id")
-
-        if not equipo_id:
-            raise ValidationError({"equipo_id": "El ID del equipo es requerido para derivar."})
-
-        solicitud = derivar_solicitud(
-            solicitud=solicitud,
-            equipo_id=equipo_id
+        equipo_id = (
+            request.data.get("equipo_id")
+            or request.query_params.get("equipo_id")
         )
 
-        return Response(self.get_serializer(solicitud).data)
+        print("\n========== DERIVAR ==========")
+        print("Solicitud:", solicitud.id)
+        print("Request data:", request.data)
+        print("Query params:", request.query_params)
+        print("Equipo ID:", equipo_id)
 
+        if not equipo_id:
+            raise ValidationError({
+                "equipo_id": (
+                    "El ID del equipo es requerido para derivar."
+                )
+            })
 
+        try:
+            solicitud = derivar_solicitud(
+                solicitud=solicitud,
+                equipo_id=equipo_id,
+            )
+
+        except ValidationError as exc:
+            print("\n========== VALIDATION ERROR ==========")
+            print("TYPE:", type(exc).__name__)
+            print("DETAIL:", exc.detail)
+            print("======================================\n")
+            raise
+
+        except Exception as exc:
+            print("\n========== ERROR AL DERIVAR ==========")
+            print("TYPE:", type(exc).__name__)
+            print("DETAIL:", str(exc))
+            traceback.print_exc()
+            print("======================================\n")
+
+            return Response(
+                {
+                    "error": type(exc).__name__,
+                    "detail": str(exc),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(
+            status=status.HTTP_200_OK
+        )
+    
+    @action(detail=True, methods=["post"])
+    def comentar(self, request, pk=None):
+        solicitud = self.get_object()
+
+        comentario = request.data.get("comentario")
+
+        if not comentario:
+            return Response(
+                {"error": "El comentario es obligatorio"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        comentario_obj = SolicitudComentario.objects.create(
+            solicitud=solicitud,
+            comentario=comentario,
+            fecha_hora_creacion=timezone.now(),
+            fecha_hora_ultmod=timezone.now(),
+            usuario=request.user,
+        )
+
+        return Response(
+            status=status.HTTP_201_CREATED
+        )
 
 class ArchivoViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Archivo.objects.all()

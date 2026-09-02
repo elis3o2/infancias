@@ -1,9 +1,4 @@
-import {
-    ToggleButton,
-    ToggleButtonGroup,
-    Typography,
-    Stack,
-} from "@mui/material"
+import { ToggleButton, ToggleButtonGroup, Typography, Stack} from "@mui/material"
 
 type Props = {
     escolarizado: boolean | null
@@ -67,7 +62,7 @@ export const EscolarizadoForm = ({escolarizado, setEscolarizado}: Props) => {
                 </ToggleButton>
 
                 <ToggleButton value="no_se_sabe">
-                    No se sabe
+                    Desconocido
                 </ToggleButton>
             </ToggleButtonGroup>
 

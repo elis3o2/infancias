@@ -63,6 +63,7 @@ export const ValidarFamiliarDatos = ({ familiar, estado, setEstado, setPersona }
         const nuevaPersona = {
             ...ciudadanoToPersona(ciudadano),
             id_familiar: familiar.id,
+            id_vinculo: familiar.vinculo.id
         }
 
         setPersona(nuevaPersona)

@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader} from "@mui/material"
 import { ContactoList } from "./ContactoList"
+import { TitledCard } from "@/common/components/TitleCard"
 
 type Props = {
   telefono: string
@@ -8,17 +8,14 @@ type Props = {
 
 export const ContactoCard = ({telefono, correo}: Props) => {
   return (
-    <Card sx={{minWidth: 1028}}> 
-    <CardHeader
-          title="Datos de contacto"
-          titleTypographyProps={{ variant: 'h6', fontWeight: 300 }}
-        />
-      <CardContent>
-        <ContactoList
+    <TitledCard
+      titulo="Datos de contacto"
+      componente={
+        <ContactoList 
           telefono={telefono}
           correo={correo}
         />
-      </CardContent>
-    </Card>
+      }
+    />
   )
 }

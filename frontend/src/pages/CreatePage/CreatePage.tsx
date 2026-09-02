@@ -1,8 +1,7 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Box, Button, Typography} from '@mui/material'
 import type { AdolescenteCreate, FamiliarCreate, HermanoCreate } from "@/features/persona/types"
-import { AdolescenteInicial } from "@/features/persona/types"
-import { InstitucionInicial, type InstitucionFormData } from "@/features/domicilio/types"
+import { InstitucionInicial, type DomicilioFormData, type InstitucionFormData } from "@/features/domicilio/types"
 import type { Archivo, MotivoSolicitud, PrioridadSolicitud, SolicitudCreate } from "@/features/solicitud/types"
 import { AdolescenteComponent } from "@/features/persona/componets/Adolescente/AdolescenteComponent"
 import { SolicitudComponent } from "@/features/solicitud/components/SolicitudSection/SolicitudComponent"
@@ -11,7 +10,7 @@ import { FamiliaresComponent } from "@/features/persona/componets/Familiar/Famil
 import { ArchivoComponent } from "@/features/solicitud/components/Archivo/ArchivoComponent"
 import { InstitucionComponent } from "@/features/domicilio/components/Institucion/InstitucionComponent"
 import { postSolicitud } from "@/features/solicitud/api"
-import { AlertMessage } from "@/common/components"
+import AlertMessage from "@/common/components/AlertMessage"
 import type { AlertSeverity } from "@/common/types"
 import { ReferenciaInstitucionComponent } from "@/features/domicilio/components/Institucion/ReferenciaInstitucionesComponent"
 import { Footer } from "@/common/layouts/Footer"
@@ -26,7 +25,8 @@ export const CreatePage = () => {
   const [finishContacto, setFinishContacto] = useState(false)
   const [institucion, setInstitucion] = useState<InstitucionFormData>(InstitucionInicial)
   const [finishInstitucion, setFinishInstitucion] = useState(false)
-  const [adolescente, setAdolescente] = useState<AdolescenteCreate>(AdolescenteInicial)
+  const [adolescentes, setAdolescentes] = useState<AdolescenteCreate[]>([])
+  const [domicilios, setDomicilios] = useState<DomicilioFormData[]>([])
   const [familiares, setFamiliares] = useState<FamiliarCreate[]>([])
   const [finishFamiliar, setFinishFamiliar] = useState(false)
   const [hermanos, setHermanos] = useState<HermanoCreate[]>([])
@@ -44,17 +44,16 @@ export const CreatePage = () => {
   const [alertSeverity, setAlertSeverity] = useState<AlertSeverity>("success")
   const [enviado, setEnviado] = useState(false)
   
-  console.log(familiares)
 async function handleEnviar() {
 
   const adolescenteActualizado = {
-      ...adolescente,
+      ...adolescentes,
       familiares,
       hermanos,
   }
 
   console.log("ADOLESCENTE", adolescenteActualizado)
-  setAdolescente(adolescenteActualizado)
+  setAdolescentes(adolescenteActualizado)
   const institucionInput = institucionFormToInstitucionInput(institucion)
   const adolescenteInput = adolescenteCreateToAdolescenteInput(adolescenteActualizado)
 
@@ -96,6 +95,18 @@ async function handleEnviar() {
     }
   }
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "instant",
+      })
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [])
+
 return (
   <>
     <Header/>
@@ -132,14 +143,12 @@ return (
             setFinishInstitucion={setFinishInstitucion}
           />
           <AdolescenteComponent
-            adolescente={adolescente}
-            setAdolescente={setAdolescente}
-            finishAdolescente={finishAdolescente}
-            setFinishAdolescente={setFinishAdolescente}
+            adolescentes={adolescentes}
+            setAdolescentes={setAdolescentes}
+            domicilios={domicilios}
+            setDomicilios={setDomicilios}
           />
           <SolicitudComponent
-            prioridadSeleccionada={prioridadSeleccionada}
-            setPrioridadSeleccionada={setPrioridadSeleccionada}
             motivoSeleccionado={motivoSeleccionado}
             setMotivoSeleccionado={setMotivoSeleccionado}
             descripcion={descripcion}
@@ -152,12 +161,7 @@ return (
             setFamiliares={setFamiliares}
             finishFamiliar={finishFamiliar}
             setFinishFamiliar={setFinishFamiliar}
-          />
-          <HermanosComponent
-            hermanos={hermanos}
-            setHermanos={setHermanos}
-            finishHermano={finishHermano}
-            setFinishHermano={setFinishHermano}
+            domicilios={domicilios}
           />
           <ReferenciaInstitucionComponent
             instituciones={referencias}

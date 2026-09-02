@@ -17,7 +17,7 @@ export const ContactoForm = ({telefono, setTelefono, correo, setCorreo, setFinis
   const [correoValido, setCorreoValido] = useState(correoEsValido(correo))
 
   return (
-    <Box sx={{minWidth: 1028, display: 'flex', flexDirection: 'column', gap: 2}}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2}}>
       <TelefonoComponent telefono={telefono} setTelefono={setTelefono} />
       <CorreoForm correo={correo} setCorreo={setCorreo} onValidChange={setCorreoValido} />
       <Button

@@ -16,29 +16,29 @@ export const MotivodForm = ({motivoSeleccionado, setMotivoSeleccionado}: Props) 
 
 
     useEffect(() => {
-        let activo = true
-    
-        const cargarOpciones = async () => {
-          try {
-            const [dataMotivodes] = await Promise.all([
-              getMotivos(),
-            ])
-            if (activo) {
-              setMotivos(dataMotivodes)
-            }
-          } finally {
-            if (activo) {
-              setCargando(false)
-            }
+      let activo = true
+  
+      const cargarOpciones = async () => {
+        try {
+          const [dataMotivodes] = await Promise.all([
+            getMotivos(),
+          ])
+          if (activo) {
+            setMotivos(dataMotivodes)
+          }
+        } finally {
+          if (activo) {
+            setCargando(false)
           }
         }
-    
-        cargarOpciones()
-    
-        return () => {
-          activo = false
-        }
-      }, [])
+      }
+  
+      cargarOpciones()
+  
+      return () => {
+        activo = false
+      }
+    }, [])
 
     if (cargando) {
         return <CircularProgress size={24} />
@@ -46,23 +46,23 @@ export const MotivodForm = ({motivoSeleccionado, setMotivoSeleccionado}: Props) 
       
     return (
     <FormControl fullWidth required>
-        <InputLabel id="motivo-label">Motivo</InputLabel>
-        <Select
-            labelId="motivo-label"
-            label="Motivo"
-            value={motivoSeleccionado?.id ?? ""}
-            onChange={(e) => {
-              const idSeleccionado = Number(e.target.value)
-              const motivo = motivos.find((m) => m.id === idSeleccionado) ?? null
-              setMotivoSeleccionado(motivo)
-            }}
-        >
-            {motivos.map((motivo) => (
-            <MenuItem key={motivo.id} value={motivo.id}>
-                {motivo.nombre}
-            </MenuItem>
-            ))}
-        </Select>
+      <InputLabel id="motivo-label">Motivo</InputLabel>
+      <Select
+        labelId="motivo-label"
+        label="Motivo"
+        value={motivoSeleccionado?.id ?? ""}
+        onChange={(e) => {
+          const idSeleccionado = Number(e.target.value)
+          const motivo = motivos.find((m) => m.id === idSeleccionado) ?? null
+          setMotivoSeleccionado(motivo)
+        }}
+      >
+        {motivos.map((motivo) => (
+        <MenuItem key={motivo.id} value={motivo.id}>
+            {motivo.nombre}
+        </MenuItem>
+        ))}
+      </Select>
     </FormControl>
     )
 } 

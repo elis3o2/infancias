@@ -3,7 +3,7 @@ import { Button,  Stack } from "@mui/material"
 import AddIcon from "@mui/icons-material/Add"
 import type { Setter } from "@/common/types"
 import type { PersonaCreate } from "../../types"
-import { AgregarPersona } from "./AgregarPersona"
+import { AgregarPersona } from "../Persona/AgregarPersona"
 
 type Props = {
   personas: PersonaCreate[]

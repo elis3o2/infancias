@@ -1,5 +1,5 @@
 import http from '@/common/api/client'
-import type { Derivacion, MotivoSolicitud, PrioridadSolicitud, Solicitud, SolicitudCreate, SolicitudSimple } from './types'
+import type { MotivoSolicitud, PrioridadSolicitud, Solicitud, SolicitudCreate, SolicitudSimple } from './types'
 import type { AdolescenteWriteInput, Equipo } from '../persona/types'
 
 
@@ -58,20 +58,12 @@ export const getArchivoById = (id: number) => {
 };
 
 
-export const getDerivaciones = (): Promise<Derivacion[]> => {
-  return http.get<Derivacion[]>(`solicitud/derivacion/`).then(res => res.data)
-}
-
-
-
 export const validarSolicitud = (
   solicitudId : number,
   descripcionExtra : string,
-  idPrioridad : number,
   adolescenteData : AdolescenteWriteInput) => {
   const formData = new FormData()
   formData.append("descripcion_extra", descripcionExtra ?? "")
-  formData.append("id_prioridad", String(idPrioridad))
   formData.append("adolescente", JSON.stringify(adolescenteData))
 
   // archivos existentes que quedaron seleccionados -> se validan (valido=true)
@@ -86,7 +78,6 @@ export const validarSolicitud = (
 export const rechazarSolicitud = (id: number, motivo: string) => {
   return http.put(`solicitud/solicitud/${id}/rechazar/?motivo=${motivo}`).then(res => res.data)
 }
-
 
 export const getSolicitudSimple = (): Promise<SolicitudSimple[]> => {
   return http.get<SolicitudSimple[]>(`solicitud/solicitud/`).then(res => res.data)

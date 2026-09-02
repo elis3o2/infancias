@@ -1,16 +1,5 @@
 import type { Hermano, Ciudadano, PersonaCreate } from "../../types"
-
-import {
-    Alert,
-    Box,
-    Button,
-    CircularProgress,
-    Collapse,
-    Divider,
-    Stack,
-    Typography,
-} from "@mui/material"
-
+import { Alert, Box, Button, CircularProgress, Collapse, Divider, Stack, Typography } from "@mui/material"
 import FactCheckIcon from "@mui/icons-material/FactCheck"
 import { getCiudadano } from "../../api"
 import { useEffect, useState } from "react"
@@ -34,16 +23,11 @@ export const ValidarHermanosDatos = ({hermano, estado, setEstado, setPersona }: 
     const [error, setError] = useState<string | null>(null)
 
     const handleValidar = async () => {
-
         setLoading(true)
         setError(null)
 
         try {
-            const ciudadanoRes = await getCiudadano(
-                hermano.dni,
-                hermano.sexo
-            )
-
+            const ciudadanoRes = await getCiudadano(hermano.dni, hermano.sexo)
             setCiudadano(ciudadanoRes)
 
         } catch (e) {
@@ -60,13 +44,12 @@ export const ValidarHermanosDatos = ({hermano, estado, setEstado, setPersona }: 
             setPersona(null)
             return
         }
-
         const nuevaPersona = {
             ...ciudadanoToPersona(ciudadano),
             id_hermano: hermano.id,
         }
-
         setPersona(nuevaPersona)
+    
     }, [estado, ciudadano])
 
     return (
@@ -89,11 +72,9 @@ export const ValidarHermanosDatos = ({hermano, estado, setEstado, setPersona }: 
                         Datos del hermano
                     </Typography>
                 </Stack>
-
                 <HermanoList
                     hermano={hermano}
                 />
-
                 <Button
                     onClick={handleValidar}
                     disabled={loading}
@@ -131,14 +112,12 @@ export const ValidarHermanosDatos = ({hermano, estado, setEstado, setPersona }: 
                 )}
 
             </Box>
-
             {ciudadano && (
                 <Divider
                     orientation="vertical"
                     flexItem
                 />
             )}
-
             <Collapse
                 in={Boolean(ciudadano)}
                 orientation="horizontal"
@@ -148,7 +127,6 @@ export const ValidarHermanosDatos = ({hermano, estado, setEstado, setPersona }: 
             >
                 {ciudadano && (
                     <Box>
-
                         <Typography
                             variant="subtitle1"
                             sx={{

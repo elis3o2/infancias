@@ -1,9 +1,10 @@
 import type { HermanoCreate } from "../../types"
 import type { Setter } from "@/common/types"
-import { useState } from "react"
-import { Stack, Button, Card, CardContent, CardHeader} from "@mui/material"
+import { useEffect, useState } from "react"
+import { Stack, Button } from "@mui/material"
 import { HermanoForm } from "./HermanoForm"
 import { HermanosList } from "./HermanosList"
+import { ConditionalCard } from "@/common/components/ConditionalCard"
 
 type Props = {
   hermanos: HermanoCreate[]
@@ -16,43 +17,37 @@ export const HermanosComponent = ({ hermanos, setHermanos, finishHermano, setFin
   const [mostrarForm, setMostrarForm] = useState(false)
   const [hermanoActual, setHermanoActual] = useState<HermanoCreate | null>(null)
 
-  if (finishHermano && hermanoActual != null) {
-    setHermanos([...hermanos, hermanoActual])
-    setHermanoActual(null)
-    setMostrarForm(false)
-  }
+  useEffect(() => {
+    if (finishHermano && hermanoActual != null) {
+      setHermanos(prev => [...prev, hermanoActual])
+      setHermanoActual(null)
+      setMostrarForm(false)
+      setFinishHermano(false)
+    }
+  }, [finishHermano, hermanoActual])
 
   const handleEliminar = (index: number) => {
     setHermanos(hermanos.filter((_, i) => i !== index))
   }
 
   return (
-  <Card variant="outlined" sx={{ borderRadius: 2 }}>
-    <CardHeader
-        title="Hermanos menores de 18 años"
-        titleTypographyProps={{ variant: 'h6', fontWeight: 600 }}
-      />
-      <CardContent>
-        <Stack spacing={2} sx={{ minWidth: 1028 }}>
-          {hermanos.length > 0 &&
-            <HermanosList
-              hermanos={hermanos}
-              onEliminar={handleEliminar}
-            />
-          }
-
-          {mostrarForm ? (
-            <HermanoForm
-              setHermano={setHermanoActual}
-              setFinishHermano={setFinishHermano}
-            />
-          ) : (
-            <Button variant="outlined" onClick={() => {setMostrarForm(true); setFinishHermano(false)}}>
-              Agregar hermano
-            </Button>
-          )}
+    <ConditionalCard
+      titulo="Hermanos menores de 18 años"
+      condicion={mostrarForm}
+      componenteTrue={
+        <Stack spacing={2} >
+          {hermanos.length > 0 && <HermanosList hermanos={hermanos} onEliminar={handleEliminar} />}
+          <HermanoForm setHermano={setHermanoActual} setFinishHermano={setFinishHermano} />
         </Stack>
-    </CardContent>
-  </Card>
+      }
+      componenteFalse={
+        <Stack spacing={2}>
+          {hermanos.length > 0 && <HermanosList hermanos={hermanos} onEliminar={handleEliminar} />}
+          <Button variant="outlined" onClick={() => { setMostrarForm(true); setFinishHermano(false) }}>
+            Agregar hermano
+          </Button>
+        </Stack>
+      }
+    />
   )
 }

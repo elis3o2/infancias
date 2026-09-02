@@ -5,7 +5,7 @@ import type { PersonaCreate } from "../../types"
 
 import { PersonaList } from "./PersonaList"
 import { NuevaPersona } from "./NuevaPersona"
-import { LegajoForm } from "./LegajoForm"
+import { LegajoForm } from "../Validar/LegajoForm"
 
 type Props = {
     nuevasPersonas: PersonaCreate[]

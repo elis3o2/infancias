@@ -1,55 +1,34 @@
 import type { Setter } from "@/common/types"
-import type { PrioridadSolicitud, MotivoSolicitud } from "../../types"
-import {
-  Card,
-  CardContent,
-  CardActions,
-  Stack,
-  Button,
-  Typography,
-  TextField,
-} from "@mui/material"
+import type { MotivoSolicitud } from "../../types"
+import { Stack, Button, TextField } from "@mui/material"
 import { MotivodForm } from "../MotivoForm"
-import { PrioridadForm } from "../PrioridadForm"
 
 const MAX_DESCRIPCION = 256
 
 
 type Props = {
-    prioridadSeleccionada: PrioridadSolicitud | null
-    setPrioridadSeleccionada: Setter<PrioridadSolicitud | null>
-    motivoSeleccionado: MotivoSolicitud | null 
-    setMotivoSeleccionado: Setter<MotivoSolicitud | null>
-    descripcion: string
-    setDescripcion: Setter<string>
-    setFinishSolicitudSection: Setter<boolean>
+  motivoSeleccionado: MotivoSolicitud | null 
+  setMotivoSeleccionado: Setter<MotivoSolicitud | null>
+  descripcion: string
+  setDescripcion: Setter<string>
+  setFinishSolicitudSection: Setter<boolean>
 }
 
-export const SolicitudForm = ({ prioridadSeleccionada, setPrioridadSeleccionada, motivoSeleccionado, setMotivoSeleccionado,
-                            descripcion, setDescripcion, setFinishSolicitudSection }: Props) => {
+export const SolicitudForm = ({ motivoSeleccionado, setMotivoSeleccionado, descripcion, setDescripcion, setFinishSolicitudSection }: Props) => {
 
   const formCompleto =
     descripcion.trim() !== "" &&
-    prioridadSeleccionada !== null &&
     motivoSeleccionado !== null
 
   const handleCargar = () => {
     if (!formCompleto) return
-
     setFinishSolicitudSection(true)
   }
 
-
-  return (
-    <Card sx={{ minWidth: 1028 }}>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>
-          Datos de la solicitud
-        </Typography>
+  return (<>
         <Stack spacing={2}>
-            <MotivodForm motivoSeleccionado={motivoSeleccionado} setMotivoSeleccionado={setMotivoSeleccionado}/>
-            <PrioridadForm prioridadSeleccionada={prioridadSeleccionada} setPrioridadSeleccionada={setPrioridadSeleccionada}/>
-            <TextField
+          <MotivodForm motivoSeleccionado={motivoSeleccionado} setMotivoSeleccionado={setMotivoSeleccionado}/>
+          <TextField
             label="Breve descripción"
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value.slice(0, MAX_DESCRIPCION))}
@@ -58,10 +37,7 @@ export const SolicitudForm = ({ prioridadSeleccionada, setPrioridadSeleccionada,
             fullWidth
             helperText={`${descripcion.length}/${MAX_DESCRIPCION}`}
           />
-
         </Stack>
-      </CardContent>
-      <CardActions>
         <Button
           variant="contained"
           onClick={handleCargar}
@@ -69,8 +45,7 @@ export const SolicitudForm = ({ prioridadSeleccionada, setPrioridadSeleccionada,
           fullWidth
         >
           Cargar
-        </Button>
-      </CardActions>
-    </Card>
+        </Button>   
+    </>
   )
 }

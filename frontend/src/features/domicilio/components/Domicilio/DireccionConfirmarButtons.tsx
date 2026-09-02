@@ -1,22 +1,21 @@
 import {Stack, Button } from '@mui/material'
 import CheckIcon from "@mui/icons-material/Check";
-import type { Setter } from '@/common/types';
+
 
 type Props = {
     canConfirm: boolean
-    setFinishDomicilio: Setter<boolean>
-    setFinishDireccion: Setter<boolean>
+    onConfirmar: () => void
+    onLimpiar: () => void
 }
 
-
-export const DireccionConfirmarButtons = ({canConfirm, setFinishDomicilio, setFinishDireccion } : Props) => {
+export const DireccionConfirmarButtons = ({canConfirm, onConfirmar, onLimpiar } : Props) => {
     return (
          <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
               fullWidth
               startIcon={<CheckIcon />}
-              onClick={() => setFinishDomicilio(true)}
+              onClick={onConfirmar}
               color="success"
               disabled={!canConfirm}
               sx={{
@@ -31,7 +30,7 @@ export const DireccionConfirmarButtons = ({canConfirm, setFinishDomicilio, setFi
             <Button
               variant="outlined"
               fullWidth
-              onClick={() => {setFinishDireccion(false)}}
+              onClick={() => {onLimpiar}}
               sx={{
                 borderRadius: 2,
                 fontWeight: 600,

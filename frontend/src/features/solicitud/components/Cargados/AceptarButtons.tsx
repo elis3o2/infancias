@@ -1,13 +1,5 @@
 import { useState } from "react"
-import {
-  Button,
-  Card,
-  CardContent,
-  Collapse,
-
-  Stack,
-  TextField,
-} from "@mui/material"
+import { Button, Card, CardContent, Collapse, Stack, TextField } from "@mui/material"
 
 type Props = {
   disabledConfirmar: boolean
@@ -20,7 +12,6 @@ export const AceptarButtons = ({ disabledConfirmar, disabledRechazar, onConfirma
   const [mostrarRechazo, setMostrarRechazo] = useState(false)
 
   const [motivo, setMotivo] = useState("")
-
 
   const handleEnviarRechazo = () => {
     onRechazar(motivo)

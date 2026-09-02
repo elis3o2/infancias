@@ -1,5 +1,6 @@
 from django.db import models
 from src.apps.domicilio.models import Domicilio, Institucion
+from src.apps.solicitud.models import Solicitud
 
 class Carpeta(models.Model):
     id = models.AutoField(primary_key=True)
@@ -31,7 +32,7 @@ class Persona(models.Model):
     apellido = models.CharField(max_length=32)
     fecha_nacimiento = models.DateField()
     legajo = models.ForeignKey(
-        Legajo, models.DO_NOTHING, db_column="id_legajo")
+        Legajo, models.DO_NOTHING, db_column="id_legajo", null=True, blank=True)
 
     class Meta:
         managed = False
@@ -101,27 +102,12 @@ class Adolescente(models.Model):
         "Institucion", through="AdolescenteInstitucion", related_name="adolescentes")
     persona = models.ForeignKey(
         Persona, models.DO_NOTHING, db_column="id_persona", related_name="adolescentes", blank=True, null=True)
+    solicitud = models.ForeignKey(
+        Solicitud, models.DO_NOTHING, db_column="id_solicitud", related_name="adolescentes")
 
     class Meta:
         managed = False
         db_table = "adolescente"
-
-
-class Hermano(models.Model):
-    id = models.AutoField(primary_key=True)
-    dni = models.CharField(max_length=10)
-    sexo = models.CharField(max_length=1)
-    nombre = models.CharField(max_length=32)
-    apellido = models.CharField(max_length=32)
-    fecha_nacimiento = models.DateField()
-    adolescente = models.ForeignKey(
-        Adolescente, models.DO_NOTHING, db_column="id_adolescente", related_name="hermanos")
-    persona = models.ForeignKey(
-        Persona, models.DO_NOTHING, db_column="id_persona", related_name="hermanos", blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = "hermano"
 
 
 class Familiar(models.Model):
@@ -139,6 +125,7 @@ class Familiar(models.Model):
         Domicilio, models.DO_NOTHING, db_column="id_domicilio", blank=True, null=True)
     persona = models.ForeignKey(
         Persona, models.DO_NOTHING, db_column="id_persona", related_name="familiares", null=True, blank=True)
+    convive = models.BooleanField()
 
     class Meta:
         managed = False

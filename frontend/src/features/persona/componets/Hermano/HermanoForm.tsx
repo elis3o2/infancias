@@ -3,14 +3,7 @@ import type { Setter } from "@/common/types"
 import { DniForm } from "../DniForm"
 import { SexoForm } from "../SexoForm"
 import { useState } from "react"
-import {
-  Card,
-  CardContent,
-  CardActions,
-  Stack,
-  Button,
-  TextField
-} from "@mui/material"
+import { Stack, Button, TextField } from "@mui/material"
 import { NombreForm } from "../NombreForm"
 
 type Props = {
@@ -45,8 +38,7 @@ export const HermanoForm = ({ setHermano, setFinishHermano }: Props) => {
   }
 
   return (
-    <Card  sx={{ minWidth: 1028 }}>
-      <CardContent>
+        <>
         <Stack spacing={2}>
           <NombreForm
             label="Nombre"
@@ -69,9 +61,7 @@ export const HermanoForm = ({ setHermano, setFinishHermano }: Props) => {
             fullWidth
           />
         </Stack>
-      </CardContent>
-      <CardActions>
-        <Button
+      <Button
           variant="contained"
           onClick={handleCargar}
           disabled={!formCompleto}
@@ -79,7 +69,6 @@ export const HermanoForm = ({ setHermano, setFinishHermano }: Props) => {
         >
           Cargar hermano
         </Button>
-      </CardActions>
-    </Card>
+    </>
   )
 }

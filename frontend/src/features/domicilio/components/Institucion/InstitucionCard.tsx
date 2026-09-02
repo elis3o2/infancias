@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader } from "@mui/material"
 import { InstitucionList } from "./InstitucionList"
 import type { Institucion } from "../../types"
+import { TitledCard } from "@/common/components/TitleCard"
 
 type Props = {
   institucion: Institucion
@@ -8,16 +8,12 @@ type Props = {
 
 export const InstitucionCard = ({institucion}: Props) => {
   return (
-    <Card sx={{minWidth: 1028}}>
-    <CardHeader
-          title="Institucion solicitante"
-          titleTypographyProps={{ variant: 'h6', fontWeight: 300 }}
-        />
-      <CardContent>
+    <TitledCard
+      titulo="Institución solicitante"
+      componente={  
         <InstitucionList
           institucion={institucion}
-        />
-      </CardContent>
-    </Card>
+        />}
+    />
   )
 }

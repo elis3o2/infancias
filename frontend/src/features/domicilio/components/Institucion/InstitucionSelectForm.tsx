@@ -39,21 +39,23 @@ export const InstitucionSelectForm = ({institucion, setInstitucion, tipo }: Prop
         if (value === null) {
             setInstitucion((prev) => ({
                 ...prev,
-                institucion: null,
+                id: null,
             }))
             return
         }
 
         setInstitucion((prev) => ({
             ...prev,
-            institucion: {
-                id: value.id,
-                nombre: value.nombre,
-                domicilio: value.domicilio,
+            id: value.id,
+            nombre: value.nombre,
+            tipo: value.tipo,
+            domicilio: {
+                nombre: value.domicilio.nombre,
+                provincia: null,
+                departamento: value.domicilio.departamento,
             },
         }))
     }
-
 
     return (
       <Autocomplete

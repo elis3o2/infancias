@@ -71,8 +71,8 @@ class IdentidadBarrial(models.Model):
 class DomicilioValidado(models.Model):
     id = models.AutoField(primary_key=True)
     codigo_calle = models.IntegerField(blank=True, null=True)
-    altura = models.IntegerField()
-    bis = models.BooleanField()
+    altura = models.IntegerField(blank=True, null=True)
+    bis = models.BooleanField(blank=True, null=True)
     letra = models.CharField(max_length=1, blank=True, null=True)
     nombreInterseccion = models.CharField(max_length=64, blank=True, null=True)
     codigoInterseccion = models.IntegerField(blank=True, null=True)

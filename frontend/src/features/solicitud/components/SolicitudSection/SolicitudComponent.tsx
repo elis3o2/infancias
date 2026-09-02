@@ -1,11 +1,10 @@
 import type { Setter } from "@/common/types"
-import type { PrioridadSolicitud, MotivoSolicitud } from "../../types"
+import type { MotivoSolicitud } from "../../types"
 import { SolicitudForm } from "./SolicitudForm"
 import { SolicitudCard } from "./SolicitudCard"
+import { ConditionalCard } from "@/common/components/ConditionalCard"
 
 type Props = {
-    prioridadSeleccionada: PrioridadSolicitud | null 
-    setPrioridadSeleccionada: Setter<PrioridadSolicitud | null>
     motivoSeleccionado: MotivoSolicitud | null
     setMotivoSeleccionado: Setter<MotivoSolicitud | null>
     descripcion: string
@@ -14,29 +13,29 @@ type Props = {
     setFinishSolicitudSection: Setter<boolean>
 }
 
-export const SolicitudComponent = ({ prioridadSeleccionada, setPrioridadSeleccionada, motivoSeleccionado,
-          setMotivoSeleccionado, descripcion, setDescripcion, finishSolicitudSection, setFinishSolicitudSection }: Props) => {
+export const SolicitudComponent = ({  motivoSeleccionado, setMotivoSeleccionado, descripcion, setDescripcion,
+                                            finishSolicitudSection, setFinishSolicitudSection }: Props) => {
 
   return (
-    <>
-      {finishSolicitudSection && motivoSeleccionado != null && prioridadSeleccionada != null ? (
+    <ConditionalCard
+      condicion={finishSolicitudSection && motivoSeleccionado != null}
+      titulo="Descripción"
+      componenteTrue={
         <SolicitudCard
           motivo={motivoSeleccionado}
-          prioridad={prioridadSeleccionada}
           descripcion={descripcion}
           onEditar={() => setFinishSolicitudSection(false)}
         />
-      ) : (
+      }
+      componenteFalse={
         <SolicitudForm
-          prioridadSeleccionada={prioridadSeleccionada}
-          setPrioridadSeleccionada={setPrioridadSeleccionada}
           motivoSeleccionado={motivoSeleccionado}
           setMotivoSeleccionado={setMotivoSeleccionado}
           descripcion={descripcion}
           setDescripcion={setDescripcion}
           setFinishSolicitudSection={setFinishSolicitudSection}
         />
-      )}
-    </>
+      }
+    />
   )
 }

@@ -1,14 +1,6 @@
 import { useState } from "react"
-
-import {
-    Box,
-    Divider,
-    TextField,
-} from "@mui/material"
-
-import type { Setter } from "@/common/types"
-
-import type { APIGeo1 } from "@/features/domicilio/types"
+import { Box, Divider, TextField } from "@mui/material"
+import type { APIGeo1, DomicilioFormData } from "@/features/domicilio/types"
 
 import { DireccionForm } from "./DireccionForm"
 import { SelectDireccion } from "./SelectDireccion"
@@ -16,20 +8,25 @@ import { DireccionConfirmarButtons } from "./DireccionConfirmarButtons"
 
 
 type Props = {
-    observaciones: string
-    setObservaciones: Setter<string>
-    finishDomicilio: boolean
-    setFinishDomicilio: Setter<boolean>
-    setGeoSeleccionada: Setter<APIGeo1 | null>
+    onGuardar: (domicilio: DomicilioFormData) => void
 }
 
-
-export const DomicilioForm = ({observaciones, setObservaciones, finishDomicilio,
-                                        setFinishDomicilio, setGeoSeleccionada}: Props) => {
-
+export const DomicilioForm = ({ onGuardar }: Props) => {
     const [finishDireccion, setFinishDireccion] = useState(false)
     const [canConfirm, setCanConfirm] = useState(false)
     const [direccion, setDireccion] = useState("")
+    const [observaciones, setObservaciones] = useState("")
+    const [geoSeleccionada, setGeoSeleccionada] = useState<APIGeo1 | null>(null)
+
+    const handleConfirmar = () => {
+        if (!geoSeleccionada) return
+        onGuardar({
+            nombre: geoSeleccionada.name,
+            domicilio_validado: geoSeleccionada,
+            id_departamento: 520,
+            observaciones,
+        })
+    }
 
 
     return (
@@ -42,7 +39,7 @@ export const DomicilioForm = ({observaciones, setObservaciones, finishDomicilio,
                 />
             )}
 
-            {finishDireccion && !finishDomicilio && (
+            {finishDireccion && direccion != null && (
                 <>
                     <DireccionForm
                         direccion={direccion}
@@ -85,12 +82,12 @@ export const DomicilioForm = ({observaciones, setObservaciones, finishDomicilio,
             />
 
             {finishDireccion &&
-                canConfirm &&
-                !finishDomicilio && (
+                direccion != null &&
+                canConfirm  && (
                     <DireccionConfirmarButtons
                         canConfirm={canConfirm}
-                        setFinishDomicilio={setFinishDomicilio}
-                        setFinishDireccion={setFinishDireccion}
+                        onConfirmar={handleConfirmar}
+                        onLimpiar={() => setFinishDireccion(false)}
                     />
                 )}
 

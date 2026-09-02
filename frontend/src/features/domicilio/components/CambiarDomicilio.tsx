@@ -1,7 +1,7 @@
 import { Box, Button, Stack } from "@mui/material"
 import type { Setter } from "@/common/types"
 import type { Domicilio } from "../types"
-import { DomicilioComponent } from "./DomicilioComponent"
+import { DomicilioComponent } from "./Domicilio/DomicilioCarga"
 import { Mapa } from "./Mapa"
 import { useEffect, useState } from "react"
 

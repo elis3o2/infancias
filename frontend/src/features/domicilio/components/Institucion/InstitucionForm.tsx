@@ -1,8 +1,8 @@
 import type { Setter } from "@/common/types"
-import type { InstitucionFormData, TipoInstitucion } from "../../types"
-import { useState } from "react"
+import { InstitucionInicial, type InstitucionFormData, type TipoInstitucion } from "../../types"
+import { useEffect, useState } from "react"
 import { ToggleButtonGroup, ToggleButton, Stack, Button } from "@mui/material"
-import { TipoInstitucionComponent } from "../TipoInstitucionComponent"
+import { TipoInstitucionComponent } from "./TipoInstitucionComponent"
 import { InstitucionCargaForm } from "./InstitucionCargaForm"
 import { InstitucionSelectForm } from "./InstitucionSelectForm"
 
@@ -17,7 +17,7 @@ export const InstitucionForm = ({ institucion, setInstitucion, setFinshInstituci
   const [tipo, setTipo] = useState<TipoInstitucion | null>(null)
   const [institucionValida, setInstitucionValida] = useState(false)
   
-  const formCompleto = (institucion.modo == "seleccionar" && institucion.id != -1) || 
+  const formCompleto = (institucion.modo == "seleccionar" && institucion.id ) || 
                         institucion.modo == "cargar" &&  institucionValida
 
   // Al cambiar de modo, arranca todo limpio
@@ -26,23 +26,27 @@ export const InstitucionForm = ({ institucion, setInstitucion, setFinshInstituci
     setFinshInstitucion(true)
   }
 
+
+
   return (
-    <Stack spacing={2} sx={{ minWidth: 1028 }}>
+    <Stack spacing={2}>
       <TipoInstitucionComponent tipoSeleccionado={tipo} setTipoSeleccionado={setTipo} />
 
       {tipo && (
-        <>
-          <ToggleButtonGroup
-            value={institucion.modo}
-            exclusive
-            onChange={(_, value) => {if (value !== null) {
-              setInstitucion((prev: InstitucionFormData) => ({
-                ...prev,
-                modo: value,
-            }))}
-          }}
-            size="small"
-          >
+          <>
+            <ToggleButtonGroup
+              value={institucion.modo}
+              exclusive
+              onChange={(_, value) => {
+                if (value !== null) {
+                setInstitucion({
+                  ...InstitucionInicial,
+                  modo: value,
+                });
+                }
+              }}
+              size="small"
+            >
             <ToggleButton value="seleccionar">Seleccionar existente</ToggleButton>
             <ToggleButton value="cargar">Cargar nueva</ToggleButton>
           </ToggleButtonGroup>

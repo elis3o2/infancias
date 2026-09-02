@@ -1,26 +1,11 @@
 import type { Familiar, PersonaCreate } from "../../types"
-
-import {
-    Card,
-    CardContent,
-    Divider,
-    Stack,
-    Typography,
-} from "@mui/material"
-
+import { Card, CardContent, Divider, Stack, Typography } from "@mui/material"
 import type { Setter } from "@/common/types"
-
 import { ValidarFamiliarDatos } from "./ValidarFamiliarDatos"
-import { NuevasPersonas } from "./NuevasPersonas"
-
+import { NuevasPersonas } from "../Persona/NuevasPersonas"
 import { TelefonoOpcionalForm } from "../TelefonoOpcionalForm"
 import { DomicilioOpcionalForm } from "@/features/domicilio/components/DomicilioOpcionalForm"
-
-import type {
-    Departamento,
-    Provincia,
-} from "@/features/domicilio/types"
-
+import type { Departamento, Provincia } from "@/features/domicilio/types"
 import { useState } from "react"
 
 type Props = {
@@ -36,38 +21,21 @@ type Props = {
     setNuevosFamiliares: Setter<PersonaCreate[]>
 }
 
-export const ValidarFamiliares = ({
-    familiares,
-    estados,
-    setEstados,
-    personas,
-    setPersonas,
-    nuevosFamiliares,
-    setNuevosFamiliares,
-}: Props) => {
+export const ValidarFamiliares = ({familiares, estados, setEstados, personas,
+                        setPersonas, nuevosFamiliares, setNuevosFamiliares }: Props) => {
 
     const [telefonos, setTelefonos] = useState<string[]>(familiares.map((familiar) => familiar.telefono ?? ""))
-
     const [provincias, setProvincias] = useState<(Provincia | null)[]>(familiares.map(() => null))
-
     const [departamentos, setDepartamentos] = useState<(Departamento | null)[]>(familiares.map(() => null))
-
     const [domicilios, setDomicilios] = useState<string[]>(familiares.map((familiar) => familiar.domicilio?.nombre ?? ""))
+    const [camposVisibles, setCamposVisibles] = useState<{ telefono: boolean; domicilio: boolean }[]>(
+                                                                                familiares.map((familiar) => ({
+                                                                                    telefono: !!familiar.telefono,
+                                                                                    domicilio: !!familiar.domicilio,
+                                                                                }))
+                                                                            )
 
-    const [camposVisibles, setCamposVisibles] = useState<
-        { telefono: boolean; domicilio: boolean }[]
-    >(
-        familiares.map((familiar) => ({
-            telefono: !!familiar.telefono,
-            domicilio: !!familiar.domicilio,
-        }))
-    )
-
-    const cambiarCampo = (
-        index: number,
-        campo: "telefono" | "domicilio",
-        valor: boolean
-    ) => {
+    const cambiarCampo = (index: number, campo: "telefono" | "domicilio", valor: boolean) => {
         setCamposVisibles((prev) => {
             const next = [...prev]
             next[index] = {
@@ -78,10 +46,7 @@ export const ValidarFamiliares = ({
         })
     }
 
-    const actualizarPersona = (
-        index: number,
-        cambios: Partial<PersonaCreate>
-    ) => {
+    const actualizarPersona = (index: number, cambios: Partial<PersonaCreate>) => {
         setPersonas((prev) => {
             const next = [...prev]
 
@@ -123,8 +88,7 @@ export const ValidarFamiliares = ({
                     {familiares.map((familiar, index) => {
 
                         const persona = personas[index]
-                        const confirmado =
-                            estados[index] === "confirmado"
+                        const confirmado = estados[index] === "confirmado"
 
                         return (
                             <Stack
@@ -258,7 +222,6 @@ export const ValidarFamiliares = ({
                                         />
                                     </>
                                 )}
-
                             </Stack>
                         )
                     })}

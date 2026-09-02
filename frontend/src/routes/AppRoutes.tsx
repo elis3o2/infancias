@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
-import { PrivateRoute } from '@/common/components';
+import PrivateRoute from '@/common/components/PrivateRoute';
 import BuscarCiudadano from '../pages/CreatePage/CreatePage';
 import { ValidarSolicitud } from '@/features/solicitud/components/Cargados/Solicitud';
 import SolicitudListPage from '@/features/solicitud/components/Cargados/SolicitudPage';

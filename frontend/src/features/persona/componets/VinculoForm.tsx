@@ -18,14 +18,14 @@ export const VinculoForm = ({vinculoSeleccionado, setVinculoSeleccionado}: Props
 
     const cargarVinculos = async () => {
         try {
-        const data = await getVinculos()
-        if (activo) {
-            setVinculos(data)
-        }
-        } finally {
-        if (activo) {
-            setCargandoVinculos(false)
-        }
+            const data = await getVinculos()
+            if (activo) {
+                setVinculos(data)
+            }
+            } finally {
+            if (activo) {
+                setCargandoVinculos(false)
+            }
         }
     }
 

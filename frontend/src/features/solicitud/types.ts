@@ -44,7 +44,7 @@ export type SolicitudCrud = {
 export type Solicitud = {
     id: number
     institucion: Institucion
-    adolescente: Adolescente
+    adolescente: Adolescente 
     motivo: MotivoSolicitud
     prioridad: PrioridadSolicitud
     descripcion: string
@@ -52,13 +52,32 @@ export type Solicitud = {
     archivos: ArchivoSimple[]
     fecha_hora_creacion: string
     fecha_hora_entrada: string
-    validado: false
+    fecha_hora_admision: string | null
+    validado: true
     rechazado: false
-    equipo: number
+    equipo: Equipo
     telefono: string 
     correo: string
 }
 
+
+export type SolicitudRechazada = {
+    id: number
+    institucion: Institucion
+    adolescente: AdolescenteCrud 
+    motivo: MotivoSolicitud
+    prioridad: PrioridadSolicitud
+    descripcion: string
+    archivos: ArchivoSimple[]
+    fecha_hora_creacion: string
+    fecha_hora_entrada: string
+    validado: false
+    rechazado: true
+    motivo_rechazo: string
+    equipo: Equipo
+    telefono: string 
+    correo: string
+}
 
 export type SolicitudCreate = {
   adolescente: AdolescenteInput
@@ -82,7 +101,7 @@ export type SolicitudSimple = {
     fecha_hora_modificacion: string | null
     validado: boolean
     rechazado: boolean
-    derivacion: Derivacion | null
+    equipo: Equipo | null
 }
 
 

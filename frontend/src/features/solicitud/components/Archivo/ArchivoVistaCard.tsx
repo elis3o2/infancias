@@ -1,5 +1,6 @@
 import { getArchivoById } from "../../api";
 import type { ArchivoSimple } from "../../types";
+import { Box } from "@mui/material";
 
 type Props = {
   archivos: ArchivoSimple[]
@@ -13,22 +14,24 @@ export function ArchivoVistaCard({ archivos }: Props) {
   }
 
   return (
-    <div style={styles.wrapper}>
-      <p style={styles.count}>
-        {archivos.length} archivo{archivos.length > 1 ? "s" : ""}
-      </p>
-      <ul style={styles.list}>
-        {archivos.map((archivo) => (
-          <ArchivoRow
-            key={archivo.id}
-            archivo={archivo}
-          />
-        ))}
-      </ul>
-    </div>
+    <Box sx={{ minWidth: 1028 }}>
+      <div style={styles.wrapper}>
+        <p style={styles.count}>
+          {archivos.length} archivo{archivos.length > 1 ? "s" : ""}
+        </p>
+
+        <ul style={styles.list}>
+          {archivos.map((archivo) => (
+            <ArchivoRow
+              key={archivo.id}
+              archivo={archivo}
+            />
+          ))}
+        </ul>
+      </div>
+    </Box>
   );
 }
-
 /* ── fila individual ─────────────────────────────────────────────────────── */
 
 function ArchivoRow({ archivo }) {

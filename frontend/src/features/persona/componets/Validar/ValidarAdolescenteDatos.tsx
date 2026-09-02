@@ -47,7 +47,7 @@ export const ValidarAdolescenteDatos = ({ adolescente, estado, setEstado, setPer
     try {
         const [ciudadanoRes, saludRes] = await Promise.all([
         getCiudadano(adolescente.dni, adolescente.sexo),
-        getCiudadano(adolescente.dni, adolescente.sexo),
+        getSalud(adolescente.dni, adolescente.sexo),
         ])
         setCiudadano(ciudadanoRes)
         setSalud(saludRes)
@@ -64,10 +64,6 @@ export const ValidarAdolescenteDatos = ({ adolescente, estado, setEstado, setPer
         direction="row"
         sx={{ mb: 2, width: "100%", alignItems: "center"}}
       >
-        {/* Título */}
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Datos del niño, niña o adolescente
-        </Typography>
 
         {/* Botones */}
        {ciudadano != null &&

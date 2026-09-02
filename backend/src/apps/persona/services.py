@@ -1,31 +1,12 @@
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
-
-from .models import (
-    Persona,
-    PersonaDomicilio,
-    PersonaTelefono,
-    Adolescente,
-    Legajo,
-    Carpeta,
-    Relacion,
-    Hermano,
-    Familiar,
-    Vinculo,
-    AdolescenteInstitucion,
-)
-
-from src.apps.domicilio.services import (
-    crear_domicilio,
-    crear_institucion,
-)
+from .models import ( Persona, PersonaDomicilio, PersonaTelefono, Adolescente, Legajo,
+    Carpeta, Relacion, Familiar, Vinculo, AdolescenteInstitucion )
+from src.apps.domicilio.services import crear_domicilio, crear_institucion
 
 
-def buscar_persona(
-    dni: str,
-    sexo: str,
-) -> Persona | None:
+def buscar_persona(dni: str, sexo: str) -> Persona | None:
 
     return Persona.objects.filter(
         dni=dni,
@@ -33,10 +14,7 @@ def buscar_persona(
     ).first()
 
 
-def actualizar_domicilio(
-    persona: Persona,
-    domicilio,
-) -> None:
+def actualizar_domicilio(persona: Persona, domicilio) -> None:
 
     if domicilio is None:
         return
@@ -59,10 +37,7 @@ def actualizar_domicilio(
         )
 
 
-def actualizar_telefono(
-    persona: Persona,
-    telefono: str | None,
-) -> None:
+def actualizar_telefono(persona: Persona, telefono: str | None) -> None:
 
     if not telefono:
         return
@@ -80,11 +55,7 @@ def actualizar_telefono(
         )
 
 
-def procesar_datos_persona(
-    persona: Persona,
-    domicilio_data,
-    telefono: str | None,
-) -> None:
+def procesar_datos_persona(persona: Persona, domicilio_data, telefono: str | None) -> None:
 
     if domicilio_data is not None:
         domicilio = crear_domicilio(domicilio_data)
@@ -102,17 +73,11 @@ def procesar_datos_persona(
 
 
 @transaction.atomic
-def crear_familiar(
-    datos_familiar: dict,
-    adolescente: Adolescente,
-) -> Familiar:
+def crear_familiar(datos_familiar: dict, adolescente: Adolescente) -> Familiar:
 
     datos_familiar = datos_familiar.copy()
 
-    domicilio_data = datos_familiar.pop(
-        "domicilio",
-        None,
-    )
+    domicilio_data = datos_familiar.pop("domicilio", None)
 
     if datos_familiar.get("telefono") == "":
         datos_familiar["telefono"] = None
@@ -123,9 +88,7 @@ def crear_familiar(
     domicilio_obj = None
 
     if domicilio_data:
-        domicilio_obj = crear_domicilio(
-            domicilio_data
-        )
+        domicilio_obj = crear_domicilio(domicilio_data)
 
     familiar = Familiar.objects.create(
         adolescente=adolescente,
@@ -137,71 +100,35 @@ def crear_familiar(
 
 
 @transaction.atomic
-def crear_adolescente(
-    datos_adolescente: dict,
-) -> Adolescente:
+def crear_adolescente(datos_adolescente: dict) -> Adolescente:
 
     datos_adolescente = datos_adolescente.copy()
-
-    domicilio_data = datos_adolescente.pop(
-        "domicilio",
-        None,
-    )
-
-    hermanos_data = datos_adolescente.pop(
-        "hermanos",
-        [],
-    )
-
-    familiares_data = datos_adolescente.pop(
-        "familiares",
-        [],
-    )
-
-    referencias_data = datos_adolescente.pop(
-        "referencias_instituciones_data",
-        [],
-    )
+    domicilio_data = datos_adolescente.pop("domicilio", None)
+    familiares_data = datos_adolescente.pop("familiares", [])
+    referencias_data = datos_adolescente.pop("referencias_instituciones_data", [])
 
     domicilio_obj = None
 
     if domicilio_data:
-        domicilio_obj = crear_domicilio(
-            domicilio_data
-        )
+        domicilio_obj = crear_domicilio(domicilio_data)
 
     adolescente = Adolescente.objects.create(
         domicilio=domicilio_obj,
         **datos_adolescente,
     )
 
-    for hermano_data in hermanos_data:
-
-        Hermano.objects.create(
-            adolescente=adolescente,
-            **hermano_data,
-        )
-
     for familiar_data in familiares_data:
 
-        crear_familiar(
-            familiar_data,
-            adolescente,
-        )
+        crear_familiar(familiar_data, adolescente)
 
     for referencia_data in referencias_data:
 
         referencia_data = referencia_data.copy()
 
-        institucion = referencia_data.pop(
-            "id",
-            None,
-        )
+        institucion = referencia_data.pop("id", None)
 
         if institucion is None:
-            institucion = crear_institucion(
-                referencia_data
-            )
+            institucion = crear_institucion(referencia_data)
 
         AdolescenteInstitucion.objects.create(
             adolescente=adolescente,
@@ -211,12 +138,7 @@ def crear_adolescente(
     return adolescente
 
 
-def resolver_legajo(
-    legajo_data=None,
-    carpeta_data=None,
-    carpeta_adolescente=None,
-    familiar=False,
-) -> Legajo:
+def resolver_legajo(legajo_data=None, carpeta_data=None, carpeta_adolescente=None, familiar=False) -> Legajo:
 
     """
     Adolescente:
@@ -236,10 +158,8 @@ def resolver_legajo(
         - utiliza la carpeta del adolescente
     """
 
-    # =====================================================
+    
     # FAMILIAR
-    # =====================================================
-
     if familiar:
 
         if carpeta_adolescente is None:
@@ -254,18 +174,16 @@ def resolver_legajo(
             letra="C",
         )
 
-    # =====================================================
+   
     # HERMANO
-    # =====================================================
-
     if carpeta_adolescente is not None:
 
         id_insert_legajo = None
+        letra_legajo = "B"
 
         if legajo_data:
-            id_insert_legajo = legajo_data.get(
-                "id_insert"
-            )
+            id_insert_legajo = legajo_data.get("id_insert")
+            letra_legajo = legajo_data.get("letra") or "B"
 
         # Legajo nuevo
         if id_insert_legajo is None:
@@ -273,13 +191,13 @@ def resolver_legajo(
             return Legajo.objects.create(
                 carpeta=carpeta_adolescente,
                 id_insert=None,
-                letra="B",
+                letra=letra_legajo,
             )
 
         # Legajo externo
         legajo, _ = Legajo.objects.get_or_create(
             id_insert=id_insert_legajo,
-            letra="A",
+            letra=letra_legajo,
             defaults={
                 "carpeta": carpeta_adolescente,
             },
@@ -287,50 +205,44 @@ def resolver_legajo(
 
         return legajo
 
-    # =====================================================
+    
     # ADOLESCENTE
-    # =====================================================
-
     id_insert_carpeta = None
+    letra_carpeta = "B"
+
     id_insert_legajo = None
+    letra_legajo = "B"
 
     if carpeta_data:
-        id_insert_carpeta = carpeta_data.get(
-            "id_insert"
-        )
+        id_insert_carpeta = carpeta_data.get("id_insert")
+        letra_carpeta = carpeta_data.get("letra") or "B"
 
     if legajo_data:
-        id_insert_legajo = legajo_data.get(
-            "id_insert"
-        )
+        id_insert_legajo = legajo_data.get("id_insert")
+        letra_legajo = legajo_data.get("letra") or "B"
 
-    # -----------------------------------------------------
+    
     # Carpeta
-    # -----------------------------------------------------
-
     if id_insert_carpeta is not None:
 
         carpeta, _ = Carpeta.objects.get_or_create(
             id_insert=id_insert_carpeta,
-            letra="A",
+            letra=letra_carpeta,
         )
 
     else:
 
         carpeta = Carpeta.objects.create(
             id_insert=None,
-            letra="B",
+            letra=letra_carpeta,
         )
 
-    # -----------------------------------------------------
     # Legajo
-    # -----------------------------------------------------
-
     if id_insert_legajo is not None:
 
         legajo, _ = Legajo.objects.get_or_create(
             id_insert=id_insert_legajo,
-            letra="A",
+            letra=letra_legajo,
             defaults={
                 "carpeta": carpeta,
             },
@@ -341,34 +253,19 @@ def resolver_legajo(
         legajo = Legajo.objects.create(
             carpeta=carpeta,
             id_insert=None,
-            letra="B",
+            letra=letra_legajo,
         )
 
     return legajo
 
 
-def validar_adolescente(
-    adolescente: Adolescente,
-    data,
-) -> Persona:
+def validar_adolescente(adolescente: Adolescente, data) -> Persona:
 
     data = data.copy()
 
-    # Campos que NO pertenecen a Persona
-    legajo_data = data.pop(
-        "legajo",
-        None,
-    )
-
-    domicilio_data = data.pop(
-        "domicilio",
-        None,
-    )
-
-    telefono = data.pop(
-        "telefono",
-        None,
-    )
+    legajo_data = data.pop("legajo", None)
+    domicilio_data = data.pop("domicilio", None)
+    telefono = data.pop("telefono", None)
 
     dni = data.get("dni")
     sexo = data.get("sexo")
@@ -387,14 +284,9 @@ def validar_adolescente(
             )
         })
 
-    persona = buscar_persona(
-        dni=dni,
-        sexo=sexo,
-    )
+    persona = buscar_persona(dni=dni, sexo=sexo)
 
-    legajo = resolver_legajo(
-        legajo_data=legajo_data,
-    )
+    legajo = resolver_legajo(legajo_data=legajo_data)
 
     # Persona existente
     if persona is not None:
@@ -447,179 +339,22 @@ def validar_adolescente(
     return persona
 
 
-def validar_hermano(
-    adolescente,
-    persona_adolescente,
-    data,
-) -> Persona:
+
+
+def validar_familiar(adolescente, persona_adolescente, data) -> Persona:
 
     data = data.copy()
 
-    hermano_id = data.pop(
-        "id_hermano",
-        None,
-    )
+    familiar_id = data.pop("id_familiar", None)
+    domicilio_data = data.pop("domicilio", None)
 
-    legajo_data = data.pop(
-        "legajo",
-        None,
-    )
+    telefono = data.pop("telefono", None)
 
-    domicilio_data = data.pop(
-        "domicilio",
-        None,
-    )
+    vinculo_id = data.pop("id_vinculo", None)
 
-    telefono = data.pop(
-        "telefono",
-        None,
-    )
-
-    dni = data.get("dni")
-    sexo = data.get("sexo")
-
-    if not dni:
-        raise ValidationError({
-            "hermanos_validados": (
-                "El DNI es obligatorio."
-            )
-        })
-
-    if not sexo:
-        raise ValidationError({
-            "hermanos_validados": (
-                "El sexo es obligatorio."
-            )
-        })
-
-    persona_hermano = buscar_persona(
-        dni=dni,
-        sexo=sexo,
-    )
-
-    # Resolver Legajo
-    legajo = resolver_legajo(
-        legajo_data=legajo_data,
-        carpeta_adolescente=(
-            adolescente.persona.legajo.carpeta
-        ),
-    )
-
-    # Persona existente
-    if persona_hermano is not None:
-
-        for campo, valor in data.items():
-            setattr(
-                persona_hermano,
-                campo,
-                valor,
-            )
-
-        persona_hermano.legajo = legajo
-
-        persona_hermano.save()
-
-    # Persona nueva
-    else:
-
-        try:
-
-            persona_hermano = Persona.objects.create(
-                legajo=legajo,
-                **data,
-            )
-
-        except Exception as exc:
-
-            raise ValidationError({
-                "hermanos_validados": (
-                    "No se pudo crear la Persona "
-                    "del hermano: "
-                    f"{exc}"
-                )
-            })
-
-    # Domicilio y teléfono
-    procesar_datos_persona(
-        persona=persona_hermano,
-        domicilio_data=domicilio_data,
-        telefono=telefono,
-    )
-
-    # -----------------------------------------------------
-    # Asociar Hermano
-    # -----------------------------------------------------
-
-    if hermano_id is not None:
-
-        hermano = Hermano.objects.filter(
-            pk=hermano_id,
-            adolescente=adolescente,
-        ).first()
-
-        if hermano is None:
-            raise ValidationError({
-                "hermanos_validados": (
-                    f"El hermano {hermano_id} "
-                    "no pertenece al adolescente."
-                )
-            })
-
-        if hermano.persona_id is not None:
-
-            raise ValidationError({
-                "hermanos_validados": (
-                    f"El hermano {hermano_id} "
-                    "ya tiene una Persona asociada."
-                )
-            })
-
-        hermano.persona = persona_hermano
-
-        hermano.save(
-            update_fields=["persona"]
-        )
-
-    # -----------------------------------------------------
-    # Relación
-    # -----------------------------------------------------
-
-    Relacion.objects.create(
-        persona_1=persona_adolescente,
-        persona_2=persona_hermano,
-        vinculo_id=1,
-    )
-
-    return persona_hermano
-
-
-def validar_familiar(
-    adolescente,
-    persona_adolescente,
-    data,
-) -> Persona:
-
-    data = data.copy()
-
-    familiar_id = data.pop(
-        "id_familiar",
-        None,
-    )
-
-    domicilio_data = data.pop(
-        "domicilio",
-        None,
-    )
-
-    telefono = data.pop(
-        "telefono",
-        None,
-    )
-
-    vinculo_id = data.pop(
-        "id_vinculo",
-        None,
-    )
+    # El familiar no define su propio legajo.
+    # Se genera siempre mediante resolver_legajo().
+    data.pop("legajo", None)
 
     dni = data.get("dni")
     sexo = data.get("sexo")
@@ -629,7 +364,6 @@ def validar_familiar(
     # -----------------------------------------------------
 
     if vinculo_id is None:
-
         raise ValidationError({
             "familiares_validados": (
                 "El id_vinculo es obligatorio."
@@ -641,11 +375,9 @@ def validar_familiar(
     ).first()
 
     if vinculo is None:
-
         raise ValidationError({
             "familiares_validados": (
-                f"El vínculo {vinculo_id} "
-                "no existe."
+                f"El vínculo {vinculo_id} no existe."
             )
         })
 
@@ -663,16 +395,8 @@ def validar_familiar(
             )
         })
 
-    # -----------------------------------------------------
-    # Buscar Persona
-    # -----------------------------------------------------
+    persona = buscar_persona(dni=dni,sexo=sexo)
 
-    persona = buscar_persona(
-        dni=dni,
-        sexo=sexo,
-    )
-
-    # Persona existente
     if persona is not None:
 
         for campo, valor in data.items():
@@ -684,13 +408,22 @@ def validar_familiar(
 
         persona.save()
 
-    # Persona nueva
     else:
 
+        carpeta_adolescente = (
+            adolescente.persona.legajo.carpeta
+        )
+
+        if carpeta_adolescente is None:
+            raise ValidationError({
+                "familiares_validados": (
+                    "El adolescente no tiene una carpeta "
+                    "asociada para crear el legajo del familiar."
+                )
+            })
+
         legajo = resolver_legajo(
-            carpeta_adolescente=(
-                adolescente.persona.legajo.carpeta
-            ),
+            carpeta_adolescente=carpeta_adolescente,
             familiar=True,
         )
 
@@ -706,14 +439,10 @@ def validar_familiar(
             raise ValidationError({
                 "familiares_validados": (
                     "No se pudo crear la Persona "
-                    "del familiar: "
-                    f"{exc}"
+                    f"del familiar: {exc}"
                 )
             })
 
-    # -----------------------------------------------------
-    # Asociar Familiar existente
-    # -----------------------------------------------------
 
     if familiar_id is not None:
 
@@ -723,7 +452,6 @@ def validar_familiar(
         ).first()
 
         if familiar is None:
-
             raise ValidationError({
                 "familiares_validados": (
                     f"El familiar {familiar_id} "
@@ -735,7 +463,6 @@ def validar_familiar(
             familiar.persona_id is not None
             and familiar.persona_id != persona.id
         ):
-
             raise ValidationError({
                 "familiares_validados": (
                     f"El familiar {familiar_id} "
@@ -749,20 +476,14 @@ def validar_familiar(
             update_fields=["persona"]
         )
 
-    # -----------------------------------------------------
     # Relación
-    # -----------------------------------------------------
-
     Relacion.objects.create(
         persona_1=persona_adolescente,
         persona_2=persona,
         vinculo=vinculo,
     )
 
-    # -----------------------------------------------------
     # Domicilio y teléfono
-    # -----------------------------------------------------
-
     procesar_datos_persona(
         persona=persona,
         domicilio_data=domicilio_data,

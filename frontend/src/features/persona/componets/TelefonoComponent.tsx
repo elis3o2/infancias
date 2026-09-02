@@ -1,10 +1,4 @@
-import {
-  Stack,
-  Box,
-  Typography,
-  TextField,
-  InputAdornment,
-} from "@mui/material"
+import { Stack, Box, Typography, TextField, InputAdornment } from "@mui/material"
 import PhoneIcon from "@mui/icons-material/Phone"
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"
 import CancelIcon from "@mui/icons-material/Cancel"
@@ -23,7 +17,7 @@ export const TelefonoComponent = ({ telefono, setTelefono }: Props) => {
       : <CancelIcon fontSize="small" color="error" />
 
   return (
-    <Stack direction="row" spacing={1.5} alignItems="flex-start">
+    <Stack direction="row" sx={{ spacing: 1.5, alignItems:"flex-start"}}>
       <Box
         sx={{
           color: "primary.main",
@@ -38,10 +32,11 @@ export const TelefonoComponent = ({ telefono, setTelefono }: Props) => {
       <Box sx={{ flex: 1 }}>
         <Typography
           variant="caption"
-          color="text.disabled"
-          textTransform="uppercase"
-          letterSpacing={0.8}
-          display="block"
+          sx={{display: "block",
+            letterSpacing: 0.8,
+            textTransform: "uppercase",
+            color: "text.disabled"
+          }}
         >
           Teléfono
         </Typography>

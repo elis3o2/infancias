@@ -15,9 +15,9 @@ const OPCIONES: { id: number; nombre: string; color: "success" | "warning" | "er
 
 export const PrioridadSelector = ({ prioridad, setPrioridad }: Props) => {
   return (
-    <Card sx={{ borderRadius: 3 }}>
+    <Card sx={{ borderRadius: 3, minWidth: 1028 }}>
       <CardContent>
-        <Typography variant="h6" lineHeight={1.2} sx={{ mb: 2 }}>
+        <Typography variant="h6" sx={{ lineHeight: 1.2, mb: 2 }}>
           Prioridad
         </Typography>
         <Stack direction="row" spacing={1}>

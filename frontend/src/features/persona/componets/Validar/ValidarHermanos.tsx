@@ -1,49 +1,27 @@
 import type { Hermano, PersonaCreate } from "../../types"
 import { useState } from "react"
-import {
-  Card,
-  CardContent,
-  Stack,
-  Typography,
-} from "@mui/material"
-
+import { Card, CardContent, Stack, Typography } from "@mui/material"
 import type { Setter } from "@/common/types"
-
 import { ValidarHermanosDatos } from "./ValidarHermanosDatos"
-import { NuevasPersonas } from "./NuevasPersonas"
+import { NuevasPersonas } from "../Persona/NuevasPersonas"
 import { LegajoForm } from "./LegajoForm"
 
 type Props = {
   hermanos: Hermano[]
-
   estados: ("confirmado" | "rechazado" | null)[]
   setEstados: Setter<("confirmado" | "rechazado" | null)[]>
-
   personas: (PersonaCreate | null)[]
   setPersonas: Setter<(PersonaCreate | null)[]>
-
   nuevosHermanos: PersonaCreate[]
   setNuevosHermanos: Setter<PersonaCreate[]>
 }
 
-export const ValidarHermanos = ({
-  hermanos,
-  estados,
-  setEstados,
-  personas,
-  setPersonas,
-  nuevosHermanos,
-  setNuevosHermanos,
-}: Props) => {
+export const ValidarHermanos = ({hermanos, estados, setEstados,
+                  personas, setPersonas, nuevosHermanos, setNuevosHermanos }: Props) => {
 
-  const [tieneLegajo, setTieneLegajo] = useState<boolean[]>(
-    hermanos.map(() => false)
-  )
+  const [tieneLegajo, setTieneLegajo] = useState<boolean[]>(hermanos.map(() => false))
 
-  const actualizarLegajo = (
-    index: number,
-    cambios: Partial<NonNullable<PersonaCreate["legajo"]>>
-  ) => {
+  const actualizarLegajo = (index: number, cambios: Partial<NonNullable<PersonaCreate["legajo"]>>) => {
     const persona = personas[index]
 
     if (!persona) return
@@ -55,8 +33,9 @@ export const ValidarHermanos = ({
         ...persona,
         legajo: {
           id_insert: persona.legajo?.id_insert ?? null,
-          letra: persona.legajo?.letra ?? null,
+          letra: persona.legajo?.letra ?? "A",
           carpeta_id: persona.legajo?.carpeta_id ?? null,
+          carpeta_letra: persona.legajo?.carpeta_letra ?? "A",
           ...cambios,
         },
       }
@@ -65,10 +44,7 @@ export const ValidarHermanos = ({
     })
   }
 
-  const cambiarTieneLegajo = (
-    index: number,
-    valor: boolean
-  ) => {
+  const cambiarTieneLegajo = (index: number, valor: boolean) => {
     setTieneLegajo((prev) => {
       const next = [...prev]
       next[index] = valor
@@ -79,6 +55,12 @@ export const ValidarHermanos = ({
       id_insert: valor
         ? personas[index]?.legajo?.id_insert ?? null
         : null,
+    })
+  }
+
+  const cambiarLetraLegajo = ( index: number, valor: "A" | "B" ) => {
+    actualizarLegajo(index, {
+      letra: valor,
     })
   }
 
@@ -136,6 +118,10 @@ export const ValidarHermanos = ({
                 {persona && (
                   <LegajoForm
                     legajo={persona.legajo?.id_insert ?? null}
+                    letra={persona.legajo?.letra ?? "A"}
+                    setLetra={(valor) =>
+                      cambiarLetraLegajo(index, valor)
+                    }
                     setLegajo={(valor) =>
                       actualizarLegajo(index, {
                         id_insert: valor,

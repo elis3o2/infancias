@@ -2,7 +2,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 from .models import (Carpeta, Legajo, Persona, Adolescente, Relacion, Familiar, 
-    Vinculo, Hermano, PersonaDomicilio, PersonaTelefono, AdolescenteInstitucion)
+    Vinculo, PersonaDomicilio, PersonaTelefono, AdolescenteInstitucion)
 from src.apps.domicilio.models import Institucion
 from src.apps.domicilio.serializers import (DomicilioSerializer, InstitucionSerializer, ReferenciaInstitucionInputSerializer)
 
@@ -22,17 +22,17 @@ class LegajoSerializer(serializers.ModelSerializer):
 
 
 class CarpetaInputSerializer(serializers.Serializer):
-    id = serializers.IntegerField(required=False)
+    id        = serializers.IntegerField(required=False)
     id_insert = serializers.IntegerField(required=False, allow_null=True)
-    letra = serializers.CharField(required=False, allow_blank=True)
+    letra     = serializers.CharField(required=False, allow_blank=True)
 
 
 class LegajoInputSerializer(serializers.Serializer):
-    id = serializers.IntegerField(required=False)
-    id_insert = serializers.IntegerField(required=False, allow_null=True)
-    letra = serializers.CharField(required=False, allow_blank=True)
-    carpeta_id = serializers.IntegerField(required=False, allow_null=True)
-
+    id             = serializers.IntegerField(required=False)
+    id_insert      = serializers.IntegerField(required=False, allow_null=True)
+    letra          = serializers.CharField(required=False, allow_blank=True)
+    carpeta_id     = serializers.IntegerField(required=False, allow_null=True)
+    carperta_letra = serializers.CharField(required=False, allow_blank=True)
 
 class PersonaSerializer(serializers.ModelSerializer):
     legajo = LegajoSerializer(read_only=True)
@@ -42,12 +42,6 @@ class PersonaSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class HermanoSerializer(serializers.ModelSerializer):
-    persona = PersonaSerializer(read_only=True)
-
-    class Meta:
-        model = Hermano
-        exclude = ["adolescente"]
 
 
 class VinculoSerializer(serializers.ModelSerializer):
@@ -64,9 +58,8 @@ class FamiliarSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False,
     )
-
-    vinculo = VinculoSerializer(read_only=True)
-    persona = PersonaSerializer(read_only=True)
+    vinculo   = VinculoSerializer(read_only=True)
+    persona   = PersonaSerializer(read_only=True)
     domicilio = DomicilioSerializer(required=False, allow_null=True)
     class Meta:
         model = Familiar
@@ -75,9 +68,7 @@ class FamiliarSerializer(serializers.ModelSerializer):
 
 
 class AdolescenteCreateSerializer(serializers.ModelSerializer):
-
     domicilio  = DomicilioSerializer()
-    hermanos   = HermanoSerializer(many=True, required=False, write_only=True)
     familiares = FamiliarSerializer(many=True, required=False, write_only=True)
     referencias_instituciones_data = ReferenciaInstitucionInputSerializer(many=True, write_only=True, required=False)
 
@@ -91,7 +82,6 @@ class AdolescenteCreateSerializer(serializers.ModelSerializer):
             "fecha_nacimiento",
             "escolarizado",
             "domicilio",
-            "hermanos",
             "familiares",
             "referencias_instituciones_data",
         ]
@@ -99,8 +89,7 @@ class AdolescenteCreateSerializer(serializers.ModelSerializer):
 
 class AdolescenteReadSerializer(serializers.ModelSerializer):
 
-    domicilio = DomicilioSerializer()
-    hermanos = HermanoSerializer(many=True, required=False)
+    domicilio  = DomicilioSerializer()
     familiares = FamiliarSerializer(many=True, required=False)
     referencias_instituciones = InstitucionSerializer(many=True, read_only=True)
 
@@ -115,19 +104,16 @@ class AdolescenteReadSerializer(serializers.ModelSerializer):
             "domicilio",
             "fecha_nacimiento",
             "escolarizado",
-            "hermanos",
             "familiares",
             "referencias_instituciones",
         ]
 
 
 class AdolescenteValReadSerializer(serializers.ModelSerializer):
-    domicilio = DomicilioSerializer()
+    domicilio  = DomicilioSerializer()
     familiares = serializers.SerializerMethodField()
     familiares_validados = serializers.SerializerMethodField()
-    persona = PersonaSerializer()
-    hermanos = serializers.SerializerMethodField() 
-    hermanos_validados = serializers.SerializerMethodField()
+    persona    = PersonaSerializer()
     referencias_instituciones = serializers.SerializerMethodField()
 
     class Meta:
@@ -139,35 +125,9 @@ class AdolescenteValReadSerializer(serializers.ModelSerializer):
             "familiares_validados",
             "escolarizado",
             "persona",
-            "hermanos", 
-            "hermanos_validados",
             "referencias_instituciones",
         ]
 
-
-    def get_hermanos(self, obj):
-        if obj.persona is None:
-            return []
-        
-        hermanos = Hermano.objects.filter(
-            adolescente=obj,
-            persona__isnull=True 
-        )
-        return HermanoSerializer(hermanos, many=True).data
-    
-    def get_hermanos_validados(self, obj):
-            if obj.persona is None:
-                return []
-
-            legajos = Legajo.objects.filter(
-                carpeta=obj.persona.legajo.carpeta
-            ).exclude(letra="C").exclude(id=obj.persona.legajo.id)
-
-            hermanos = Persona.objects.filter(
-                legajo__in=legajos
-            ).exclude(id=obj.persona.id)
-
-            return PersonaSerializer(hermanos, many=True).data
     
     def get_familiares(self, obj):
         familiares = Familiar.objects.filter(
@@ -203,24 +163,21 @@ class PersonaRelacionSerializer(serializers.Serializer):
 
     # Si referencia un Familiar/Hermano ya cargado
     id_familiar = serializers.IntegerField(required=False, allow_null=True)
-    id_hermano = serializers.IntegerField(required=False, allow_null=True)
-    dni = serializers.CharField(max_length=10)
-    sexo = serializers.CharField(max_length=1)
-    nombre = serializers.CharField(max_length=64)
-    apellido = serializers.CharField(max_length=64)
+    dni         = serializers.CharField(max_length=10)
+    sexo        = serializers.CharField(max_length=1)
+    nombre      = serializers.CharField(max_length=64)
+    apellido    = serializers.CharField(max_length=64)
     fecha_nacimiento = serializers.DateField()
-    id_vinculo = serializers.IntegerField(required=False)
-    legajo = LegajoInputSerializer(required=False, allow_null=True)
-    telefono = serializers.CharField(max_length=16, required=False, allow_null=True, allow_blank=True)
-    domicilio = DomicilioSerializer(required=False, allow_null=True)
+    id_vinculo  = serializers.IntegerField(required=False)
+    legajo      = LegajoInputSerializer(required=False, allow_null=True)
+    telefono    = serializers.CharField(max_length=16, required=False, allow_null=True, allow_blank=True)
+    domicilio   = DomicilioSerializer(required=False, allow_null=True)
 
 
 
 class AdolescenteWriteSerializer(serializers.ModelSerializer):
 
     adolescente_validado = PersonaRelacionSerializer(required=True)
-    hermanos_validados = PersonaRelacionSerializer(many=True, required=False)
-
     familiares_validados = PersonaRelacionSerializer(many=True, required=False)
 
     class Meta:
@@ -228,6 +185,5 @@ class AdolescenteWriteSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "adolescente_validado",
-            "hermanos_validados",
             "familiares_validados",
         ]

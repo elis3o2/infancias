@@ -6,9 +6,8 @@ from rest_framework.views import APIView
 from decouple import config
 from django.db.models import Case, When, Value, IntegerField
 from django.db import transaction
-from .models import Adolescente, Familiar, Hermano, Vinculo
-from .serializers import (AdolescenteCreateSerializer, FamiliarSerializer, HermanoSerializer,
-                                VinculoSerializer)
+from .models import Adolescente, Familiar, Vinculo
+from .serializers import (AdolescenteCreateSerializer, FamiliarSerializer, VinculoSerializer)
 from src.permissions import ReadOnly
 from typing import Any, cast
 import requests
@@ -22,12 +21,6 @@ class AdolescenteViewSet(viewsets.ModelViewSet):
 class FamiliarViewSet(viewsets.ModelViewSet):
     queryset = Familiar.objects.all()
     serializer_class = FamiliarSerializer
-
-
-class HermanoViewSet(viewsets.ModelViewSet):
-    queryset = Hermano.objects.all()
-    serializer_class = HermanoSerializer
-
 
 
 class VinculoViewSer(viewsets.ModelViewSet):

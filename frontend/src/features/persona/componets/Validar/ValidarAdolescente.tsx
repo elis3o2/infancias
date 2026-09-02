@@ -1,5 +1,5 @@
 import type { AdolescenteCrud, PersonaCreate } from "../../types"
-import { Card, CardContent, Stack } from "@mui/material"
+import { Stack } from "@mui/material"
 
 import { Mapa } from "@/features/domicilio/components/Mapa"
 import type { Setter } from "@/common/types"
@@ -7,6 +7,7 @@ import { ValidarAdolescenteDatos } from "./ValidarAdolescenteDatos"
 import { useState } from "react"
 import { CarpetaForm } from "./CarpetaForm"
 import { LegajoForm } from "./LegajoForm"
+import { TitledCard } from "@/common/components/TitleCard"
 
 type Props = {
   adolescente: AdolescenteCrud
@@ -21,15 +22,18 @@ export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, se
   const [tieneLegajo, setTieneLegajo] = useState(false)
   const [tieneCarpeta, setTieneCarpeta] = useState(false)
 
-  const actualizarLegajo = ( cambios: Partial<NonNullable<PersonaCreate["legajo"]>>) => {
+  const actualizarLegajo = (
+    cambios: Partial<NonNullable<PersonaCreate["legajo"]>>
+  ) => {
     if (!persona) return
 
     setPersona({
       ...persona,
       legajo: {
         id_insert: persona.legajo?.id_insert ?? null,
-        letra: persona.legajo?.letra ?? null,
+        letra: persona.legajo?.letra ?? "A",
         carpeta_id: persona.legajo?.carpeta_id ?? null,
+        carpeta_letra: persona.legajo?.carpeta_letra ?? "A",
         ...cambios,
       },
     })
@@ -55,10 +59,22 @@ export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, se
     })
   }
 
-  return (
-    <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
-      <CardContent>
+  const cambiarLetraLegajo = (valor: "A" | "B") => {
+    actualizarLegajo({
+      letra: valor,
+    })
+  }
 
+  const cambiarLetraCarpeta = (valor: "A" | "B") => {
+    actualizarLegajo({
+      carpeta_letra: valor,
+    })
+  }
+
+  return (
+    <TitledCard
+      titulo="Datos del niño, niña o Adolescente"
+      componente={<>
         <Stack spacing={2}>
 
           <ValidarAdolescenteDatos
@@ -80,14 +96,22 @@ export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, se
             <>
               <CarpetaForm
                 carpeta={persona.legajo?.carpeta_id ?? null}
-                setCarpeta={(valor) => actualizarLegajo({ carpeta_id: valor })}
+                letra={persona.legajo?.carpeta_letra ?? "A"}
+                setLetra={cambiarLetraCarpeta}
+                setCarpeta={(valor) =>
+                  actualizarLegajo({ carpeta_id: valor })
+                }
                 tieneCarpeta={tieneCarpeta}
                 setTieneCarpeta={cambiarTieneCarpeta}
               />
 
               <LegajoForm
                 legajo={persona.legajo?.id_insert ?? null}
-                setLegajo={(valor) => actualizarLegajo({ id_insert: valor })}
+                letra={persona.legajo?.letra ?? "A"}
+                setLetra={cambiarLetraLegajo}
+                setLegajo={(valor) =>
+                  actualizarLegajo({ id_insert: valor })
+                }
                 tieneLegajo={tieneLegajo}
                 setTieneLegajo={cambiarTieneLegajo}
               />
@@ -95,8 +119,7 @@ export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, se
           )}
 
         </Stack>
-
-      </CardContent>
-    </Card>
+    </>}
+    />
   )
 }

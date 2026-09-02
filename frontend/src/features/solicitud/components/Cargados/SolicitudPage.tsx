@@ -223,7 +223,7 @@ export const SolicitudListPage = () => {
 
 
                     {/* Derivación, si existe: chip a la izquierda de la fecha */}
-                    {solicitud.derivacion && (
+                    {solicitud.equipo && (
                       <Box
                         sx={{
                           px: 1,
@@ -238,7 +238,7 @@ export const SolicitudListPage = () => {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {solicitud.derivacion.nombre}
+                        {solicitud.equipo.nombre}
                       </Box>
                     )}
 

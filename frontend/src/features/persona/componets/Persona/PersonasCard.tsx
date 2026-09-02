@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader } from "@mui/material"
 import type { Persona } from "../../types"
 import { PersonasList } from "./PersonasList"
+import { TitledCard } from "@/common/components/TitleCard"
 
 type Props = {
   personas: Persona[]
@@ -9,16 +9,13 @@ type Props = {
 
 export const PersonasCard = ({personas, titulo}: Props) => {
   return (
-    <Card sx={{minWidth: 1028}}>
-    <CardHeader
-          title={titulo}
-          titleTypographyProps={{ variant: 'h6', fontWeight: 300 }}
-        />
-      <CardContent>
+    <TitledCard
+      titulo={titulo}
+      componente={
         <PersonasList
           personas={personas}
         />
-      </CardContent>
-    </Card>
+      }
+    />
   )
 }

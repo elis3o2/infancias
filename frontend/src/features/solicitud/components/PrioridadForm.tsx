@@ -15,27 +15,25 @@ export const PrioridadForm = ({prioridadSeleccionada, setPrioridadSeleccionada}:
     const [cargando, setCargando] = useState(true)
 
     useEffect(() => {
-        let activo = true
+      let activo = true
     
-        const cargarOpciones = async () => {
-          try {
-            const dataPrioridades = await getPrioridades()
-            if (activo) {
-              setPrioridades(dataPrioridades)
-            }
-          } finally {
-            if (activo) {
-              setCargando(false)
-            }
+      const cargarOpciones = async () => {
+        try {
+          const dataPrioridades = await getPrioridades()
+          if (activo) {
+            setPrioridades(dataPrioridades)
+          }
+        } finally {
+          if (activo) {
+            setCargando(false)
           }
         }
-    
-        cargarOpciones()
-    
-        return () => {
-          activo = false
-        }
-      }, [])
+      }
+      cargarOpciones()
+      return () => {
+        activo = false
+      }
+    }, [])
 
     if (cargando) {
         return <CircularProgress size={24} />
@@ -45,14 +43,14 @@ export const PrioridadForm = ({prioridadSeleccionada, setPrioridadSeleccionada}:
     <FormControl fullWidth required>
         <InputLabel id="prioridad-label">Prioridad</InputLabel>
         <Select
-            labelId="prioridad-label"
-            label="Prioridad"
-            value={prioridadSeleccionada?.id ?? ""}
-            onChange={(e) => {
+          labelId="prioridad-label"
+          label="Prioridad"
+          value={prioridadSeleccionada?.id ?? ""}
+          onChange={(e) => {
             const idSeleccionado = Number(e.target.value)
             const prioridad = prioridades.find((p) => p.id === idSeleccionado) ?? null
             setPrioridadSeleccionada(prioridad)
-            }}
+          }}
         >
             {prioridades.map((prioridad) => (
             <MenuItem key={prioridad.id} value={prioridad.id}>

@@ -1,10 +1,11 @@
 import type { Setter } from "@/common/types"
 import { useState, useEffect } from "react"
-import { Stack, Button, CardContent, Card, CardHeader } from "@mui/material"
-import type { InstitucionFormData  } from "@/features/domicilio/types"
+import { Stack, Button } from "@mui/material"
+import type { InstitucionFormData } from "@/features/domicilio/types"
 import { InstitucionInicial } from "@/features/domicilio/types"
 import { InstitucionForm } from "@/features/domicilio/components/Institucion/InstitucionForm"
 import { InstitucionesList } from "./InstitucionesList"
+import { ConditionalCard } from "@/common/components/ConditionalCard"
 
 type Props = {
   instituciones: InstitucionFormData[]
@@ -31,33 +32,31 @@ export const ReferenciaInstitucionComponent = ({ instituciones, setInstituciones
   }
 
   return (
-    <Card variant="outlined" sx={{ minWidth:1028, borderRadius: 2 }}>
-      <CardHeader
-          title="Instituciones de referencia"
-          titleTypographyProps={{ variant: 'h6', fontWeight: 600 }}
-        />
-      <CardContent>
+    <ConditionalCard
+      titulo="Instituciones de referencia"
+      condicion={mostrarForm}
+      componenteTrue={
         <Stack spacing={2}>
-          {instituciones.length > 0  && 
-            <InstitucionesList
-              instituciones={instituciones}
-              onEliminar={handleEliminar}
-            />
-          }
-
-          {mostrarForm ? (
-            <InstitucionForm
-                institucion={institucionActual}
-                setInstitucion={setInstitucionActual}
-                setFinshInstitucion={setFinishInstitucion}
-            />
-          ) : (
-            <Button variant="outlined" onClick={() => {setMostrarForm(true); setFinishInstitucion(false)}}>
-              Agregar otra institucion
-            </Button>
+          {instituciones.length > 0 && (
+            <InstitucionesList instituciones={instituciones} onEliminar={handleEliminar} />
           )}
+          <InstitucionForm
+            institucion={institucionActual}
+            setInstitucion={setInstitucionActual}
+            setFinshInstitucion={setFinishInstitucion}
+          />
         </Stack>
-      </CardContent>
-    </Card>
+      }
+      componenteFalse={
+        <Stack spacing={2}>
+          {instituciones.length > 0 && (
+            <InstitucionesList instituciones={instituciones} onEliminar={handleEliminar} />
+          )}
+          <Button variant="outlined" onClick={() => { setMostrarForm(true); setFinishInstitucion(false) }}>
+            Agregar otra institucion
+          </Button>
+        </Stack>
+      }
+    />
   )
 }

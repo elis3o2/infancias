@@ -157,6 +157,7 @@ export type LegajoInsert = {
     id_insert: number | null
     letra: "A" | "B" | "C" | null
     carpeta_id: number | null
+    carpeta_letra: "A" | "B" | null
 }
 
 export type Persona = {

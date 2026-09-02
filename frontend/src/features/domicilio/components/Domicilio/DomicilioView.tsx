@@ -1,15 +1,14 @@
 import { Box, Button, Stack, Typography } from "@mui/material"
 import HomeIcon from "@mui/icons-material/Home"
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"
-import type { Setter } from "@/common/types"
 
 type Props = {
   domicilio: string
   observaciones: string | null
-  setFinishDomicilio: Setter<boolean>
+  onEditar: () => void
 }
 
-export const DomicilioView = ({ domicilio, observaciones, setFinishDomicilio }: Props) => {
+export const DomicilioView = ({ domicilio, observaciones, onEditar }: Props) => {
 
   return (
     <Stack
@@ -76,7 +75,7 @@ export const DomicilioView = ({ domicilio, observaciones, setFinishDomicilio }: 
             mt: 0.5,
             px: 0,
           }}
-          onClick={() => setFinishDomicilio(false)}
+          onClick={onEditar}
         >
           Editar domicilio
         </Button>
