@@ -2,11 +2,10 @@ import { useEffect, useState } from "react"
 import { FormControl, InputLabel, Select, MenuItem } from "@mui/material"
 import type { TipoInstitucion } from "../../types"
 import { getTipoInstitucionAll } from "../../api"
-import type { Setter } from "@/common/types"
 
 type Props = {
   tipoSeleccionado: TipoInstitucion | null
-  setTipoSeleccionado: Setter<TipoInstitucion | null>
+  setTipoSeleccionado: (tipo: TipoInstitucion | null) => void
 }
 
 export const TipoInstitucionComponent = ({ tipoSeleccionado, setTipoSeleccionado }: Props) => {

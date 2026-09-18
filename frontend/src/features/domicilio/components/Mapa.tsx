@@ -3,7 +3,8 @@ import { useMap, MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { Box } from "@mui/material";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+
+delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -18,18 +19,30 @@ type Props = {
     nombre: string
 }
 
+type RecenterMapProps = {
+    latitud: number
+    longitud: number
+}
+
+const RecenterMap = ({ latitud, longitud }: RecenterMapProps) => {
+    const map = useMap();
+
+    useEffect(() => {
+        map.setView([latitud, longitud], 17, { animate: true });
+    }, [latitud, longitud, map]);
+
+    return null;
+};
+
 export const Mapa = ({ latitud, longitud, nombre } : Props) => {
-    
-    function RecenterMap({lat, lon }: { lat: number; lon: number }) {
-        const map = useMap();
-        useEffect(() => {
-            map.setView([lat, lon], 17, { animate: true });
-        }, [lat, lon, map]);
-        return null;
-    }
-    
     return (
-    <Box sx={{ height: 400, borderRadius: 2, overflow: "hidden" }}>
+    <Box
+        sx={{
+            height: { xs: 240, sm: 300, lg: 360 },
+            borderRadius: 2,
+            overflow: "hidden",
+        }}
+    >
         <MapContainer
             center={[
                 latitud,
@@ -43,8 +56,8 @@ export const Mapa = ({ latitud, longitud, nombre } : Props) => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <RecenterMap
-                lat={latitud}
-                lon={longitud}
+                latitud={latitud}
+                longitud={longitud}
             />
             <Marker position={[
                 latitud,

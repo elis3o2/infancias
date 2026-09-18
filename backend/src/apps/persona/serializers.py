@@ -1,16 +1,14 @@
-from django.db import transaction
-from django.utils import timezone
+from django.db.models import Q
 from rest_framework import serializers
-from .models import (Carpeta, Legajo, Persona, Adolescente, Relacion, Familiar, 
-    Vinculo, PersonaDomicilio, PersonaTelefono, AdolescenteInstitucion)
-from src.apps.domicilio.models import Institucion
-from src.apps.domicilio.serializers import (DomicilioSerializer, InstitucionSerializer, ReferenciaInstitucionInputSerializer)
+from .models import (Carpeta, Legajo, Persona, Adolescente, Relacion, Familiar,
+    Vinculo)
+from src.apps.domicilio.serializers import DomicilioSerializer
 
 class CarpetaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Carpeta
-        fields = "__all__"
+        fields = ("id", "id_insert")
 
 
 class LegajoSerializer(serializers.ModelSerializer):
@@ -18,21 +16,27 @@ class LegajoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Legajo
-        fields = "__all__"
+        fields = ("id", "id_insert", "carpeta")
 
 
 class CarpetaInputSerializer(serializers.Serializer):
     id        = serializers.IntegerField(required=False)
     id_insert = serializers.IntegerField(required=False, allow_null=True)
-    letra     = serializers.CharField(required=False, allow_blank=True)
 
 
 class LegajoInputSerializer(serializers.Serializer):
     id             = serializers.IntegerField(required=False)
     id_insert      = serializers.IntegerField(required=False, allow_null=True)
-    letra          = serializers.CharField(required=False, allow_blank=True)
     carpeta_id     = serializers.IntegerField(required=False, allow_null=True)
-    carperta_letra = serializers.CharField(required=False, allow_blank=True)
+    # Compatibilidad de escritura para clientes antiguos. Las letras ya no
+    # forman parte del contrato: la base las resuelve internamente.
+    letra = serializers.CharField(required=False, allow_blank=True, max_length=1, write_only=True)
+
+    def validate(self, attrs):
+        for campo in ("letra", "carpeta_letra", "carperta_letra"):
+            attrs.pop(campo, None)
+        return attrs
+
 
 class PersonaSerializer(serializers.ModelSerializer):
     legajo = LegajoSerializer(read_only=True)
@@ -40,8 +44,6 @@ class PersonaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Persona
         fields = "__all__"
-
-
 
 
 class VinculoSerializer(serializers.ModelSerializer):
@@ -56,21 +58,41 @@ class FamiliarSerializer(serializers.ModelSerializer):
         queryset=Vinculo.objects.all(),
         source="vinculo",
         write_only=True,
-        required=False,
+        required=True,
     )
     vinculo   = VinculoSerializer(read_only=True)
     persona   = PersonaSerializer(read_only=True)
     domicilio = DomicilioSerializer(required=False, allow_null=True)
+
     class Meta:
         model = Familiar
-        exclude = ["adolescente"]
+        exclude = ["solicitud"]
+
+    def validate(self, attrs):
+        for field in ("nombre", "apellido"):
+            if field in attrs:
+                attrs[field] = attrs[field].strip()
+
+        for field in ("dni", "sexo", "telefono"):
+            value = attrs.get(field)
+            if isinstance(value, str):
+                attrs[field] = value.strip() or None
+
+        sexo = attrs.get("sexo")
+        if sexo is not None:
+            sexo = sexo.upper()
+            if sexo not in {"M", "F", "X"}:
+                raise serializers.ValidationError(
+                    {"sexo": "El sexo debe ser M, F o X."}
+                )
+            attrs["sexo"] = sexo
+
+        return attrs
 
 
 
 class AdolescenteCreateSerializer(serializers.ModelSerializer):
     domicilio  = DomicilioSerializer()
-    familiares = FamiliarSerializer(many=True, required=False, write_only=True)
-    referencias_instituciones_data = ReferenciaInstitucionInputSerializer(many=True, write_only=True, required=False)
 
     class Meta:
         model = Adolescente
@@ -82,16 +104,22 @@ class AdolescenteCreateSerializer(serializers.ModelSerializer):
             "fecha_nacimiento",
             "escolarizado",
             "domicilio",
-            "familiares",
-            "referencias_instituciones_data",
         ]
+
+    def validate(self, attrs):
+        attrs["dni"] = attrs["dni"].strip()
+        attrs["sexo"] = attrs["sexo"].strip().upper()
+        attrs["nombre"] = attrs["nombre"].strip()
+        attrs["apellido"] = attrs["apellido"].strip()
+        if attrs["sexo"] not in {"M", "F", "X"}:
+            raise serializers.ValidationError({"sexo": "El sexo debe ser M, F o X."})
+        return attrs
 
 
 class AdolescenteReadSerializer(serializers.ModelSerializer):
-
-    domicilio  = DomicilioSerializer()
-    familiares = FamiliarSerializer(many=True, required=False)
-    referencias_instituciones = InstitucionSerializer(many=True, read_only=True)
+    domicilio = DomicilioSerializer(read_only=True)
+    persona = PersonaSerializer(read_only=True)
+    relaciones = serializers.SerializerMethodField()
 
     class Meta:
         model = Adolescente
@@ -104,86 +132,137 @@ class AdolescenteReadSerializer(serializers.ModelSerializer):
             "domicilio",
             "fecha_nacimiento",
             "escolarizado",
-            "familiares",
-            "referencias_instituciones",
-        ]
-
-
-class AdolescenteValReadSerializer(serializers.ModelSerializer):
-    domicilio  = DomicilioSerializer()
-    familiares = serializers.SerializerMethodField()
-    familiares_validados = serializers.SerializerMethodField()
-    persona    = PersonaSerializer()
-    referencias_instituciones = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Adolescente
-        fields = [
-            "id",
-            "domicilio",
-            "familiares",
-            "familiares_validados",
-            "escolarizado",
             "persona",
-            "referencias_instituciones",
+            "relaciones",
         ]
 
-    
-    def get_familiares(self, obj):
-        familiares = Familiar.objects.filter(
-            adolescente=obj,
-            persona__isnull=True
+    def get_relaciones(self, obj):
+        if obj.persona_id is None:
+            return []
+
+        relaciones = (
+            Relacion.objects.filter(
+                Q(persona_1=obj.persona) | Q(persona_2=obj.persona)
+            )
+            .select_related("persona_1", "persona_2", "vinculo")
+            .order_by("id")
         )
-        return FamiliarSerializer(familiares, many=True).data
 
+        resultado = []
+        for relacion in relaciones:
+            relacionada = (
+                relacion.persona_2
+                if relacion.persona_1_id == obj.persona_id
+                else relacion.persona_1
+            )
+            resultado.append(
+                {
+                    "id": relacion.id,
+                    "vinculo": VinculoSerializer(relacion.vinculo).data,
+                    "persona": PersonaSerializer(relacionada).data,
+                }
+            )
+        return resultado
 
-    def get_familiares_validados(self, obj):
-        if getattr(obj, 'persona', None) is None: return [] # Prevención de error
-
-        legajos = Legajo.objects.filter(
-            carpeta=obj.persona.legajo.carpeta,
-            letra="C"
-        )
-        familiares = Persona.objects.filter(legajo__in=legajos)
-        
-        return FamiliarSerializer(familiares, many=True).data
-
-
-    def get_referencias_instituciones(self, obj):
-        referencias = AdolescenteInstitucion.objects.filter(
-            adolescente=obj,
-        )
-        instituciones = [ref.institucion for ref in referencias]
-        return InstitucionSerializer(instituciones, many=True).data
-
-
+class AdolescenteValReadSerializer(AdolescenteReadSerializer):
+    """Alias semántico para las solicitudes procesadas."""
 
 class PersonaRelacionSerializer(serializers.Serializer):
-    id = serializers.IntegerField(required=False)
-
-    # Si referencia un Familiar/Hermano ya cargado
+    # Si referencia un familiar ya cargado en la solicitud.
     id_familiar = serializers.IntegerField(required=False, allow_null=True)
-    dni         = serializers.CharField(max_length=10)
+    dni         = serializers.CharField(max_length=9)
     sexo        = serializers.CharField(max_length=1)
-    nombre      = serializers.CharField(max_length=64)
-    apellido    = serializers.CharField(max_length=64)
+    nombre      = serializers.CharField(max_length=32)
+    apellido    = serializers.CharField(max_length=32)
     fecha_nacimiento = serializers.DateField()
-    id_vinculo  = serializers.IntegerField(required=False)
+    id_vinculo  = serializers.IntegerField(required=False, allow_null=True)
+    # Algunos formularios aún mandan el objeto Vinculo completo.
+    vinculo = serializers.JSONField(required=False, allow_null=True, write_only=True)
     legajo      = LegajoInputSerializer(required=False, allow_null=True)
     telefono    = serializers.CharField(max_length=16, required=False, allow_null=True, allow_blank=True)
     domicilio   = DomicilioSerializer(required=False, allow_null=True)
 
+    def validate(self, attrs):
+        attrs["dni"] = attrs["dni"].strip()
+        attrs["sexo"] = attrs["sexo"].strip().upper()
+        attrs["nombre"] = attrs["nombre"].strip()
+        attrs["apellido"] = attrs["apellido"].strip()
+        if attrs["sexo"] not in {"M", "F", "X"}:
+            raise serializers.ValidationError({"sexo": "El sexo debe ser M, F o X."})
+
+        telefono = attrs.get("telefono")
+        if isinstance(telefono, str):
+            attrs["telefono"] = telefono.strip() or None
+
+        vinculo = attrs.pop("vinculo", None)
+        if attrs.get("id_vinculo") is None and isinstance(vinculo, dict):
+            vinculo_id = vinculo.get("id")
+            if vinculo_id is not None:
+                attrs["id_vinculo"] = vinculo_id
+
+        return attrs
 
 
-class AdolescenteWriteSerializer(serializers.ModelSerializer):
+class AdolescenteWriteSerializer(serializers.Serializer):
+    """Decisión de validación de un adolescente dentro de una solicitud."""
 
-    adolescente_validado = PersonaRelacionSerializer(required=True)
+    id = serializers.IntegerField()
+    # Los clientes anteriores no enviaban estado: se conservan como
+    # confirmaciones para no romper el contrato existente.
+    adolescente_validado = PersonaRelacionSerializer(required=False)
     familiares_validados = PersonaRelacionSerializer(many=True, required=False)
 
-    class Meta:
-        model = Adolescente
-        fields = [
-            "id",
-            "adolescente_validado",
-            "familiares_validados",
-        ]
+    def validate(self, attrs):
+        estado = attrs["estado"]
+
+        if estado == "confirmado":
+            if "adolescente_validado" not in attrs:
+                raise serializers.ValidationError({
+                    "adolescente_validado": (
+                        "Debe informar los datos de un adolescente confirmado."
+                    )
+                })
+            return attrs
+
+        campos_sin_uso = {
+            campo: "No se envían datos para un adolescente rechazado."
+            for campo in (
+                "adolescente_validado",
+                "familiares_validados",
+                "familiares_rechazados",
+                "hermanos_validados",
+            )
+            if campo in attrs
+        }
+        if campos_sin_uso:
+            raise serializers.ValidationError(campos_sin_uso)
+
+        return attrs
+
+
+class PersonaConsultaInputSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    sexo = serializers.CharField(
+        max_length=1,
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+    )
+    dni = serializers.CharField(max_length=9)
+
+    def validate(self, attrs):
+        attrs["dni"] = attrs["dni"].strip()
+        sexo = attrs.get("sexo")
+        if sexo:
+            sexo = sexo.strip().upper()
+            if sexo not in {"M", "F", "X"}:
+                raise serializers.ValidationError({"sexo": "El sexo debe ser M, F o X."})
+            attrs["sexo"] = sexo
+        else:
+            attrs["sexo"] = None
+        return attrs
+
+
+class ConsultaPersonasSerializer(serializers.Serializer):
+    adolescentes = PersonaConsultaInputSerializer(many=True)
+    familiares = PersonaConsultaInputSerializer(many=True, required=False)

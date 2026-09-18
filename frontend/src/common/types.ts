@@ -10,5 +10,5 @@ export interface Column<T> {
     id: string;
     label: string;
     align?: 'right' | 'left' | 'center';
-    render?: (value: any, row: T) => ReactNode;
+    render?: (value: unknown, row: T) => ReactNode;
 }

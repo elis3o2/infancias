@@ -1,18 +1,20 @@
-import { useState } from "react"
 import { Stack, FormControl, InputLabel, Select, MenuItem, Button } from "@mui/material"
 import type { DomicilioFormData } from "../../types"
+import CheckIcon from "@mui/icons-material/Check";
+import type { Setter } from "@/common/types";
 
 
 type Props = {
     domicilios: DomicilioFormData[]
-    domicilio: DomicilioFormData | null
+    nombreElegido: string
+    setNombreElegido: Setter<string>
+    onConfirmar: () => void
     onCargarOtro: () => void
 }
 
 
-export const DomicilioSelect = ({ domicilios, domicilio, onCargarOtro }: Props) => {
+export const DomicilioSelect = ({ domicilios, nombreElegido, setNombreElegido, onConfirmar, onCargarOtro }: Props) => {
     
-    const [nombreElegido, setNombreElegido] = useState(domicilio?.nombre ?? "");
 
     return (
     <Stack spacing={1.5}>
@@ -43,6 +45,23 @@ export const DomicilioSelect = ({ domicilios, domicilio, onCargarOtro }: Props) 
                 sx={{ textTransform: "none" }}
             >
                 Cargar otro domicilio
+            </Button>
+            <Button
+                size="small"
+                variant="contained"
+                color="success"
+                startIcon={<CheckIcon fontSize="small" />}
+                onClick={onConfirmar}
+                disabled={!nombreElegido}
+                sx={{
+                    textTransform: "none",
+                    borderRadius: 2,
+                    px: 1.5,
+                    py: 0.4,
+                    fontSize: "0.8rem",
+                }}
+            >
+                Confirmar
             </Button>
         </Stack>
     </Stack>

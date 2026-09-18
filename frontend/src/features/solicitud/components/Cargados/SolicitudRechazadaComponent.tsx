@@ -1,64 +1,34 @@
-import { ContactoCard } from "../Contacto/ContactoCard"
+import { Stack } from "@mui/material"
 import { InstitucionCard } from "@/features/domicilio/components/Institucion/InstitucionCard"
-import { DescripcionCard } from "../SolicitudSection/DescripcionCard"
-import { ArchivoVistaCard } from "../Archivo/ArchivoVistaCard"
 import { InstitucionesCard } from "@/features/domicilio/components/Institucion/InstitucionesCard"
-import type { SolicitudRechazada } from "../../types"
-import { HermanosCard } from "@/features/persona/componets/Hermano/HermanosCard"
-import { FamiliaresCard } from "@/features/persona/componets/Familiar/FamiliaresCard"
 import { AdolescenteCard } from "@/features/persona/componets/Adolescente/AdolescenteCard"
-
+import { FamiliaresCard } from "@/features/persona/componets/Familiar/FamiliaresCard"
+import type { SolicitudRechazada } from "../../types"
+import { ArchivoVistaCard } from "../Archivo/ArchivoVistaCard"
+import { ContactoCard } from "../Contacto/ContactoCard"
+import { DescripcionCard } from "../SolicitudSection/DescripcionCard"
 
 type Props = {
-    solicitud: SolicitudRechazada
+  solicitud: SolicitudRechazada
 }
 
-export const SolicitudRechazadaComponent = ({ solicitud }: Props) => {
+export const SolicitudRechazadaComponent = ({ solicitud }: Props) => (
+  <Stack spacing={{ xs: 2, sm: 3 }}>
+    <ContactoCard telefono={solicitud.telefono} correo={solicitud.correo} />
+    <InstitucionCard institucion={solicitud.institucion} />
 
-    return (
-        <>
-            <ContactoCard
-                telefono={solicitud.telefono}
-                correo={solicitud.correo}
-            />
+    {solicitud.adolescentes.map((adolescente) => (
+      <AdolescenteCard key={adolescente.id} adolescente={adolescente} />
+    ))}
 
-            <InstitucionCard
-                institucion={solicitud.institucion}
-            />
+    {solicitud.familiares.length > 0 && <FamiliaresCard familiares={solicitud.familiares} />}
 
-            <AdolescenteCard
-                adolescente={solicitud.adolescente}
-            />
+    <DescripcionCard nombre="Descripción" texto={solicitud.descripcion} />
+    <DescripcionCard nombre="Motivo del rechazo" texto={solicitud.motivo_rechazo} />
+    <ArchivoVistaCard archivos={solicitud.archivos} />
 
-            {solicitud.adolescente.hermanos.length > 0 && (
-                <HermanosCard
-                    hermanos={solicitud.adolescente.hermanos}
-                />
-            )}
-            
-            {solicitud.adolescente.familiares.length > 0 && (
-                <FamiliaresCard
-                    familiares={solicitud.adolescente.familiares}
-                />
-            )}
-
-            <DescripcionCard
-                nombre="Descripción"
-                texto={solicitud.descripcion}
-            />
-
-
-            <ArchivoVistaCard
-                archivos={solicitud.archivos}
-            />
-
-            {solicitud.adolescente.referencias_instituciones.length > 0 && (
-                <InstitucionesCard
-                    instituciones={
-                        solicitud.adolescente.referencias_instituciones
-                    }
-                />
-            )}
-    </>
-    )
-}
+    {solicitud.referencias_instituciones.length > 0 && (
+      <InstitucionesCard instituciones={solicitud.referencias_instituciones} />
+    )}
+  </Stack>
+)

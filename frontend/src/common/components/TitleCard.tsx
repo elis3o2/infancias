@@ -1,4 +1,4 @@
-import type { Theme } from "@emotion/react";
+import type { Theme } from "@mui/material/styles";
 import { Card, CardContent, CardHeader, Divider, type SxProps } from "@mui/material";
 import type { ReactNode } from "react";
 
@@ -13,13 +13,16 @@ export const TitledCard = ({ titulo, componente, sx }: Props) => {
     <Card
       variant="outlined"
       sx={{
-        width: '80%',
+        width: '100%',
         borderRadius: 3,
         borderColor: 'divider',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-        transition: 'box-shadow 0.2s ease',
+        bgcolor: 'background.paper',
+        boxShadow: '0 2px 8px rgba(15, 23, 42, 0.05)',
+        overflow: 'hidden',
+        transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
         '&:hover': {
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          borderColor: 'primary.light',
+          boxShadow: '0 8px 20px rgba(15, 23, 42, 0.08)',
         },
         ...sx,
       }}
@@ -32,13 +35,13 @@ export const TitledCard = ({ titulo, componente, sx }: Props) => {
           letterSpacing: '-0.01em',
         }}
         sx={{
-          px: 3,
-          pt: 2.5,
+          px: { xs: 2, sm: 3 },
+          pt: { xs: 2, sm: 2.5 },
           pb: 1.5,
         }}
       />
       <Divider />
-      <CardContent sx={{ px: 3, py: 3 }}>
+      <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 2.5 } }}>
         {componente}
       </CardContent>
     </Card>

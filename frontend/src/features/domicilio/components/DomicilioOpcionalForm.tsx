@@ -5,26 +5,53 @@ import { ProvinciaComponent } from "./ProvinciaComponent";
 import { DepartamentoComponent } from "./DepartamentoComponet";
 import { DomicilioSelect } from "./Domicilio/DomicilioSelect";
 
-import type { Setter } from "@/common/types";
 import type { Departamento, DomicilioFormData, Provincia } from "../types";
-
 
 type Props = {
   condicion: boolean;
   domicilio: DomicilioFormData | null;
-  domicilios: DomicilioFormData[];
-  setDomicilio: Setter<DomicilioFormData | null>;
+  domicilios?: DomicilioFormData[];
+  setDomicilio: (domicilio: DomicilioFormData | null) => void;
   provincia: Provincia | null;
-  setProvincia: Setter<Provincia | null>;
+  setProvincia: (provincia: Provincia | null) => void;
   departamento: Departamento | null;
-  setDepartamento: Setter<Departamento | null>;
+  setDepartamento: (departamento: Departamento | null) => void;
   mostrar: (valor: boolean) => void;
 };
 
-export const DomicilioOpcionalForm = ({ condicion, domicilio, domicilios, setDomicilio,
-                        provincia, setProvincia, departamento, setDepartamento, mostrar,}: Props) => {
+const nuevoDomicilio = (): DomicilioFormData => ({
+  nombre: "",
+  observaciones: null,
+  id_departamento: null,
+  domicilio_validado: null,
+});
 
-  const [mostrarFormulario, setMostrarFormulario] = useState(domicilios.length === 0);
+export const DomicilioOpcionalForm = ({
+  condicion,
+  domicilio,
+  domicilios = [],
+  setDomicilio,
+  provincia,
+  setProvincia,
+  departamento,
+  setDepartamento,
+  mostrar,
+}: Props) => {
+
+  // If a domicile is already associated with the person, show its editable
+  // fields. The former `domicilios.length` rule showed the selector instead
+  // and could leave the current value invisible after a confirmation.
+  const [mostrarFormulario, setMostrarFormulario] = useState(
+    domicilio !== null || domicilios.length === 0,
+  );
+  const [nombreElegido, setNombreElegido] = useState(domicilio?.nombre ?? "");
+
+  const actualizarDomicilio = (cambios: Partial<DomicilioFormData>) => {
+    setDomicilio({
+      ...(domicilio ?? nuevoDomicilio()),
+      ...cambios,
+    });
+  };
 
   if (!condicion) {
     return (
@@ -37,32 +64,59 @@ export const DomicilioOpcionalForm = ({ condicion, domicilio, domicilios, setDom
             textTransform: "none",
         }}
       >
-        + Cargar domicilio
+        + CARGAR DOMICILIO
       </Button>
     );
   }
 
+  const confirmarSeleccion = () => {
+    const encontrado = domicilios.find((d) => d.nombre === nombreElegido);
+    if (encontrado) {
+      setDomicilio(encontrado);
+      setMostrarFormulario(true);
+    }
+  };
+
   const cargarOtroDomicilio = () => {
+    setDomicilio(nuevoDomicilio());
+    setProvincia(null);
+    setDepartamento(null);
+    setNombreElegido("");
+    setMostrarFormulario(true);
+  };
+
+  const ocultarDomicilio = () => {
     setDomicilio(null);
     setProvincia(null);
     setDepartamento(null);
+    setNombreElegido("");
     setMostrarFormulario(true);
+    mostrar(false);
   };
 
   if (mostrarFormulario) {
       return (
         <Stack spacing={1}>
-          <Stack direction="row" spacing={1}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
             <Box sx={{ flex: 1 }}>
                 <ProvinciaComponent
-                    provincia={provincia}
-                    setProvincia={setProvincia}
+                  provincia={provincia}
+                  setProvincia={(siguienteProvincia) => {
+                    setProvincia(siguienteProvincia);
+                    setDepartamento(null);
+                    actualizarDomicilio({ id_departamento: null });
+                  }}
                 />
             </Box>
             <Box sx={{ flex: 1 }}>
                 <DepartamentoComponent
                     departamento={departamento}
-                    setDepartamento={setDepartamento}
+                    setDepartamento={(siguienteDepartamento) => {
+                      setDepartamento(siguienteDepartamento);
+                      actualizarDomicilio({
+                        id_departamento: siguienteDepartamento?.id ?? null,
+                      });
+                    }}
                     id_provincia={
                         provincia == null
                             ? null
@@ -72,27 +126,20 @@ export const DomicilioOpcionalForm = ({ condicion, domicilio, domicilios, setDom
             </Box>
           </Stack>
           <Stack
-            direction="row"
+            direction={{ xs: "column", sm: "row" }}
             spacing={1}
-            sx={{ alignItems: "center" }}
+            sx={{ alignItems: { xs: "stretch", sm: "center" } }}
           >
           <TextField
             fullWidth
             label="Domicilio"
             value={domicilio?.nombre ?? ""}
-            onChange={(e) => {
-                setDomicilio({
-                    ...(domicilio ?? {}),
-                    nombre: e.target.value,
-                } as DomicilioFormData);
-            }}
+            onChange={(e) => actualizarDomicilio({ nombre: e.target.value })}
           />
           <IconButton
             size="small"
-            onClick={() => {
-              setDomicilio(null);
-              mostrar(false);
-            }}
+            onClick={ocultarDomicilio}
+            sx={{ alignSelf: { xs: "flex-end", sm: "center" } }}
           >
           <CloseIcon fontSize="small" />
         </IconButton>
@@ -120,9 +167,11 @@ export const DomicilioOpcionalForm = ({ condicion, domicilio, domicilios, setDom
 
   return (
     <DomicilioSelect
-      domicilio={domicilio}
       domicilios={domicilios}
+      nombreElegido={nombreElegido}
+      setNombreElegido={setNombreElegido}
       onCargarOtro={cargarOtroDomicilio}
+      onConfirmar={confirmarSeleccion}
     />
   );
 };

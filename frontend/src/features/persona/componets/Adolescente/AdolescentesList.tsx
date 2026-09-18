@@ -17,7 +17,7 @@ export const AdolescentesList = ({ adolescentes, onEditar }: Props) => {
           <ListData
             nombre={adolescente.nombre}
             apellido={adolescente.apellido}
-            sexo={adolescente.sexo? adolescente.sexo : null}
+            sexo={adolescente.sexo || undefined}
             dni={adolescente.dni}
             fecha_nacimiento={adolescente.fecha_nacimiento}
             domicilio={adolescente.domicilio?.nombre}

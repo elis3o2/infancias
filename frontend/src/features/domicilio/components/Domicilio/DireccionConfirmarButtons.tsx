@@ -30,7 +30,7 @@ export const DireccionConfirmarButtons = ({canConfirm, onConfirmar, onLimpiar } 
             <Button
               variant="outlined"
               fullWidth
-              onClick={() => {onLimpiar}}
+              onClick={onLimpiar}
               sx={{
                 borderRadius: 2,
                 fontWeight: 600,

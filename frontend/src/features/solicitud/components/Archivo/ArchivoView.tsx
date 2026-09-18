@@ -1,269 +1,86 @@
-import type { Archivo } from "../../types";
+import { IconButton, List, ListItem, ListItemIcon, ListItemText, Stack, Typography } from "@mui/material"
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined"
+import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined"
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined"
+import type { Archivo } from "../../types"
 
 type Props = {
   archivos: Archivo[]
-  onRemove: (id: number) => void 
+  onRemove: (id: number) => void
+}
+
+function tipoArchivo(mime: string) {
+  if (mime === "application/pdf") return "PDF"
+  if (mime === "image/jpeg") return "JPG"
+  if (mime === "image/png") return "PNG"
+  return mime.split("/").at(-1)?.toUpperCase() ?? "Archivo"
+}
+
+function tamanoArchivo(bytes: number) {
+  return bytes < 1024 * 1024
+    ? `${Math.ceil(bytes / 1024)} KB`
+    : `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 export function ArchivoView({ archivos, onRemove }: Props) {
   if (archivos.length === 0) {
     return (
-      <div style={styles.empty}>
-        <EmptyIcon />
-        <p style={styles.emptyText}>Ningún archivo agregado todavía</p>
-      </div>
-    );
+      <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
+        No hay archivos adjuntos todavía.
+      </Typography>
+    )
+  }
+
+  const descargar = (archivo: Archivo) => {
+    const url = URL.createObjectURL(archivo.contenido)
+    const enlace = document.createElement("a")
+    enlace.href = url
+    enlace.download = archivo.nombre
+    enlace.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
-    <div style={styles.wrapper}>
-      <p style={styles.count}>
-        {archivos.length} archivo{archivos.length > 1 ? "s" : ""}
-      </p>
-      <ul style={styles.list}>
+    <Stack spacing={0.5}>
+      <Typography variant="caption" color="text.secondary">
+        {archivos.length} archivo{archivos.length === 1 ? "" : "s"} adjunto{archivos.length === 1 ? "" : "s"}
+      </Typography>
+      <List disablePadding>
         {archivos.map((archivo) => (
-          <ArchivoRow
+          <ListItem
             key={archivo.id}
-            archivo={archivo}
-            onRemove={onRemove}
-          />
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-/* ── fila individual ─────────────────────────────────────────────────────── */
-
-function ArchivoRow({ archivo, onRemove }) {
-  const handleDownload = () => {
-    const url = URL.createObjectURL(archivo.contenido);
-    const a   = document.createElement("a");
-    a.href     = url;
-    a.download = archivo.nombre;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  return (
-    <li style={styles.row}>
-      <MimeIcon mime={archivo.tipo_mime} />
-
-      <div style={styles.info}>
-        <span style={styles.nombre} title={archivo.nombre}>
-          {archivo.nombre}
-        </span>
-        <span style={styles.meta}>
-          {shortMime(archivo.tipo_mime)}
-          {archivo.contenido.size
-            ? ` · ${formatSize(archivo.contenido.size)}`
-            : ""}
-        </span>
-      </div>
-
-      <div style={styles.actions}>
-        <button
-          onClick={handleDownload}
-          style={styles.btnIcon}
-          title="Descargar"
-          aria-label={`Descargar ${archivo.nombre}`}
-        >
-          <DownloadIcon />
-        </button>
-        {onRemove && (
-          <button
-            onClick={() => onRemove(archivo.id)}
-            style={{ ...styles.btnIcon, ...styles.btnDanger }}
-            title="Eliminar"
-            aria-label={`Eliminar ${archivo.nombre}`}
+            disableGutters
+            secondaryAction={
+              <>
+                <IconButton
+                  edge="end"
+                  aria-label={`Descargar ${archivo.nombre}`}
+                  onClick={() => descargar(archivo)}
+                >
+                  <DownloadOutlinedIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  edge="end"
+                  color="error"
+                  aria-label={`Quitar ${archivo.nombre}`}
+                  onClick={() => onRemove(archivo.id)}
+                >
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
+              </>
+            }
+            sx={{ borderBottom: 1, borderColor: "divider", pr: 11 }}
           >
-            <TrashIcon />
-          </button>
-        )}
-      </div>
-    </li>
-  );
+            <ListItemIcon sx={{ minWidth: 36 }}>
+              <DescriptionOutlinedIcon color="primary" fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary={<Typography noWrap variant="body2">{archivo.nombre}</Typography>}
+              secondary={`${tipoArchivo(archivo.tipo_mime)} · ${tamanoArchivo(archivo.contenido.size)}`}
+            />
+          </ListItem>
+        ))}
+      </List>
+    </Stack>
+  )
 }
-
-/* ── helpers ─────────────────────────────────────────────────────────────── */
-
-function shortMime(mime) {
-  const map = {
-    "application/pdf":  "PDF",
-    "image/png":        "PNG",
-    "image/jpeg":       "JPG",
-    "image/gif":        "GIF",
-    "image/webp":       "WEBP",
-    "video/mp4":        "MP4",
-    "audio/mpeg":       "MP3",
-    "audio/ogg":        "OGG",
-    "text/plain":       "TXT",
-    "text/csv":         "CSV",
-    "application/json": "JSON",
-    "application/zip":  "ZIP",
-  };
-  return map[mime] || mime.split("/")[1]?.toUpperCase() || "—";
-}
-
-function formatSize(bytes) {
-  if (bytes < 1024)        return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function mimeColor(mime) {
-  if (mime.startsWith("image/"))       return "#6366F1";
-  if (mime.startsWith("video/"))       return "#EC4899";
-  if (mime.startsWith("audio/"))       return "#F59E0B";
-  if (mime === "application/pdf")      return "#EF4444";
-  if (mime.startsWith("text/"))        return "#10B981";
-  return "#94A3B8";
-}
-
-function MimeIcon({ mime }) {
-  return (
-    <span style={{ ...styles.mimeIcon, background: mimeColor(mime) }}>
-      {shortMime(mime).slice(0, 3)}
-    </span>
-  );
-}
-
-/* ── SVG icons ───────────────────────────────────────────────────────────── */
-const svgProps = {
-  width: "16", height: "16", viewBox: "0 0 24 24",
-  fill: "none", stroke: "currentColor",
-  strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round",
-};
-
-function DownloadIcon() {
-  return (
-    <svg {...svgProps}>
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="7 10 12 15 17 10"/>
-      <line x1="12" y1="15" x2="12" y2="3"/>
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg {...svgProps}>
-      <polyline points="3 6 5 6 21 6"/>
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-      <path d="M10 11v6M14 11v6"/>
-      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-    </svg>
-  );
-}
-
-function EmptyIcon() {
-  return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
-         stroke="#CBD5E1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
-      <polyline points="13 2 13 9 20 9"/>
-    </svg>
-  );
-}
-
-/* ── estilos ─────────────────────────────────────────────────────────────── */
-const styles = {
-  wrapper: {
-    display:       "flex",
-    flexDirection: "column",
-    gap:           "8px",
-    fontFamily:    "'Inter', system-ui, sans-serif",
-  },
-  count: {
-    margin:        0,
-    fontSize:      "12px",
-    fontWeight:    600,
-    color:         "#64748B",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-  },
-  list: {
-    listStyle: "none",
-    margin:    0,
-    padding:   0,
-    display:   "flex",
-    flexDirection: "column",
-    gap:       "6px",
-  },
-  row: {
-    display:      "flex",
-    alignItems:   "center",
-    gap:          "12px",
-    padding:      "10px 14px",
-    background:   "#fff",
-    border:       "1px solid #E2E8F0",
-    borderRadius: "10px",
-    transition:   "box-shadow 0.15s",
-  },
-  mimeIcon: {
-    display:        "inline-flex",
-    alignItems:     "center",
-    justifyContent: "center",
-    width:          "36px",
-    height:         "36px",
-    borderRadius:   "8px",
-    fontSize:       "9px",
-    fontWeight:     700,
-    color:          "#fff",
-    letterSpacing:  "0.02em",
-    flexShrink:     0,
-  },
-  info: {
-    flex:          1,
-    display:       "flex",
-    flexDirection: "column",
-    gap:           "2px",
-    minWidth:      0,          // permite ellipsis en hijos flex
-  },
-  nombre: {
-    fontSize:     "13px",
-    fontWeight:   500,
-    color:        "#1E293B",
-    overflow:     "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace:   "nowrap",
-  },
-  meta: {
-    fontSize: "11px",
-    color:    "#94A3B8",
-  },
-  actions: {
-    display:    "flex",
-    gap:        "4px",
-    flexShrink: 0,
-  },
-  btnIcon: {
-    display:        "inline-flex",
-    alignItems:     "center",
-    justifyContent: "center",
-    width:          "30px",
-    height:         "30px",
-    background:     "none",
-    border:         "1px solid #E2E8F0",
-    borderRadius:   "6px",
-    cursor:         "pointer",
-    color:          "#64748B",
-    transition:     "background 0.15s, color 0.15s",
-  },
-  btnDanger: {
-    color: "#EF4444",
-  },
-  empty: {
-    display:        "flex",
-    flexDirection:  "column",
-    alignItems:     "center",
-    gap:            "8px",
-    padding:        "32px",
-    color:          "#CBD5E1",
-  },
-  emptyText: {
-    margin:   0,
-    fontSize: "13px",
-    color:    "#94A3B8",
-  },
-};

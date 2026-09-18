@@ -21,11 +21,13 @@ export const SolicitudComponent = ({  motivoSeleccionado, setMotivoSeleccionado,
       condicion={finishSolicitudSection && motivoSeleccionado != null}
       titulo="Descripción"
       componenteTrue={
-        <SolicitudCard
-          motivo={motivoSeleccionado}
-          descripcion={descripcion}
-          onEditar={() => setFinishSolicitudSection(false)}
-        />
+        motivoSeleccionado ? (
+          <SolicitudCard
+            motivo={motivoSeleccionado}
+            descripcion={descripcion}
+            onEditar={() => setFinishSolicitudSection(false)}
+          />
+        ) : null
       }
       componenteFalse={
         <SolicitudForm

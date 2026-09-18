@@ -16,12 +16,16 @@ export const DomicilioCarga = ({ domicilio, onGuardar }: Props) => {
         setEditando(false)
     }
 
-    return editando ? (
+    if (editando || domicilio == null) {
+        return (
         <DomicilioForm onGuardar={handleGuardar} />
-    ) : (
+        )
+    }
+
+    return (
         <DomicilioView
-            domicilio={domicilio!.nombre}
-            observaciones={domicilio!.observaciones}
+            domicilio={domicilio.nombre}
+            observaciones={domicilio.observaciones}
             onEditar={() => setEditando(true)}
         />
     )

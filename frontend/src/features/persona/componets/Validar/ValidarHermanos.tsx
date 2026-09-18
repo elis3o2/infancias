@@ -33,9 +33,7 @@ export const ValidarHermanos = ({hermanos, estados, setEstados,
         ...persona,
         legajo: {
           id_insert: persona.legajo?.id_insert ?? null,
-          letra: persona.legajo?.letra ?? "A",
           carpeta_id: persona.legajo?.carpeta_id ?? null,
-          carpeta_letra: persona.legajo?.carpeta_letra ?? "A",
           ...cambios,
         },
       }
@@ -51,21 +49,23 @@ export const ValidarHermanos = ({hermanos, estados, setEstados,
       return next
     })
 
-    actualizarLegajo(index, {
-      id_insert: valor
-        ? personas[index]?.legajo?.id_insert ?? null
-        : null,
-    })
-  }
+    setPersonas((prev) => {
+      const next = [...prev]
+      const persona = next[index]
+      if (!persona) return prev
 
-  const cambiarLetraLegajo = ( index: number, valor: "A" | "B" ) => {
-    actualizarLegajo(index, {
-      letra: valor,
+      next[index] = {
+        ...persona,
+        legajo: valor
+          ? persona.legajo ?? { id_insert: null, carpeta_id: null }
+          : null,
+      }
+      return next
     })
   }
 
   return (
-    <Card sx={{ minWidth: 1028, borderRadius: 3 }}>
+    <Card sx={{ minWidth: 0, borderRadius: 3 }}>
       <CardContent>
 
         <Stack
@@ -118,13 +118,15 @@ export const ValidarHermanos = ({hermanos, estados, setEstados,
                 {persona && (
                   <LegajoForm
                     legajo={persona.legajo?.id_insert ?? null}
-                    letra={persona.legajo?.letra ?? "A"}
-                    setLetra={(valor) =>
-                      cambiarLetraLegajo(index, valor)
-                    }
                     setLegajo={(valor) =>
                       actualizarLegajo(index, {
                         id_insert: valor,
+                      })
+                    }
+                    carpeta={persona.legajo?.carpeta_id ?? null}
+                    setCarpeta={(valor) =>
+                      actualizarLegajo(index, {
+                        carpeta_id: valor,
                       })
                     }
                     tieneLegajo={tieneLegajo[index]}

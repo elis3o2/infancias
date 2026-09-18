@@ -14,7 +14,7 @@ export const HermanosList = ({ hermanos, onEliminar }: Props) => {
           <Box key={index}>
           <HermanoList
             hermano={hermano}
-            onEliminar={() => onEliminar(index)}
+            onEliminar={onEliminar ? () => onEliminar(index) : undefined}
           />
           {index < hermanos.length - 1 && (
               <Divider sx={{ mt: 2 }} />

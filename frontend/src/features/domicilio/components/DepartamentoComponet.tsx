@@ -21,7 +21,6 @@ export const DepartamentoComponent = ({ departamento, setDepartamento, id_provin
 
     useEffect(() => {
         if (id_provincia === null) {
-            setDepartamentos([])
             return
         }
 
@@ -55,9 +54,11 @@ export const DepartamentoComponent = ({ departamento, setDepartamento, id_provin
         }
     }, [id_provincia])
 
+    const opciones = id_provincia === null ? [] : departamentos
+
     return (
         <Autocomplete
-            options={departamentos}
+            options={opciones}
             value={departamento}
             onChange={(_, value) => {
                 setDepartamento(value)

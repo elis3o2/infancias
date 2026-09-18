@@ -1,5 +1,4 @@
 import type { FamiliarCreate, Vinculo } from "../../types"
-import type { Setter } from "@/common/types"
 import { useState } from "react"
 import { Button, Stack } from "@mui/material";
 import { NombreForm } from "../NombreForm"
@@ -11,8 +10,8 @@ import { TelefonoOpcionalForm } from "../TelefonoOpcionalForm";
 import { DomicilioOpcionalForm } from "@/features/domicilio/components/DomicilioOpcionalForm";
 
 type Props = {
-  setFamiliar: Setter<FamiliarCreate | null>
-  setFinishFamiliar: Setter<boolean>
+  setFamiliar: (familiar: FamiliarCreate | null) => void
+  setFinishFamiliar: (finalizado: boolean) => void
   domicilios: DomicilioFormData[]
 }
 
@@ -23,8 +22,8 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar, domicilios }: Pro
   const [vinculoSeleccionado, setVinculoSeleccionado] = useState<Vinculo | null>(null)
   const [sexo, setSexo] = useState<"M" | "F" | "">("")
   const [dni, setDni] = useState("")
-  const [domicilio, setDomicilio] = useState<DomicilioFormData>(null)
-  const [depatamento, setDepartamento] = useState<Departamento | null> (null)
+  const [domicilio, setDomicilio] = useState<DomicilioFormData | null>(null)
+  const [departamento, setDepartamento] = useState<Departamento | null>(null)
   const [provincia, setProvincia] = useState<Provincia | null>(null)
 
 
@@ -43,21 +42,25 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar, domicilios }: Pro
     nombre.trim() !== "" &&
     apellido.trim() !== "" &&
     vinculoSeleccionado !== null &&
-    (camposVisibles.telefono? telefono.length == 10 : true) &&
-    (camposVisibles.domicilio? domicilio != null : true) &&
-    (camposVisibles.dni? dni.length == 8 || dni.length == 7 : true)
+    (!camposVisibles.telefono || telefono.length === 10) &&
+    (!camposVisibles.domicilio || (
+      domicilio !== null &&
+      domicilio.nombre.trim() !== "" &&
+      domicilio.id_departamento !== null
+    )) &&
+    (!camposVisibles.dni || /^\d{7,8}$/.test(dni))
 
   const handleCargar = () => {
     if (!formCompleto) return
     
     setFamiliar({
-      nombre,
-      apellido,
-      telefono: camposVisibles.telefono? telefono : null,
+      nombre: nombre.trim(),
+      apellido: apellido.trim(),
+      telefono: camposVisibles.telefono ? telefono : null,
       vinculo: vinculoSeleccionado,
-      domicilio: domicilio,
-      dni,
-      sexo
+      domicilio: camposVisibles.domicilio ? domicilio : null,
+      dni: camposVisibles.dni ? dni : null,
+      sexo,
     })
 
     setFinishFamiliar(true)
@@ -105,7 +108,7 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar, domicilios }: Pro
           setDomicilio={setDomicilio}
           provincia={provincia}
           setProvincia={setProvincia}
-          departamento={depatamento}
+          departamento={departamento}
           setDepartamento={setDepartamento}
           mostrar={(v) => cambiarCampo("domicilio", v)}
         />

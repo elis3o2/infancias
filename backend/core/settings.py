@@ -9,9 +9,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR.parent / 'staticfiles'               # ej: /home/deploy/notificaciones/staticfiles
-STATICFILES_DIRS = [
-    BASE_DIR.parent / 'frontend' / 'dist',                  # Vite build
-]
+FRONTEND_DIST_DIR = BASE_DIR.parent / 'frontend' / 'dist'
+# During development the frontend build may not exist yet. Keeping the path
+# conditional avoids a Django warning without changing production collection:
+# as soon as Vite generates `dist`, it is included normally.
+STATICFILES_DIRS = [FRONTEND_DIST_DIR] if FRONTEND_DIST_DIR.is_dir() else []
 
 
 SECRET_KEY = config('DJANGO_SECRET_KEY')

@@ -1,5 +1,5 @@
 import type { Setter } from "@/common/types"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Stack, Button } from "@mui/material"
 import type { InstitucionFormData } from "@/features/domicilio/types"
 import { InstitucionInicial } from "@/features/domicilio/types"
@@ -14,18 +14,16 @@ type Props = {
   setFinishInstitucion: Setter<boolean>
 }
 
-export const ReferenciaInstitucionComponent = ({ instituciones, setInstituciones, finishInstitucion, setFinishInstitucion }: Props) => {
+export const ReferenciaInstitucionComponent = ({ instituciones, setInstituciones, setFinishInstitucion }: Props) => {
   const [mostrarForm, setMostrarForm] = useState(instituciones.length === 0)
   const [institucionActual, setInstitucionActual] = useState<InstitucionFormData>(InstitucionInicial)
 
-  useEffect(() => {
-    if (finishInstitucion) {
-      setInstituciones(prev => [...prev, institucionActual])
-      setInstitucionActual(InstitucionInicial)
-      setMostrarForm(false)
-      setFinishInstitucion(false)
-    }
-  }, [finishInstitucion])
+  const handleGuardar = (institucion: InstitucionFormData) => {
+    setInstituciones((actuales) => [...actuales, institucion])
+    setInstitucionActual(InstitucionInicial)
+    setMostrarForm(false)
+    setFinishInstitucion(false)
+  }
 
   const handleEliminar = (index: number) => {
     setInstituciones(instituciones.filter((_, i) => i !== index))
@@ -43,7 +41,7 @@ export const ReferenciaInstitucionComponent = ({ instituciones, setInstituciones
           <InstitucionForm
             institucion={institucionActual}
             setInstitucion={setInstitucionActual}
-            setFinshInstitucion={setFinishInstitucion}
+            onGuardar={handleGuardar}
           />
         </Stack>
       }

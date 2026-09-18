@@ -1,6 +1,6 @@
 import type { HermanoCreate } from "../../types"
 import type { Setter } from "@/common/types"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Stack, Button } from "@mui/material"
 import { HermanoForm } from "./HermanoForm"
 import { HermanosList } from "./HermanosList"
@@ -13,18 +13,16 @@ type Props = {
   setFinishHermano: Setter<boolean>
 }
 
-export const HermanosComponent = ({ hermanos, setHermanos, finishHermano, setFinishHermano }: Props) => {
+export const HermanosComponent = ({ hermanos, setHermanos, setFinishHermano }: Props) => {
   const [mostrarForm, setMostrarForm] = useState(false)
-  const [hermanoActual, setHermanoActual] = useState<HermanoCreate | null>(null)
 
-  useEffect(() => {
-    if (finishHermano && hermanoActual != null) {
-      setHermanos(prev => [...prev, hermanoActual])
-      setHermanoActual(null)
-      setMostrarForm(false)
-      setFinishHermano(false)
-    }
-  }, [finishHermano, hermanoActual])
+  const handleAgregar = (hermano: HermanoCreate | null) => {
+    if (hermano === null) return
+
+    setHermanos((prev) => [...prev, hermano])
+    setMostrarForm(false)
+    setFinishHermano(false)
+  }
 
   const handleEliminar = (index: number) => {
     setHermanos(hermanos.filter((_, i) => i !== index))
@@ -37,7 +35,10 @@ export const HermanosComponent = ({ hermanos, setHermanos, finishHermano, setFin
       componenteTrue={
         <Stack spacing={2} >
           {hermanos.length > 0 && <HermanosList hermanos={hermanos} onEliminar={handleEliminar} />}
-          <HermanoForm setHermano={setHermanoActual} setFinishHermano={setFinishHermano} />
+          <HermanoForm
+            setHermano={handleAgregar}
+            setFinishHermano={() => undefined}
+          />
         </Stack>
       }
       componenteFalse={

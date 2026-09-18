@@ -2,11 +2,10 @@ import { Stack, Box, Typography, TextField, InputAdornment } from "@mui/material
 import PhoneIcon from "@mui/icons-material/Phone"
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"
 import CancelIcon from "@mui/icons-material/Cancel"
-import type { Setter } from "@/common/types"
 
 type Props = {
   telefono: string
-  setTelefono: Setter<string>
+  setTelefono: (telefono: string) => void
 }
 export const TelefonoComponent = ({ telefono, setTelefono }: Props) => {
   const iconoEstado =

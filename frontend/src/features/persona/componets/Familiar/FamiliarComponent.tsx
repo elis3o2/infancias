@@ -1,6 +1,6 @@
 import type { FamiliarCreate } from "../../types"
 import type { Setter } from "@/common/types"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Stack, Button } from "@mui/material"
 import { FamiliarForm } from "./FamiliarForm"
 import { FamiliaresList } from "./FamiliaresList"
@@ -15,18 +15,16 @@ type Props = {
   setFinishFamiliar: Setter<boolean>
 }
 
-export const FamiliaresComponent = ({ familiares, setFamiliares, finishFamiliar, setFinishFamiliar, domicilios }: Props) => {
+export const FamiliaresComponent = ({ familiares, setFamiliares, setFinishFamiliar, domicilios }: Props) => {
   const [mostrarForm, setMostrarForm] = useState(false)
-  const [familiarActual, setFamiliarActual] = useState<FamiliarCreate | null>(null)
 
-  useEffect(() => {
-    if (finishFamiliar && familiarActual != null) {
-      setFamiliares(prev => [...prev, familiarActual])
-      setFamiliarActual(null)
-      setMostrarForm(false)
-      setFinishFamiliar(false)
-    }
-  }, [finishFamiliar, familiarActual])
+  const handleAgregar = (familiar: FamiliarCreate | null) => {
+    if (familiar === null) return
+
+    setFamiliares((prev) => [...prev, familiar])
+    setMostrarForm(false)
+    setFinishFamiliar(false)
+  }
 
   const handleEliminar = (index: number) => {
     setFamiliares(familiares.filter((_, i) => i !== index))
@@ -39,7 +37,11 @@ export const FamiliaresComponent = ({ familiares, setFamiliares, finishFamiliar,
       componenteTrue={
         <Stack spacing={2}>
           {familiares.length > 0 && <FamiliaresList familiares={familiares} onEliminar={handleEliminar} />}
-          <FamiliarForm setFamiliar={setFamiliarActual} setFinishFamiliar={setFinishFamiliar} domicilios={domicilios}/>
+          <FamiliarForm
+            setFamiliar={handleAgregar}
+            setFinishFamiliar={() => undefined}
+            domicilios={domicilios}
+          />
         </Stack>
   
       }

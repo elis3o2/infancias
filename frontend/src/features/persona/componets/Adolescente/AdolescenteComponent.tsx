@@ -10,14 +10,15 @@ import { Button } from "@mui/material";
 type Props = {
   adolescentes: AdolescenteCreate[];
   setAdolescentes: Setter<AdolescenteCreate[]>;
+  finishAdolescente: boolean
+  setFinishAdolescente: Setter<boolean>
   domicilios: DomicilioFormData[]
   setDomicilios: Setter<DomicilioFormData[]>
 };
 
-export const AdolescenteComponent = ({ adolescentes, setAdolescentes, domicilios, setDomicilios }: Props) => {
+export const AdolescenteComponent = ({ adolescentes, setAdolescentes,finishAdolescente, setFinishAdolescente, domicilios, setDomicilios }: Props) => {
   
   const [adolescente, setAdolescente] = useState<AdolescenteCreate>(AdolescenteInicial);
-  const [finishAdolescente, setFinishAdolescente] = useState(false);
   const [editando, setEditando] = useState(false);
 
   const agregarAdolescente = () => {

@@ -1,12 +1,11 @@
 import { Stack, Box, Button, IconButton } from "@mui/material"
 import CloseIcon from "@mui/icons-material/Close";
 import { DniForm } from "./DniForm"
-import type { Setter } from "@/common/types";
 
 type Props = {
     condicion: boolean
     dni: string 
-    setDni: Setter<string>
+    setDni: (dni: string) => void
     mostrar: (b: boolean) => void
 }
 
@@ -23,7 +22,10 @@ export const DniOpcionalForm = ({ condicion, dni, setDni, mostrar }: Props) => {
                 </Box>
                 <IconButton
                     size="small"
-                    onClick={() => mostrar(false)}
+                    onClick={() => {
+                        setDni("")
+                        mostrar(false)
+                    }}
                 >
                     <CloseIcon fontSize="small" />
                 </IconButton>

@@ -1,15 +1,5 @@
 import type { AdolescenteCrud, Ciudadano, PersonaCreate, Salud } from "../../types"
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Collapse,
-  Divider,
-  Stack,
-  Typography,
-} from "@mui/material"
+import { Alert, Box, Button, Chip, CircularProgress, Collapse, Divider, Stack, Typography } from "@mui/material"
 import FactCheckIcon from "@mui/icons-material/FactCheck"
 import { getSalud, getCiudadano } from "../../api"
 import { useEffect, useState } from "react"
@@ -39,7 +29,7 @@ export const ValidarAdolescenteDatos = ({ adolescente, estado, setEstado, setPer
         setPersona(ciudadanoToPersona(ciudadano))
       else
         setPersona(null)
-    }, [estado]) 
+    }, [ciudadano, estado, setPersona])
 
     const handleValidar = async () => {
     setLoading(true)
@@ -51,9 +41,8 @@ export const ValidarAdolescenteDatos = ({ adolescente, estado, setEstado, setPer
         ])
         setCiudadano(ciudadanoRes)
         setSalud(saludRes)
-    } catch (e) {
-        setError("No se encontro a la persona.")
-        setEstado("rechazado")
+    } catch {
+        setError("No se encontraron datos en RENAPER. La persona queda pendiente de validación.")
     } finally {
         setLoading(false)
     }
@@ -140,7 +129,6 @@ export const ValidarAdolescenteDatos = ({ adolescente, estado, setEstado, setPer
               </Box>
             )}
           </Collapse>
-
         </Stack>
     </>)
 }

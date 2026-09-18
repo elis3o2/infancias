@@ -42,11 +42,6 @@ INSERT INTO motivo_solicitud (nombre) VALUES
 ("Maltrato Infantil");
 
 
-INSERT INTO prioridad_solicitud (id,nombre) VALUES
-(1, "Urgente"),
-(2, "Prioritaria"),
-(3, "Preventiva");
-
 
 INSERT INTO equipo(nombre) VALUES
 ("Entrada"),
@@ -62,4 +57,11 @@ REFERENCES src_usuario(id);
 ALTER TABLE solicitud
 ADD CONSTRAINT fk_solicitud_usuario_ent
 FOREIGN KEY (id_usuario_entrada)
+REFERENCES src_usuario(id);
+
+
+
+ALTER TABLE solicitud_comentario
+ADD CONSTRAINT fk_solicitud_comentario
+FOREIGN KEY (id_usuario)
 REFERENCES src_usuario(id);

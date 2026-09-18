@@ -17,14 +17,33 @@ export const InstitucionSelectForm = ({institucion, setInstitucion, tipo }: Prop
 
 
     useEffect(() => {
-        if (!tipo) {
-            setInstituciones([])
-            return
+        let cancelado = false
+
+        const cargarInstituciones = async () => {
+            setLoading(true)
+
+            try {
+                const data = await getInstitucionByTipo(tipo.id)
+                if (!cancelado) {
+                    setInstituciones(data)
+                }
+            } catch (error) {
+                if (!cancelado) {
+                    console.error("No se pudieron cargar las instituciones:", error)
+                    setInstituciones([])
+                }
+            } finally {
+                if (!cancelado) {
+                    setLoading(false)
+                }
+            }
         }
-        setLoading(true)
-        getInstitucionByTipo(tipo.id)
-            .then(setInstituciones)
-            .finally(() => setLoading(false))
+
+        void cargarInstituciones()
+
+        return () => {
+            cancelado = true
+        }
 
     }, [tipo])
 

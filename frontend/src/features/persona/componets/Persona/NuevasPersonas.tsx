@@ -1,5 +1,4 @@
 import { Stack, Box, Button } from "@mui/material"
-
 import type { Setter } from "@/common/types"
 import type { PersonaCreate } from "../../types"
 
@@ -13,16 +12,9 @@ type Props = {
     datos_extra: boolean
 }
 
-export const NuevasPersonas = ({
-    nuevasPersonas,
-    setNuevasPersonas,
-    datos_extra,
-}: Props) => {
+export const NuevasPersonas = ({ nuevasPersonas, setNuevasPersonas, datos_extra }: Props) => {
 
-    const actualizarLegajo = (
-        index: number,
-        cambios: Partial<NonNullable<PersonaCreate["legajo"]>>
-    ) => {
+    const actualizarLegajo = (index: number, cambios: Partial<NonNullable<PersonaCreate["legajo"]>>) => {
         setNuevasPersonas((prev) => {
             const next = [...prev]
             const persona = next[index]
@@ -35,7 +27,6 @@ export const NuevasPersonas = ({
                 ...persona,
                 legajo: {
                     id_insert: persona.legajo?.id_insert ?? null,
-                    letra: persona.legajo?.letra ?? null,
                     carpeta_id: persona.legajo?.carpeta_id ?? null,
                     ...cambios,
                 },
@@ -45,10 +36,7 @@ export const NuevasPersonas = ({
         })
     }
 
-    const cambiarTieneLegajo = (
-        index: number,
-        valor: boolean
-    ) => {
+    const cambiarTieneLegajo = (index: number, valor: boolean) => {
         if (valor) {
             actualizarLegajo(index, {})
             return
@@ -92,6 +80,12 @@ export const NuevasPersonas = ({
                                 setLegajo={(valor) =>
                                     actualizarLegajo(index, {
                                         id_insert: valor,
+                                    })
+                                }
+                                carpeta={persona.legajo?.carpeta_id ?? null}
+                                setCarpeta={(valor) =>
+                                    actualizarLegajo(index, {
+                                        carpeta_id: valor,
                                     })
                                 }
                                 tieneLegajo={persona.legajo !== null}

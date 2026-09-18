@@ -1,5 +1,4 @@
 import type { HermanoCreate } from "../../types"
-import type { Setter } from "@/common/types"
 import { DniForm } from "../DniForm"
 import { SexoForm } from "../SexoForm"
 import { useState } from "react"
@@ -7,8 +6,8 @@ import { Stack, Button, TextField } from "@mui/material"
 import { NombreForm } from "../NombreForm"
 
 type Props = {
-  setHermano: Setter<HermanoCreate | null>
-  setFinishHermano: Setter<boolean>
+  setHermano: (hermano: HermanoCreate | null) => void
+  setFinishHermano: (finalizado: boolean) => void
 }
 
 export const HermanoForm = ({ setHermano, setFinishHermano }: Props) => {

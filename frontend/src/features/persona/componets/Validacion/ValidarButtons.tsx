@@ -44,7 +44,7 @@ export const ValidarButtons = ({ estado, setEstado } : Props) => {
             </Button>
           </Stack>
         ) : (
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <Chip
               icon={
                 estado === "confirmado"

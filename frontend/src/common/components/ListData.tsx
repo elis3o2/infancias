@@ -1,6 +1,4 @@
-import {
-  List, CardActions, Button
-} from "@mui/material"
+import { List, CardActions, Button } from "@mui/material"
 import BadgeIcon from "@mui/icons-material/Badge"
 import PersonIcon from "@mui/icons-material/Person"
 import CakeIcon from "@mui/icons-material/Cake"
@@ -14,6 +12,7 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
 import { DatoItem } from "@/common/components/DatoItem"
 import NotesIcon from "@mui/icons-material/Notes";
+import { formatFecha } from "../utils";
 
 type Props = {
     nombre?: string
@@ -35,30 +34,18 @@ type Props = {
 }
 
 
-function formatFecha(fecha: string | null | undefined) {
-  if (!fecha) return "—";
-
-  const d = new Date(fecha);
-
-  if (isNaN(d.getTime())) return fecha;
-
-  const dia = String(d.getUTCDate()).padStart(2, "0");
-  const mes = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const anio = d.getUTCFullYear();
-
-  return `${dia}-${mes}-${anio}`;
-}
 
 export const ListData = ({ nombre, apellido, dni, sexo, escolarizado, fecha_nacimiento, vinculo,
-             domicilio, domicilio_observaciones, institucion_nombre, institucion_tipo, institucion_domicilio, telefono, correo, onEditar, texto}: Props) => {
+  domicilio, domicilio_observaciones, institucion_nombre, institucion_tipo, institucion_domicilio, telefono, correo, onEditar, texto}: Props) => {
+
   const sexoLabel = sexo === "M" ? "Masculino" : (sexo ==="F" ? "Femenino" : "-")
 
   return (<>
         <List
             sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            columnGap: 3,
+            gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" },
+            columnGap: { xs: 0, sm: 3 },
             rowGap: 0,
             bgcolor: "action.hover",
             borderRadius: 2,
@@ -78,7 +65,7 @@ export const ListData = ({ nombre, apellido, dni, sexo, escolarizado, fecha_naci
             {escolarizado !== undefined && <DatoItem
                 icon={<SchoolIcon fontSize="small" />}
                 label={"Escolarizado"}
-                valor={escolarizado == null ? "Desconsido" : escolarizado? "Si" : "No"}
+                valor={escolarizado == null ? "Desconocido" : escolarizado ? "Sí" : "No"}
             />}
             {vinculo && <DatoItem icon={<BadgeIcon fontSize="small" />} label="Vínculo" valor={vinculo}/> }
             {domicilio && <DatoItem icon={<LocationIcon fontSize="small" /> } label="Domicilio" valor={domicilio} /> }

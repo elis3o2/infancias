@@ -1,5 +1,5 @@
 from django.db import models
-from src.apps.domicilio.models import Domicilio, Institucion
+from src.apps.domicilio.models import Domicilio
 from src.apps.solicitud.models import Solicitud
 
 class Carpeta(models.Model):
@@ -26,13 +26,14 @@ class Legajo(models.Model):
 
 class Persona(models.Model):
     id = models.AutoField(primary_key=True)
-    dni = models.CharField(max_length=10)
+    dni = models.CharField(max_length=9)
     sexo = models.CharField(max_length=1)
     nombre = models.CharField(max_length=32)
     apellido = models.CharField(max_length=32)
     fecha_nacimiento = models.DateField()
     legajo = models.ForeignKey(
         Legajo, models.DO_NOTHING, db_column="id_legajo", null=True, blank=True)
+    hcf = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -98,8 +99,6 @@ class Adolescente(models.Model):
         Domicilio, models.DO_NOTHING, db_column="id_domicilio", related_name="adolescentes", blank=True, null=True)
     fecha_nacimiento = models.DateField()
     escolarizado = models.BooleanField(null=True, blank=True)
-    referencias_instituciones = models.ManyToManyField(
-        "Institucion", through="AdolescenteInstitucion", related_name="adolescentes")
     persona = models.ForeignKey(
         Persona, models.DO_NOTHING, db_column="id_persona", related_name="adolescentes", blank=True, null=True)
     solicitud = models.ForeignKey(
@@ -112,12 +111,12 @@ class Adolescente(models.Model):
 
 class Familiar(models.Model):
     id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=64)
-    apellido = models.CharField(max_length=64)
+    nombre = models.CharField(max_length=32)
+    apellido = models.CharField(max_length=32)
     dni = models.CharField(max_length=9, null=True, blank=True)
     sexo = models.CharField(max_length=1, null=True, blank=True)
-    adolescente = models.ForeignKey(
-        Adolescente, models.DO_NOTHING, db_column="id_adolescente", related_name="familiares")
+    solicitud = models.ForeignKey(
+        Solicitud, models.DO_NOTHING, db_column="id_solicitud", related_name="familiares")
     vinculo = models.ForeignKey(
         Vinculo, models.DO_NOTHING, db_column="id_vinculo")
     telefono = models.CharField(max_length=16, null=True, blank=True)
@@ -125,20 +124,7 @@ class Familiar(models.Model):
         Domicilio, models.DO_NOTHING, db_column="id_domicilio", blank=True, null=True)
     persona = models.ForeignKey(
         Persona, models.DO_NOTHING, db_column="id_persona", related_name="familiares", null=True, blank=True)
-    convive = models.BooleanField()
 
     class Meta:
         managed = False
         db_table = "familiar"
-
-
-class AdolescenteInstitucion(models.Model):
-    id = models.AutoField(primary_key=True)
-    adolescente = models.ForeignKey(
-        Adolescente, models.DO_NOTHING, db_column="id_adolescente")
-    institucion = models.ForeignKey(
-        Institucion, models.DO_NOTHING, db_column="id_institucion")
-
-    class Meta:
-        managed = False
-        db_table = "adolescente_institucion"

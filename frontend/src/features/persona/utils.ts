@@ -7,10 +7,9 @@ import type {
   FamiliarInput,
   HermanoCreate,
   HermanoInput,
-  Persona,
   PersonaCreate,
 } from "./types";
-import { domicilioFormToDomicilioInput, institucionFormToInstitucionInput } from "../domicilio/utils";
+import { domicilioFormToDomicilioInput } from "../domicilio/utils";
 
 export function correoEsValido(correo: string) : boolean {
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -42,7 +41,7 @@ export function familiarCreateToFamiliarInput(familiar: FamiliarCreate): Familia
   return {
     nombre: familiar.nombre,
     apellido: familiar.apellido,
-    sexo: sexoFormToSexoInput(familiar.sexo),
+    sexo: familiar.sexo === "" ? null : familiar.sexo,
     id_vinculo: familiar.vinculo.id,
     telefono: familiar.telefono,
     dni: familiar.dni,
@@ -66,12 +65,6 @@ export function adolescenteCreateToAdolescenteInput(adolescente: AdolescenteCrea
     domicilio: domicilioFormToDomicilioInput(adolescente.domicilio),
     fecha_nacimiento: adolescente.fecha_nacimiento,
     escolarizado: adolescente.escolarizado,
-    hermanos: adolescente.hermanos.map(hermanoCreateToHermanoInput),
-    familiares: adolescente.familiares.map(familiarCreateToFamiliarInput),
-    referencias_instituciones_data:
-      adolescente.referencias_instituciones_data.map(
-        institucionFormToInstitucionInput
-      ),
   };
 }
 

@@ -1,69 +1,63 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Box, Typography, Stack, CircularProgress } from '@mui/material'
+import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material"
 import { getSolicitudSimple } from "@/features/solicitud/api"
 import type { SolicitudSimple } from "@/features/solicitud/types"
 
-// La prioridad es información real, no decoración: la usamos para
-// codificar de un vistazo qué solicitudes necesitan atención primero.
-const PRIORIDAD_COLORS: Record<string, { accent: string; bg: string; text: string }> = {
-  urgente: { accent: "#DC2626", bg: "#FEF2F2", text: "#B91C1C" },
-  prioritaria: { accent: "#D97706", bg: "#FFFBEB", text: "#B45309" },
-  preventiva: { accent: "#037c13ff", bg: "#ECFEFF", text: "#05860fff" },
+type EstadoSolicitud = {
+  label: string
+  accent: string
+  background: string
+  text: string
 }
 
-const DEFAULT_PRIORIDAD = { accent: "#64748B", bg: "#F8FAFC", text: "#475569" }
-
-function getPrioridadStyle(nombre?: string) {
-  if (!nombre) return DEFAULT_PRIORIDAD
-  return PRIORIDAD_COLORS[nombre.toLowerCase()] ?? DEFAULT_PRIORIDAD
-}
-
-function getEstado(solicitud: SolicitudSimple) {
+function getEstado(solicitud: SolicitudSimple): EstadoSolicitud {
   if (solicitud.rechazado) {
-    return { label: "Rechazado", bg: "#FEE2E2", text: "#991B1B" }
+    return { label: "Rechazada", accent: "#DC2626", background: "#FEE2E2", text: "#991B1B" }
   }
   if (solicitud.validado) {
-    return { label: "Validado", bg: "#DCFCE7", text: "#166534" }
+    return { label: "Validada", accent: "#16A34A", background: "#DCFCE7", text: "#166534" }
   }
-  return { label: "Pendiente", bg: "#FEF3C7", text: "#92400E" }
+  return { label: "Pendiente", accent: "#D97706", background: "#FEF3C7", text: "#92400E" }
 }
 
-// Si la solicitud ya fue validada o rechazada, la fecha relevante para el
-// caseworker es la del último cambio de estado, no la de creación.
-function getFechaRelevante(solicitud: SolicitudSimple) {
+function getFechaRelevante(solicitud: SolicitudSimple): string {
   if ((solicitud.validado || solicitud.rechazado) && solicitud.fecha_hora_modificacion) {
     return solicitud.fecha_hora_modificacion
   }
   return solicitud.fecha_hora_creacion
 }
 
-function formatFecha(fecha: string | null | undefined) {
+function formatFecha(fecha: string | null | undefined): string {
   if (!fecha) return "—"
-  const d = new Date(fecha)
-  if (isNaN(d.getTime())) return fecha
-  const dia = String(d.getUTCDate()).padStart(2, "0")
-  const mes = String(d.getUTCMonth() + 1).padStart(2, "0")
-  const anio = d.getUTCFullYear()
-  const hora = String(d.getUTCHours()).padStart(2, "0")
-  const min = String(d.getUTCMinutes()).padStart(2, "0")
-  return `${dia}-${mes}-${anio} ${hora}:${min}`
+  const date = new Date(fecha)
+  if (Number.isNaN(date.getTime())) return fecha
+
+  const dia = String(date.getUTCDate()).padStart(2, "0")
+  const mes = String(date.getUTCMonth() + 1).padStart(2, "0")
+  const anio = date.getUTCFullYear()
+  const hora = String(date.getUTCHours()).padStart(2, "0")
+  const minutos = String(date.getUTCMinutes()).padStart(2, "0")
+  return `${dia}-${mes}-${anio} ${hora}:${minutos}`
 }
 
-function formatRelativo(fecha: string) {
-  const ahora = Date.now()
-  const entonces = new Date(fecha).getTime()
-  const diffMin = Math.round((ahora - entonces) / 60000)
+function formatRelativo(fecha: string): string {
+  const timestamp = new Date(fecha).getTime()
+  if (Number.isNaN(timestamp)) return "—"
 
-  if (diffMin < 1) return "recién"
-  if (diffMin < 60) return `${diffMin} min`
-  const diffHoras = Math.round(diffMin / 60)
-  if (diffHoras < 24) return `${diffHoras} h`
-  const diffDias = Math.round(diffHoras / 24)
-  if (diffDias === 1) return "ayer"
-  if (diffDias < 30) return `${diffDias} días`
-  const diffMeses = Math.round(diffDias / 30)
-  return `${diffMeses} ${diffMeses === 1 ? "mes" : "meses"}`
+  const diferenciaMinutos = Math.max(0, Math.round((Date.now() - timestamp) / 60_000))
+  if (diferenciaMinutos < 1) return "recién"
+  if (diferenciaMinutos < 60) return `${diferenciaMinutos} min`
+
+  const diferenciaHoras = Math.round(diferenciaMinutos / 60)
+  if (diferenciaHoras < 24) return `${diferenciaHoras} h`
+
+  const diferenciaDias = Math.round(diferenciaHoras / 24)
+  if (diferenciaDias === 1) return "ayer"
+  if (diferenciaDias < 30) return `${diferenciaDias} días`
+
+  const diferenciaMeses = Math.round(diferenciaDias / 30)
+  return `${diferenciaMeses} ${diferenciaMeses === 1 ? "mes" : "meses"}`
 }
 
 export const SolicitudListPage = () => {
@@ -71,22 +65,30 @@ export const SolicitudListPage = () => {
   const [solicitudes, setSolicitudes] = useState<SolicitudSimple[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [intento, setIntento] = useState(0)
 
   useEffect(() => {
-    async function fetchSolicitudes() {
+    let activa = true
+
+    const cargarSolicitudes = async () => {
+      setLoading(true)
+      setError(false)
+
       try {
         const data = await getSolicitudSimple()
-        setSolicitudes(data)
-      } catch (err) {
-        console.error(err)
-        setError(true)
+        if (activa) setSolicitudes(data)
+      } catch {
+        if (activa) setError(true)
       } finally {
-        setLoading(false)
+        if (activa) setLoading(false)
       }
     }
 
-    fetchSolicitudes()
-  }, [])
+    void cargarSolicitudes()
+    return () => {
+      activa = false
+    }
+  }, [intento])
 
   if (loading) {
     return (
@@ -100,11 +102,14 @@ export const SolicitudListPage = () => {
     return (
       <Box sx={{ py: 8, textAlign: "center" }}>
         <Typography sx={{ fontWeight: 600, color: "#B91C1C" }}>
-          No se pudieron cargar las solicitudes
+          No se pudieron cargar las solicitudes.
         </Typography>
-        <Typography variant="body2" sx={{ color: "#94A3B8", mt: 0.5 }}>
-          Volvé a intentar en unos minutos
+        <Typography variant="body2" sx={{ color: "#94A3B8", mt: 0.5, mb: 2 }}>
+          Revisá tu conexión e intentá nuevamente.
         </Typography>
+        <Button variant="outlined" onClick={() => setIntento((actual) => actual + 1)}>
+          Reintentar
+        </Button>
       </Box>
     )
   }
@@ -112,7 +117,10 @@ export const SolicitudListPage = () => {
   return (
     <Box sx={{ background: "#F8FAFC", minHeight: "100vh", px: 2, py: 4 }}>
       <Box sx={{ maxWidth: 760, mx: "auto" }}>
-        <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Stack
+          direction="row"
+          sx={{ mb: 3, alignItems: "baseline", justifyContent: "space-between" }}
+        >
           <Typography sx={{ fontSize: 22, fontWeight: 700, color: "#0F172A", letterSpacing: "-0.01em" }}>
             Solicitudes
           </Typography>
@@ -129,13 +137,12 @@ export const SolicitudListPage = () => {
             }}
           >
             <Typography sx={{ color: "#64748B", fontWeight: 500 }}>
-              Todavía no hay solicitudes cargadas
+              Todavía no hay solicitudes cargadas.
             </Typography>
           </Box>
         ) : (
           <Stack spacing={1.25}>
             {solicitudes.map((solicitud) => {
-              const prioridad = getPrioridadStyle(solicitud.prioridad?.nombre)
               const estado = getEstado(solicitud)
               const fechaRelevante = getFechaRelevante(solicitud)
 
@@ -145,8 +152,9 @@ export const SolicitudListPage = () => {
                   onClick={() => navigate(`/validar/${solicitud.id}`)}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault()
                       navigate(`/validar/${solicitud.id}`)
                     }
                   }}
@@ -170,8 +178,7 @@ export const SolicitudListPage = () => {
                     },
                   }}
                 >
-                  {/* Franja de prioridad: el color codifica urgencia real, no decora */}
-                  <Box sx={{ width: 6, bgcolor: prioridad.accent, flexShrink: 0 }} />
+                  <Box sx={{ width: 6, bgcolor: estado.accent, flexShrink: 0 }} />
 
                   <Box
                     sx={{
@@ -184,29 +191,25 @@ export const SolicitudListPage = () => {
                       flexWrap: "wrap",
                     }}
                   >
-                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 130 }}>
-                      <Box
-                        sx={{
-                          px: 1,
-                          py: 0.25,
-                          borderRadius: 1,
-                          bgcolor: estado.bg,
-                          color: estado.text,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          letterSpacing: "0.02em",
-                          textTransform: "uppercase",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {estado.label}
-                      </Box>
-                    </Stack>
+                    <Box
+                      sx={{
+                        px: 1,
+                        py: 0.25,
+                        borderRadius: 1,
+                        bgcolor: estado.background,
+                        color: estado.text,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: "0.02em",
+                        textTransform: "uppercase",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {estado.label}
+                    </Box>
 
-                    {/* Divisor sutil */}
                     <Box sx={{ width: "1px", alignSelf: "stretch", bgcolor: "#F1F5F9" }} />
 
-                    {/* Motivo: el contenido principal, se lleva el espacio flexible */}
                     <Typography
                       sx={{
                         fontSize: 14.5,
@@ -220,9 +223,6 @@ export const SolicitudListPage = () => {
                       {solicitud.motivo?.nombre ?? "Motivo sin especificar"}
                     </Typography>
 
-
-
-                    {/* Derivación, si existe: chip a la izquierda de la fecha */}
                     {solicitud.equipo && (
                       <Box
                         sx={{
@@ -242,8 +242,10 @@ export const SolicitudListPage = () => {
                       </Box>
                     )}
 
-                    {/* Fecha: siempre al final, alineada a la derecha */}
-                    <Stack alignItems="flex-end" spacing={0} sx={{ ml: "auto", minWidth: 110 }}>
+                    <Stack
+                      spacing={0}
+                      sx={{ ml: "auto", minWidth: 110, alignItems: "flex-end" }}
+                    >
                       <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#334155", whiteSpace: "nowrap" }}>
                         {formatRelativo(fechaRelevante)}
                       </Typography>

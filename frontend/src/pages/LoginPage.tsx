@@ -16,9 +16,9 @@ const LoginPage = () => {
         e.preventDefault();
         try {
             const data = await loginUser(username, password);
-            initializeAuth(data);
+            initializeAuth({ ...data, username });
             navigate('/buscar');
-        } catch (error) {
+        } catch {
             setAlertOpen(true);
         }
     };

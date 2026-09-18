@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
-import type { AuthTokens } from '../contex';
+import type { AuthTokens } from '../contex/types';
 
 interface RetryableRequestConfig extends AxiosRequestConfig {
   _retry?: boolean;
@@ -8,7 +8,7 @@ interface RetryableRequestConfig extends AxiosRequestConfig {
 
 interface QueueItem {
   res: (token: string) => void;
-  rej: (error: any) => void;
+  rej: (error: unknown) => void;
 }
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -26,10 +26,25 @@ const bareClient: AxiosInstance = axios.create({
 let isRefreshing = false;
 let queue: QueueItem[] = [];
 
+function readStoredTokens(): AuthTokens | null {
+  const stored = localStorage.getItem('tokens');
+
+  if (!stored) return null;
+
+  try {
+    const parsed = JSON.parse(stored) as Partial<AuthTokens>;
+    return typeof parsed.access === 'string' && typeof parsed.refresh === 'string'
+      ? { access: parsed.access, refresh: parsed.refresh }
+      : null;
+  } catch {
+    localStorage.removeItem('tokens');
+    return null;
+  }
+}
+
 // inject access token
 axiosClient.interceptors.request.use((cfg) => {
-  const t = localStorage.getItem('tokens');
-  const tokens: AuthTokens | null = t ? JSON.parse(t) : null;
+  const tokens = readStoredTokens();
   if (tokens?.access && cfg.headers) {
     cfg.headers.Authorization = `Bearer ${tokens.access}`;
   }
@@ -40,9 +55,10 @@ axiosClient.interceptors.request.use((cfg) => {
 axiosClient.interceptors.response.use(
   (res: AxiosResponse) => res,
   async (err: AxiosError) => {
+    if (!err.config) return Promise.reject(err);
+
     const orig = err.config as RetryableRequestConfig;
-    const t = localStorage.getItem('tokens');
-    const tokens: AuthTokens | null = t ? JSON.parse(t) : null;
+    const tokens = readStoredTokens();
 
     const shouldRefresh =
       err.response?.status === 401 &&

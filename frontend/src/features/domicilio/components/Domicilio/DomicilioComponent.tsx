@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Button, FormControl, InputLabel, MenuItem, Select, Stack } from "@mui/material";
-import CheckIcon from "@mui/icons-material/Check";
+import { Button, Stack } from "@mui/material";
 import type { DomicilioFormData } from "../../types";
 import { DomicilioCarga } from "./DomicilioCarga";
 import { DomicilioView } from "./DomicilioView";
+import { DomicilioSelect } from "./DomicilioSelect";
 
 
 type Props = {
@@ -15,7 +15,9 @@ type Props = {
 
 export const DomicilioComponent = ({ domicilios, domicilio, onGuardar, onLimpiar }: Props) => {
 
-    const [mostrarFormulario, setMostrarFormulario] = useState(domicilios.length === 0);
+    const [mostrarFormulario, setMostrarFormulario] = useState(
+        domicilio === null && domicilios.length === 0
+    );
     const [nombreElegido, setNombreElegido] = useState(domicilio?.nombre ?? "");
     const [confirmado, setConfirmado] = useState(domicilio != null);
 
@@ -28,6 +30,7 @@ export const DomicilioComponent = ({ domicilios, domicilio, onGuardar, onLimpiar
     }
 
     const editarSeleccion = () => {
+        setMostrarFormulario(false)
         setConfirmado(false)
     }
 
@@ -83,56 +86,13 @@ export const DomicilioComponent = ({ domicilios, domicilio, onGuardar, onLimpiar
 
 
     return (
-
-        <Stack spacing={1.5}>
-            <FormControl fullWidth size="small">
-                <InputLabel>
-                    Domicilio
-                </InputLabel>
-                <Select
-                    value={nombreElegido}
-                    label="Domicilio"
-                    onChange={(event) => setNombreElegido(event.target.value)}
-                >
-                    {domicilios.map((domicilio) => (
-                        <MenuItem
-                            key={domicilio.nombre}
-                            value={domicilio.nombre}
-                        >
-                            {domicilio.nombre}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
-            <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
-                <Button
-                    size="small"
-                    variant="text"
-                    onClick={cargarOtroDomicilio}
-                    sx={{ textTransform: "none" }}
-                >
-                    Cargar otro domicilio
-                </Button>
-                <Button
-                    size="small"
-                    variant="contained"
-                    color="success"
-                    startIcon={<CheckIcon fontSize="small" />}
-                    onClick={confirmarSeleccion}
-                    disabled={!nombreElegido}
-                    sx={{
-                        textTransform: "none",
-                        borderRadius: 2,
-                        px: 1.5,
-                        py: 0.4,
-                        fontSize: "0.8rem",
-                    }}
-                >
-                    Confirmar
-                </Button>
-            </Stack>
-        </Stack>
-
+        <DomicilioSelect
+            domicilios={domicilios}
+            nombreElegido={nombreElegido}
+            setNombreElegido={setNombreElegido}
+            onCargarOtro={cargarOtroDomicilio}
+            onConfirmar={confirmarSeleccion}
+        />
     );
 
 };

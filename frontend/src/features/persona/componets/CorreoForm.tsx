@@ -1,11 +1,10 @@
-import type { Setter } from "@/common/types"
 import { useState } from "react"
 import { TextField } from "@mui/material"
 import { correoEsValido } from "../utils"
 
 type Props = {
   correo: string
-  setCorreo: Setter<string>
+  setCorreo: (correo: string) => void
   onValidChange?: (esValido: boolean) => void
 }
 export const CorreoForm = ({ correo, setCorreo, onValidChange }: Props) => {
@@ -16,7 +15,7 @@ export const CorreoForm = ({ correo, setCorreo, onValidChange }: Props) => {
 
   const handleChange = (value: string) => {
     setCorreo(value)
-    onValidChange?.(value.trim() !== "" && correoEsValido(correo))
+    onValidChange?.(value.trim() !== "" && correoEsValido(value))
   }
 
   return (

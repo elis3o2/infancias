@@ -4,7 +4,6 @@ import FactCheckIcon from "@mui/icons-material/FactCheck"
 import { getCiudadano } from "../../api"
 import { useEffect, useState } from "react"
 import { ValidarButtons } from "../Validacion/ValidarButtons"
-import type { Setter } from "@/common/types"
 import { HermanoList } from "../Hermano/HermanoList"
 import { CiudadanoList } from "./CiudadanoList"
 import { ciudadanoToPersona } from "../../utils"
@@ -13,7 +12,7 @@ type Props = {
     hermano: Hermano
     estado: "confirmado" | "rechazado" | null
     setEstado: (estado: "confirmado" | "rechazado" | null) => void
-    setPersona: Setter<PersonaCreate | null>
+    setPersona: (persona: PersonaCreate | null) => void
 }
 
 export const ValidarHermanosDatos = ({hermano, estado, setEstado, setPersona }: Props) => {
@@ -30,9 +29,8 @@ export const ValidarHermanosDatos = ({hermano, estado, setEstado, setPersona }: 
             const ciudadanoRes = await getCiudadano(hermano.dni, hermano.sexo)
             setCiudadano(ciudadanoRes)
 
-        } catch (e) {
-            setError("No se encontro a la persona.")
-            setEstado("rechazado")
+        } catch {
+            setError("No se encontraron datos en RENAPER. La persona queda pendiente de validación.")
         } finally {
             setLoading(false)
         }
@@ -50,7 +48,7 @@ export const ValidarHermanosDatos = ({hermano, estado, setEstado, setPersona }: 
         }
         setPersona(nuevaPersona)
     
-    }, [estado, ciudadano])
+    }, [ciudadano, estado, hermano.id, setPersona])
 
     return (
         <Stack

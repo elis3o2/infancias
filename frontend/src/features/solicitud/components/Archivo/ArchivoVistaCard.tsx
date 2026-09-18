@@ -1,12 +1,16 @@
 import { getArchivoById } from "../../api";
 import type { ArchivoSimple } from "../../types";
-import { Box } from "@mui/material";
+import { TitledCard } from "@/common/components/TitleCard";
+import { Alert } from "@mui/material";
+import { useState, type CSSProperties, type SVGProps } from "react";
 
 type Props = {
   archivos: ArchivoSimple[]
 }
 
 export function ArchivoVistaCard({ archivos }: Props) {
+  const [error, setError] = useState<string | null>(null)
+
   if (archivos.length === 0) {
     return (
       <></>
@@ -14,7 +18,9 @@ export function ArchivoVistaCard({ archivos }: Props) {
   }
 
   return (
-    <Box sx={{ minWidth: 1028 }}>
+    <TitledCard
+      titulo={`Archivos adjuntos (${archivos.length})`}
+      componente={
       <div style={styles.wrapper}>
         <p style={styles.count}>
           {archivos.length} archivo{archivos.length > 1 ? "s" : ""}
@@ -25,29 +31,36 @@ export function ArchivoVistaCard({ archivos }: Props) {
             <ArchivoRow
               key={archivo.id}
               archivo={archivo}
+              onError={setError}
             />
           ))}
         </ul>
+        {error && (
+          <Alert severity="error" onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
       </div>
-    </Box>
+      }
+    />
   );
 }
 /* ── fila individual ─────────────────────────────────────────────────────── */
 
-function ArchivoRow({ archivo }) {
-    async function handleDownload (archivo: ArchivoSimple){
-        
-        const response = await getArchivoById(archivo.id);
-
-        const url = window.URL.createObjectURL(response.data);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = archivo.nombre; // por ejemplo "informe.pdf"
-        a.click();
-
-        window.URL.revokeObjectURL(url);
-  };
+function ArchivoRow({ archivo, onError }: { archivo: ArchivoSimple; onError: (mensaje: string) => void }) {
+  async function handleDownload() {
+    try {
+      const response = await getArchivoById(archivo.id)
+      const url = window.URL.createObjectURL(response.data)
+      const enlace = document.createElement("a")
+      enlace.href = url
+      enlace.download = archivo.nombre
+      enlace.click()
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 0)
+    } catch {
+      onError(`No se pudo descargar “${archivo.nombre}”. Intentá nuevamente.`)
+    }
+  }
 
   return (
     <li style={styles.row}>
@@ -64,7 +77,7 @@ function ArchivoRow({ archivo }) {
 
       <div style={styles.actions}>
         <button
-            onClick={() => handleDownload(archivo)}
+            onClick={handleDownload}
           style={styles.btnIcon}
           title="Descargar"
           aria-label={`Descargar ${archivo.nombre}`}
@@ -79,8 +92,8 @@ function ArchivoRow({ archivo }) {
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 
-function shortMime(mime) {
-  const map = {
+function shortMime(mime: string) {
+  const map: Record<string, string> = {
     "application/pdf":  "PDF",
     "image/png":        "PNG",
     "image/jpeg":       "JPG",
@@ -98,7 +111,7 @@ function shortMime(mime) {
 }
 
 
-function mimeColor(mime) {
+function mimeColor(mime: string) {
   if (mime.startsWith("image/"))       return "#6366F1";
   if (mime.startsWith("video/"))       return "#EC4899";
   if (mime.startsWith("audio/"))       return "#F59E0B";
@@ -107,7 +120,7 @@ function mimeColor(mime) {
   return "#94A3B8";
 }
 
-function MimeIcon({ mime }) {
+function MimeIcon({ mime }: { mime: string }) {
   return (
     <span style={{ ...styles.mimeIcon, background: mimeColor(mime) }}>
       {shortMime(mime).slice(0, 3)}
@@ -116,10 +129,10 @@ function MimeIcon({ mime }) {
 }
 
 /* ── SVG icons ───────────────────────────────────────────────────────────── */
-const svgProps = {
-  width: "16", height: "16", viewBox: "0 0 24 24",
+const svgProps: SVGProps<SVGSVGElement> = {
+  width: 16, height: 16, viewBox: "0 0 24 24",
   fill: "none", stroke: "currentColor",
-  strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round",
+  strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round",
 };
 
 function DownloadIcon() {
@@ -135,11 +148,11 @@ function DownloadIcon() {
 
 
 /* ── estilos ─────────────────────────────────────────────────────────────── */
-const styles = {
+const styles: Record<string, CSSProperties> = {
   wrapper: {
     display:       "flex",
     flexDirection: "column",
-    gap:           "8px",
+    gap:           "10px",
     fontFamily:    "'Inter', system-ui, sans-serif",
   },
   count: {
@@ -162,10 +175,10 @@ const styles = {
     display:      "flex",
     alignItems:   "center",
     gap:          "12px",
-    padding:      "10px 14px",
-    background:   "#fff",
+    padding:      "12px 14px",
+    background:   "#F8FAFC",
     border:       "1px solid #E2E8F0",
-    borderRadius: "10px",
+    borderRadius: "12px",
     transition:   "box-shadow 0.15s",
   },
   mimeIcon: {
@@ -209,8 +222,8 @@ const styles = {
     display:        "inline-flex",
     alignItems:     "center",
     justifyContent: "center",
-    width:          "30px",
-    height:         "30px",
+    width:          "34px",
+    height:         "34px",
     background:     "none",
     border:         "1px solid #E2E8F0",
     borderRadius:   "6px",

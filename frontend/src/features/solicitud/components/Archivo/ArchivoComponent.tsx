@@ -9,18 +9,18 @@ type Props = {
   setArchivos: Setter<Archivo[]>
 }
 
-export const ArchivoComponent = ({archivos, setArchivos} : Props) =>{
+export const ArchivoComponent = ({ archivos, setArchivos }: Props) => {
 
-  const handleRemove = (id) =>
-    setArchivos((prev) => prev.filter((a) => a.id !== id));
+  const handleRemove = (id: number) =>
+    setArchivos((prev) => prev.filter((archivo) => archivo.id !== id))
 
   return (
     <TitledCard
       titulo="Archivos"
-      componente={ <>
+      componente={<>
           <ArchivoForm archivos={archivos} setArchivos={setArchivos} />
           <ArchivoView archivos={archivos} onRemove={handleRemove} />
         </>}
     />
-  );
+  )
 }

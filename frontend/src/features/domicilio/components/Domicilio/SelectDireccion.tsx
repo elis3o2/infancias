@@ -2,14 +2,13 @@ import { useState, useEffect } from "react";
 import { Box, List, ListItemButton, ListItemText, Alert } from "@mui/material";
 import type { APIGeo1 } from "@/features/domicilio/types";
 import { getGeo } from "@/features/domicilio/api";
-import type { Setter } from "@/common/types";
 import { Mapa } from "../Mapa";
 
 
 type Props = {
     direccion: string;
-    setCanConfirm: Setter<boolean>
-    setGeoSeleccionada: Setter<APIGeo1 | null>
+    setCanConfirm: (puedeConfirmar: boolean) => void
+    setGeoSeleccionada: (ubicacion: APIGeo1 | null) => void
 };
 
 export const SelectDireccion = ({ direccion, setCanConfirm, setGeoSeleccionada }: Props) => {
@@ -20,19 +19,30 @@ export const SelectDireccion = ({ direccion, setCanConfirm, setGeoSeleccionada }
     useEffect(() => {
         if (direccion === "") return;
 
+        let activo = true;
+
         const fetchGeo = async () => {
             try {
                 const data = await getGeo(direccion);
-                setResultados(data);
-                setBuscado(true);
-            } catch (error) {
-                setCanConfirm(false)
-                console.log(error);
+                if (activo) {
+                    setResultados(data);
+                    setBuscado(true);
+                }
+            } catch {
+                if (activo) {
+                    setCanConfirm(false);
+                    setResultados([]);
+                    setBuscado(true);
+                }
             }
         };
 
         fetchGeo();
-    }, [direccion]);
+
+        return () => {
+            activo = false;
+        };
+    }, [direccion, setCanConfirm]);
 
 
     useEffect(() =>{
@@ -44,19 +54,18 @@ export const SelectDireccion = ({ direccion, setCanConfirm, setGeoSeleccionada }
             setCanConfirm(true);
             setGeoSeleccionada(ubicacionSeleccionada)
         }
-    }, [ubicacionSeleccionada])
+    }, [ubicacionSeleccionada, setCanConfirm, setGeoSeleccionada])
 
 
     return (
         <Box sx={{ mt: 3, p: 2.5, borderRadius: 2, background: "#f0f9ff", border: "1px solid #bae6fd" }}>
             {resultados.length > 0 && (
                 <List sx={{ background: "#fff", borderRadius: 2, border: "1px solid #cbd5e1", maxHeight: 250, overflow: "auto" }}>
-                    {resultados.map((resultado, index) => {
-                        console.log(resultado)
+                    {resultados.map((resultado) => {
                         const seleccionado = ubicacionSeleccionada?.id === resultado.id;
                         return (
                             <ListItemButton
-                                key={index}
+                                key={resultado.id}
                                 selected={seleccionado}
                                 onClick={() => setUbicacionSeleccionada(resultado)}
                                 sx={{

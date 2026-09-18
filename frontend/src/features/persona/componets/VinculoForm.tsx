@@ -2,11 +2,10 @@ import { useEffect, useState } from "react"
 import { FormControl, InputLabel, Select, MenuItem, CircularProgress } from "@mui/material"
 import { getVinculos } from "../api"
 import type { Vinculo } from "../types"
-import type { Setter } from "@/common/types"
 
 type Props = {
     vinculoSeleccionado: Vinculo | null
-    setVinculoSeleccionado: Setter<Vinculo | null>
+    setVinculoSeleccionado: (vinculo: Vinculo | null) => void
 }
 
 export const VinculoForm = ({vinculoSeleccionado, setVinculoSeleccionado}: Props) => {

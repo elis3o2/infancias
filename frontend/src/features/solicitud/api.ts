@@ -1,92 +1,79 @@
-import http from '@/common/api/client'
-import type { MotivoSolicitud, PrioridadSolicitud, Solicitud, SolicitudCreate, SolicitudSimple } from './types'
-import type { AdolescenteWriteInput, Equipo } from '../persona/types'
+import type { AxiosResponse } from "axios"
+import http from "@/common/api/client"
+import type {
+  ArchivoSimple,
+  MotivoSolicitud,
+  SolicitudCreate,
+  SolicitudDetalle,
+  SolicitudSimple,
+  SolicitudValidacionInput,
+} from "./types"
+import type { Equipo } from "../persona/types"
 
+const SOLICITUDES_URL = "solicitud/solicitud/"
 
-export const getMotivos = (): Promise<MotivoSolicitud[]> => {
-  return http.get<MotivoSolicitud[]>('solicitud/motivo/').then(res => res.data)
-}
+export const getMotivos = (): Promise<MotivoSolicitud[]> =>
+  http.get<MotivoSolicitud[]>("solicitud/motivo/").then(({ data }) => data)
 
-export const getPrioridades = (): Promise<PrioridadSolicitud[]> => {
-  return http.get<PrioridadSolicitud[]>('solicitud/prioridad/').then(res => res.data)
-}
+export const getSolicitudes = (): Promise<SolicitudSimple[]> =>
+  http.get<SolicitudSimple[]>(SOLICITUDES_URL).then(({ data }) => data)
 
+export const getSolicitudById = (id: number): Promise<SolicitudDetalle> =>
+  http.get<SolicitudDetalle>(`${SOLICITUDES_URL}${id}/`).then(({ data }) => data)
 
-export const getSolicitudes = (): Promise<Solicitud[]> => {
-  return http.get<Solicitud[]>('solicitud/solicitud/').then(res => res.data)
-}
-
-
-export const getSolicitudById = (id: number): Promise<Solicitud> => {
-  return http.get<Solicitud>(`solicitud/solicitud/${id}/`).then(res => res.data)
-}
-
-export const postSolicitud = (solicitud: SolicitudCreate) => {
-  const formData = new FormData();
+/** Serializes the request and its attachments using the names expected by the API. */
+export const postSolicitud = (solicitud: SolicitudCreate): Promise<SolicitudDetalle> => {
+  const formData = new FormData()
 
   if (solicitud.id_institucion != null) {
-    formData.append("id_institucion",solicitud.id_institucion.toString());
-  } else if (solicitud.institucion) {
-    formData.append("institucion", JSON.stringify(solicitud.institucion));
+    formData.append("id_institucion", String(solicitud.id_institucion))
+  } else {
+    formData.append("institucion", JSON.stringify(solicitud.institucion))
   }
-  
-  formData.append("adolescente",JSON.stringify(solicitud.adolescente));
-  formData.append("correo", solicitud.correo)
-  formData.append("telefono", solicitud.telefono)
 
-  formData.append("id_motivo", solicitud.id_motivo.toString());
+  formData.append("adolescentes", JSON.stringify(solicitud.adolescentes))
+  formData.append("familiares", JSON.stringify(solicitud.familiares))
+  formData.append(
+    "referencias_instituciones_data",
+    JSON.stringify(solicitud.referencias_instituciones_data),
+  )
+  formData.append("correo", solicitud.correo.trim())
+  formData.append("telefono", solicitud.telefono.trim())
+  formData.append("id_motivo", String(solicitud.id_motivo))
+  formData.append("descripcion", solicitud.descripcion.trim())
 
-  formData.append("id_prioridad", solicitud.id_prioridad.toString());
-
-  formData.append("descripcion", solicitud.descripcion);
-  
   solicitud.archivos.forEach((archivo) => {
-    formData.append("archivos", archivo);
-  });
+    formData.append("archivos", archivo, archivo.name)
+  })
 
-  return http.post("solicitud/solicitud/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-});};
+  // Do not manually set multipart/form-data: Axios adds the required boundary.
+  return http.post<SolicitudDetalle>(SOLICITUDES_URL, formData).then(({ data }) => data)
+}
 
-
-export const getArchivoById = (id: number) => {
-  return http.get(`solicitud/archivo/${id}/descargar/`, {
-    responseType: "blob",
-  });
-};
-
+export const getArchivoById = (id: number): Promise<AxiosResponse<Blob>> =>
+  http.get<Blob>(`solicitud/archivo/${id}/descargar/`, { responseType: "blob" })
 
 export const validarSolicitud = (
-  solicitudId : number,
-  descripcionExtra : string,
-  adolescenteData : AdolescenteWriteInput) => {
-  const formData = new FormData()
-  formData.append("descripcion_extra", descripcionExtra ?? "")
-  formData.append("adolescente", JSON.stringify(adolescenteData))
+  solicitudId: number,
+  payload: SolicitudValidacionInput,
+): Promise<void> =>
+  http.put<void>(`${SOLICITUDES_URL}${solicitudId}/validar/`, payload).then(() => undefined)
 
-  // archivos existentes que quedaron seleccionados -> se validan (valido=true)
+export const rechazarSolicitud = (id: number, motivo: string): Promise<SolicitudDetalle> =>
+  http
+    .put<SolicitudDetalle>(`${SOLICITUDES_URL}${id}/rechazar/`, undefined, {
+      params: { motivo: motivo.trim() },
+    })
+    .then(({ data }) => data)
 
-  return http.put(`solicitud/solicitud/${solicitudId}/validar/`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  })
-}
+export const getSolicitudSimple = getSolicitudes
 
-export const rechazarSolicitud = (id: number, motivo: string) => {
-  return http.put(`solicitud/solicitud/${id}/rechazar/?motivo=${motivo}`).then(res => res.data)
-}
+export const derivarSolicitud = (idSolicitud: number, idDerivacion: number): Promise<void> =>
+  http
+    .put<void>(`${SOLICITUDES_URL}${idSolicitud}/derivar/`, { equipo_id: idDerivacion })
+    .then(() => undefined)
 
-export const getSolicitudSimple = (): Promise<SolicitudSimple[]> => {
-  return http.get<SolicitudSimple[]>(`solicitud/solicitud/`).then(res => res.data)
-}
+export const getEquipos = (): Promise<Equipo[]> =>
+  http.get<Equipo[]>("equipos/").then(({ data }) => data)
 
-export const derivarSolicitud = (idSolicitud: number, idDerivacion: number) => {
-  return http.put(`solicitud/solicitud/${idSolicitud}/derivar/?equipo_id=${idDerivacion}`)
-}
-
-export const getEquipos = (): Promise<Equipo[]> => {
-  return http.get<Equipo[]>('equipos/').then(res => res.data)
-}
+export type { ArchivoSimple }

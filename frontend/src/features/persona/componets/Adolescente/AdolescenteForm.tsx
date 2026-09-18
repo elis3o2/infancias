@@ -59,14 +59,14 @@ export const AdolescenteForm = ({ adolescente, setAdolescente, onCargar, onCance
           prev.some((x) => x.nombre === d.nombre) ? prev : [...prev, d]
       )
 }
-
   const formCompleto =
     adolescente.nombre.trim() !== "" &&
     adolescente.apellido.trim() !== "" &&
     (adolescente.dni.length === 7  ||
      adolescente.dni.length === 8) &&
     adolescente.sexo !== "" &&
-    adolescente.fecha_nacimiento.trim() !== "" 
+    adolescente.fecha_nacimiento.trim() !== "" &&
+    adolescente.domicilio != null
 
   const handleCargar = () => {
     if (!formCompleto) return;

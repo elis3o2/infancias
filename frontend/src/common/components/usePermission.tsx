@@ -1,7 +1,11 @@
+import { useContext } from "react"
+import { AuthContext } from "../contex"
+
 export const usePermissions = () => {
-  const user = getUser(); // de contexto o storage
+  const { authTokens } = useContext(AuthContext)
 
   return {
-    isJerarquico: user?.is_jerarquico,
-  };
-};
+    isAuthenticated: Boolean(authTokens),
+    isJerarquico: false,
+  }
+}

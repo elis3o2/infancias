@@ -13,15 +13,6 @@ class MotivoSolicitud(models.Model):
         db_table = 'motivo_solicitud'
 
 
-class PrioridadSolicitud(models.Model):
-    id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=32)
-
-    class Meta: 
-        managed = False
-        db_table = 'prioridad_solicitud'
-
-
 class Solicitud(models.Model):
     id = models.AutoField(primary_key=True)
     institucion = models.ForeignKey(
@@ -30,9 +21,8 @@ class Solicitud(models.Model):
         MotivoSolicitud, models.DO_NOTHING, db_column='id_motivo')
     correo = models.CharField(max_length=32)
     telefono = models.CharField(max_length=32)
-    prioridad = models.ForeignKey(
-        PrioridadSolicitud, models.DO_NOTHING, db_column='id_prioridad', related_name='prioridad')
     descripcion = models.CharField(max_length=256)
+    descripcion_extra = models.CharField(max_length=256, null=True, blank=True)
     fecha_hora_creacion = models.DateTimeField()
     fecha_hora_entrada = models.DateTimeField(blank=True, null=True)
     fecha_hora_admision = models.DateTimeField(blank=True, null=True)
@@ -54,7 +44,8 @@ class Solicitud(models.Model):
 class Archivo(models.Model):
     id = models.AutoField(primary_key=True)
     solicitud = models.ForeignKey(
-        "Solicitud", models.DO_NOTHING, db_column="id_solicitud")
+        "Solicitud", models.DO_NOTHING, db_column="id_solicitud",
+        related_name="archivos")
     nombre = models.CharField(max_length=255)
     tipo_mime = models.CharField(max_length=100, null=True, blank=True)
     contenido = models.BinaryField()
@@ -77,3 +68,16 @@ class SolicitudComentario(models.Model):
     class Meta:
         managed = False
         db_table = 'solicitud_comentario'
+
+
+class SolicitudInstitucion(models.Model):
+    id = models.AutoField(primary_key=True)
+    solicitud = models.ForeignKey(
+        Solicitud, models.DO_NOTHING, db_column="id_solicitud",
+        related_name="referencias_instituciones")
+    institucion = models.ForeignKey(
+        Institucion, models.DO_NOTHING, db_column="id_institucion")
+
+    class Meta:
+        managed = False
+        db_table = "solicitud_institucion"

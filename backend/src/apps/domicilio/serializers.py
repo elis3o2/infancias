@@ -124,3 +124,23 @@ class ReferenciaInstitucionInputSerializer(serializers.Serializer):
         required=False,
     )
     domicilio = DomicilioSerializer(required=False,)
+
+    def validate(self, attrs):
+        institucion_existente = attrs.get("id")
+        if institucion_existente is not None:
+            return attrs
+
+        faltantes = [
+            campo
+            for campo in ("nombre", "tipo", "domicilio")
+            if campo not in attrs
+        ]
+        if faltantes:
+            raise serializers.ValidationError(
+                {
+                    campo: "Este campo es obligatorio para una institución nueva."
+                    for campo in faltantes
+                }
+            )
+
+        return attrs

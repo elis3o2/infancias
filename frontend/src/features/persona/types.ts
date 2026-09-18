@@ -1,4 +1,4 @@
-import type { Domicilio, DomicilioFormData, DomicilioInput, Institucion, InstitucionFormData, InstitucionInput } from "../domicilio/types"
+import type { Domicilio, DomicilioFormData, DomicilioInput, Institucion } from "../domicilio/types"
 
 
 export type AdolescenteCrud = {
@@ -10,9 +10,6 @@ export type AdolescenteCrud = {
     domicilio: Domicilio,
     fecha_nacimiento: string
     escolarizado: boolean | null
-    hermanos: Hermano[]
-    familiares: Familiar[]
-    referencias_instituciones: Institucion[]
 }
 
 export type AdolescenteCreate = {
@@ -23,9 +20,6 @@ export type AdolescenteCreate = {
     domicilio: DomicilioFormData | null,
     fecha_nacimiento: string
     escolarizado: boolean | null
-    hermanos: HermanoCreate[]
-    familiares: FamiliarCreate[]
-    referencias_instituciones_data: InstitucionFormData[]
 }
 
 export type Adolescente = {
@@ -34,7 +28,6 @@ export type Adolescente = {
     domicilio: Domicilio,
     fecha_nacimiento: string
     escolarizado: boolean | null
-    hermanos: Hermano[]
     hermanos_validados: Persona[]
     familiares: Familiar[]
     familiares_validados: Persona[]
@@ -49,9 +42,6 @@ export type AdolescenteInput = {
     domicilio: DomicilioInput,
     fecha_nacimiento: string
     escolarizado: boolean | null
-    hermanos: HermanoInput[]
-    familiares: FamiliarInput[]
-    referencias_instituciones_data: InstitucionInput[]
 }
 
 export type AdolescenteValidado = {
@@ -71,9 +61,6 @@ export const AdolescenteInicial : AdolescenteCreate = {
     domicilio: null,
     fecha_nacimiento: "",
     escolarizado: null,
-    hermanos: [],
-    familiares: [],
-    referencias_instituciones_data: []
 }
 
 export type AdolescenteWriteInput = {
@@ -82,12 +69,10 @@ export type AdolescenteWriteInput = {
     familiares_validados: PersonaCreate[]
 }
 
-
 export type Vinculo = {
     id: number,
     nombre: string
 }
-
 
 export type Familiar = {
     id: number
@@ -98,8 +83,8 @@ export type Familiar = {
     telefono: string | null 
     dni: string | null 
     domicilio: Domicilio | null
+    persona?: Persona | null
 }
-
 
 export type FamiliarCreate = {
     nombre: string
@@ -115,7 +100,7 @@ export type FamiliarCreate = {
 export type FamiliarInput = {
     nombre: string
     apellido: string
-    sexo: "M" | "F" 
+    sexo: "M" | "F" | null
     id_vinculo: number
     telefono: string | null 
     dni: string | null 
@@ -155,24 +140,37 @@ export type Equipo = {
 
 export type LegajoInsert = {
     id_insert: number | null
-    letra: "A" | "B" | "C" | null
     carpeta_id: number | null
-    carpeta_letra: "A" | "B" | null
 }
 
+/** Forma de legajo que devuelve la API al consultar una Persona ya registrada. */
+export type LegajoDetalle = {
+    id: number
+    id_insert: number | null
+    carpeta: {
+        id: number
+        id_insert: number | null
+    } | null
+}
+
+/**
+ * Persona persistida que entrega el backend. Los datos de contacto son
+ * opcionales porque se guardan en historiales separados y no forman parte del
+ * serializer básico de Persona.
+ */
 export type Persona = {
+    id: number
     nombre: string,
     apellido: string,
     dni: string
     fecha_nacimiento: string
     sexo: "M" | "F"
-    telefono: string | null 
-    domicilio: Domicilio | null
-    vinculo: Vinculo | null
-    legajo: LegajoInsert
+    hcf: number | null
+    telefono?: string | null
+    domicilio?: Domicilio | null
+    vinculo?: Vinculo | null
+    legajo: LegajoDetalle | null
 }
-
-
 
 export type PersonaInput = {
     nombre: string,
@@ -184,7 +182,6 @@ export type PersonaInput = {
     domicilio: DomicilioFormData | null
     id_vinculo: number | null 
     legajo: LegajoInsert
-
 }
 
 
@@ -200,24 +197,77 @@ export type PersonaCreate = {
     legajo: LegajoInsert | null
     id_familiar?: number
     id_hermano?: number
+    /** Identifies the relationship when this person is being validated as a relative. */
+    id_vinculo?: number
 }
 
-
 export type Ciudadano = {
-    nombre: string,
-    apellido: string,
-    departamento: string,
-    localidad: string,
-    domicilio: string,
+    nombre: string
+    apellido: string
+    departamento: string
+    localidad: string
+    domicilio: string
     fechaNacimiento: string
     fallecido: string
     sexo: "M" | "F"
     nroDocumento: string
+    hcf: number | null
 }
-
 
 export type Salud = {
     adscripcion: string[]
     efectores: string[]
     obra_social: string[]
+}
+
+export type PersonaResp = {
+    nombre: string
+    apellido: string
+    sexo: "M" | "F"
+    fecha_nacimiento: string
+    dni: string
+    legajo: number | null
+    carpeta: number | null
+    hcf: number | null
+}
+
+export type RelacionResp = {
+    vinculo: string
+    persona: {
+        nombre: string
+        apellido: string
+        dni: string
+        sexo: "M" | "F"
+    }
+}
+
+export type SolicitudResp = {
+    id: number
+    fecha_creacion: string
+    equipo: string
+    motivo: string
+}
+
+export type AdolescenteResp = {
+    id: number
+    solicitudes: SolicitudResp[]
+    persona: PersonaResp | null
+    ciudadano: Ciudadano | null
+    relaciones: RelacionResp[]
+}
+
+export type FamiliarResp = {
+    id: number
+    persona: PersonaResp | null
+    ciudadano: Ciudadano | null
+    /** Present when the lookup service can resolve related people for a relative. */
+    relaciones?: RelacionResp[]
+    /** Present when the lookup service can resolve prior requests for a relative. */
+    solicitudes?: SolicitudResp[]
+}
+
+export type RespCiudadano = {
+    adolescentes: AdolescenteResp[]
+    familiares: FamiliarResp[]
+    hcf: unknown[]
 }

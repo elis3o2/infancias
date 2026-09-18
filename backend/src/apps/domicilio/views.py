@@ -1,7 +1,7 @@
 import requests
 from pyproj import Transformer
 from decouple import config
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -10,7 +10,7 @@ from rest_framework.exceptions import NotFound, APIException
 from .models import Institucion, TipoInstitucion, Provincia, Departamento, Domicilio
 from .serializers import (ProvinciaSerializer, DepartamentoSerializer, InstitucionSerializer, TipoInstitucionSerializer,
                         DomicilioSerializer)
-from src.permissions import ReadOnly
+from src.permissions import IsOperationalUser, ReadOnly
 
 class ProvinciaViewSet(viewsets.ModelViewSet):
     queryset = Provincia.objects.all()
@@ -58,13 +58,16 @@ class InstitucionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="educacion")
     def educacion(self, request):
-        qs = self.get_queryset().filter(tipo__educacion=True)
+        qs = self.get_queryset().filter(tipo__nombre__iexact="Educativa")
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"], url_path="territorial")
     def territorial(self, request):
-        qs = self.get_queryset().filter(tipo__territorial=True)
+        # La categoría es un registro de catálogo, no un campo booleano del
+        # modelo. Si el catálogo no tiene este tipo, la respuesta es una lista
+        # vacía en lugar de un FieldError.
+        qs = self.get_queryset().filter(tipo__nombre__iexact="Territorial")
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
@@ -73,6 +76,7 @@ class InstitucionViewSet(viewsets.ModelViewSet):
 class DomicilioViewSet(viewsets.ModelViewSet):
     queryset = Domicilio.objects.all()
     serializer_class = DomicilioSerializer
+    permission_classes = [IsOperationalUser, ReadOnly]
 
 
 

@@ -1,12 +1,11 @@
 import { Stack, Box, Button, IconButton } from "@mui/material"
 import CloseIcon from "@mui/icons-material/Close";
 import { TelefonoComponent } from "./TelefonoComponent";
-import type { Setter } from "@/common/types";
 
 type Props = {
     condicion: boolean
     telefono: string 
-    setTelefono: Setter<string>
+    setTelefono: (telefono: string) => void
     mostrar: (b: boolean) => void
 }
 
@@ -21,7 +20,10 @@ export const TelefonoOpcionalForm = ({condicion, telefono, setTelefono, mostrar}
               </Box>
               <IconButton
                 size="small"
-                onClick={() => mostrar(false)}
+                onClick={() => {
+                  setTelefono("")
+                  mostrar(false)
+                }}
               >
                 <CloseIcon fontSize="small" />
               </IconButton>

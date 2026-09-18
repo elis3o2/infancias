@@ -2,17 +2,16 @@ import { useEffect } from "react"
 import { Stack, TextField } from "@mui/material"
 import { DepartamentoComponent } from "../DepartamentoComponet"
 import { ProvinciaComponent } from "../ProvinciaComponent"
-import type { Departamento, Provincia, TipoInstitucion, InstitucionFormData } from "../../types"
+import type { Departamento, Provincia, InstitucionFormData } from "../../types"
 import type { Setter } from "@/common/types"
 
 type Props = {
   institucion: InstitucionFormData
   setInstitucion: Setter<InstitucionFormData>
-  tipo: TipoInstitucion
   onValidChange: (esValido: boolean) => void
 }
 
-export const InstitucionCargaForm = ({ institucion, setInstitucion, tipo, onValidChange }: Props) => {
+export const InstitucionCargaForm = ({ institucion, setInstitucion, onValidChange }: Props) => {
   
     const esValido =
     institucion.nombre.trim() !== "" &&
@@ -22,16 +21,8 @@ export const InstitucionCargaForm = ({ institucion, setInstitucion, tipo, onVali
     institucion.domicilio.provincia != null
 
   useEffect(() => {
-    onValidChange?.(esValido)
-  }, [esValido])
-
-  useEffect(() => {
-    setInstitucion((prev) => ({ ...prev, tipo }))
-  }, [tipo])
-
-  useEffect(() => {
-    setDepartamento(null)
-  }, [institucion.domicilio.provincia])
+    onValidChange(esValido)
+  }, [esValido, onValidChange])
 
   const setNombre = (nombre: string) => {
     setInstitucion((prev) => ({ ...prev, nombre }))
@@ -51,7 +42,6 @@ export const InstitucionCargaForm = ({ institucion, setInstitucion, tipo, onVali
         }))
     }
 
-    console.log("ISTITUCION",institucion)
     const setDepartamento = (departamento: Departamento | null) => {
         setInstitucion((prev) => ({
             ...prev,

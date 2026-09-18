@@ -1,125 +1,227 @@
-import type { AdolescenteCrud, PersonaCreate } from "../../types"
-import { Stack } from "@mui/material"
+import type { AdolescenteCrud, Ciudadano, PersonaCreate, PersonaResp, RelacionResp, SolicitudResp } from "../../types"
 
+import { Alert, Box, Button, Stack, Typography } from "@mui/material"
 import { Mapa } from "@/features/domicilio/components/Mapa"
-import type { Setter } from "@/common/types"
-import { ValidarAdolescenteDatos } from "./ValidarAdolescenteDatos"
-import { useState } from "react"
-import { CarpetaForm } from "./CarpetaForm"
-import { LegajoForm } from "./LegajoForm"
 import { TitledCard } from "@/common/components/TitleCard"
+import { AdolescenteList } from "../Adolescente/AdolescenteList"
+import { AdolescenteDatosCargados } from "./AdolescentaDatosCargados"
+import { ValidarCiudadano } from "./ValidarCiudadano"
+import { ciudadanoToPersona } from "../../utils"
+
 
 type Props = {
   adolescente: AdolescenteCrud
   estado: "confirmado" | "rechazado" | null
-  setEstado: Setter<"confirmado" | "rechazado" | null>
+  setEstado: (estado: "confirmado" | "rechazado" | null) => void
   persona: PersonaCreate | null
-  setPersona: Setter<PersonaCreate | null>
+  setPersona: (persona: PersonaCreate | null) => void
+  personaresp: PersonaResp | null
+  ciudadano: Ciudadano | null
+  relaciones: RelacionResp[]
+  solicitudes: SolicitudResp[]
+  sinResultados: boolean
 }
 
-export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, setPersona }: Props) => {
+const personaRegistradaAForm = (persona: PersonaResp): PersonaCreate => ({
+  nombre: persona.nombre,
+  apellido: persona.apellido,
+  dni: persona.dni,
+  sexo: persona.sexo,
+  fecha_nacimiento: persona.fecha_nacimiento,
+  telefono: null,
+  domicilio: null,
+  vinculo: null,
+  legajo: persona.legajo !== null || persona.carpeta !== null
+    ? {
+        id_insert: persona.legajo,
+        carpeta_id: persona.carpeta,
+      }
+    : null,
+})
 
-  const [tieneLegajo, setTieneLegajo] = useState(false)
-  const [tieneCarpeta, setTieneCarpeta] = useState(false)
+export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, setPersona,
+  personaresp, ciudadano, relaciones, solicitudes, sinResultados, }: Props) => {
 
-  const actualizarLegajo = (
-    cambios: Partial<NonNullable<PersonaCreate["legajo"]>>
-  ) => {
-    if (!persona) return
+  const confirmarDatosCiudadano = () => {
+    if (!ciudadano) return
 
-    setPersona({
-      ...persona,
-      legajo: {
-        id_insert: persona.legajo?.id_insert ?? null,
-        letra: persona.legajo?.letra ?? "A",
-        carpeta_id: persona.legajo?.carpeta_id ?? null,
-        carpeta_letra: persona.legajo?.carpeta_letra ?? "A",
-        ...cambios,
-      },
-    })
+    // The operator may have added a legajo/carpeta before confirming. Keep
+    // that draft instead of recreating it from the RENAPER response.
+    setPersona(persona ?? ciudadanoToPersona(ciudadano))
+
+    setEstado("confirmado")
   }
 
-  const cambiarTieneCarpeta = (valor: boolean) => {
-    setTieneCarpeta(valor)
+  const confirmarDatosInternos = () => {
+    if (!personaresp) return
 
-    actualizarLegajo({
-      carpeta_id: valor
-        ? persona?.legajo?.carpeta_id ?? null
-        : null,
-    })
+    setPersona(personaRegistradaAForm(personaresp))
+    setEstado("confirmado")
   }
 
-  const cambiarTieneLegajo = (valor: boolean) => {
-    setTieneLegajo(valor)
-
-    actualizarLegajo({
-      id_insert: valor
-        ? persona?.legajo?.id_insert ?? null
-        : null,
-    })
+  const rechazarDatos = () => {
+    setPersona(null)
+    setEstado("rechazado")
   }
 
-  const cambiarLetraLegajo = (valor: "A" | "B") => {
-    actualizarLegajo({
-      letra: valor,
-    })
+  const leyendaEstado = () => {
+    switch (estado) {
+      case "confirmado":
+        return { texto: "Datos confirmados", color: "success.main" }
+
+      case "rechazado":
+        return { texto: "Datos rechazados", color: "error.main" }
+
+      default:
+        return {
+          texto: "Pendiente de validación",
+          color: "text.secondary",
+        }
+    }
   }
 
-  const cambiarLetraCarpeta = (valor: "A" | "B") => {
-    actualizarLegajo({
-      carpeta_letra: valor,
-    })
-  }
+  const estadoActual = leyendaEstado()
+  const tieneResultado = Boolean(personaresp || ciudadano || sinResultados)
+
+  const acciones = (onConfirmar: () => void, etiquetaConfirmar: string) => (
+    <Stack
+      direction={{ xs: "column", sm: "row" }}
+      spacing={1}
+      sx={{
+        alignItems: { xs: "stretch", sm: "center" },
+        "& .MuiButton-root": { width: { xs: "100%", sm: "auto" } },
+      }}
+    >
+      <Typography
+        variant="body2"
+        sx={{ color: estadoActual.color, fontWeight: 700, mr: { sm: "auto" } }}
+      >
+        {estadoActual.texto}
+      </Typography>
+      <Button variant="outlined" color="error" onClick={rechazarDatos}>
+        Rechazar datos
+      </Button>
+      <Button variant="contained" onClick={onConfirmar}>
+        {etiquetaConfirmar}
+      </Button>
+    </Stack>
+  )
 
   return (
-    <TitledCard
-      titulo="Datos del niño, niña o Adolescente"
-      componente={<>
-        <Stack spacing={2}>
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "minmax(0, 1fr)",
+          md: "minmax(0, 0.85fr) minmax(0, 1.15fr)",
+        },
+        gap: { xs: 2, md: 3 },
+        alignItems: "start",
+      }}
+    >
+      <TitledCard
+        titulo="Datos del niño, niña o adolescente"
+        sx={{ minWidth: 0 }}
+        componente={
+          <Stack spacing={2}>
+            <AdolescenteList adolescente={adolescente} />
 
-          <ValidarAdolescenteDatos
-            adolescente={adolescente}
-            estado={estado}
-            setEstado={setEstado}
-            setPersona={setPersona}
-          />
+            {adolescente.domicilio?.domicilio_validado && (
+              <Mapa
+                latitud={adolescente.domicilio.domicilio_validado.latitud}
+                longitud={adolescente.domicilio.domicilio_validado.longitud}
+                nombre={adolescente.domicilio.nombre}
+              />
+            )}
+          </Stack>
+        }
+      />
 
-          {adolescente.domicilio?.domicilio_validado && (
-            <Mapa
-              latitud={adolescente.domicilio.domicilio_validado.latitud}
-              longitud={adolescente.domicilio.domicilio_validado.longitud}
-              nombre={adolescente.domicilio.nombre}
+      <Stack spacing={2} sx={{ minWidth: 0 }}>
+        {personaresp && (
+          <>
+            <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700 }}>
+              Resultado de la verificación
+            </Typography>
+            <AdolescenteDatosCargados
+              solicitudes={solicitudes}
+              relaciones={relaciones}
+              persona={personaresp}
             />
-          )}
+            {acciones(confirmarDatosInternos, "Confirmar datos registrados")}
+          </>
+        )}
 
-          {persona && (
-            <>
-              <CarpetaForm
-                carpeta={persona.legajo?.carpeta_id ?? null}
-                letra={persona.legajo?.carpeta_letra ?? "A"}
-                setLetra={cambiarLetraCarpeta}
-                setCarpeta={(valor) =>
-                  actualizarLegajo({ carpeta_id: valor })
-                }
-                tieneCarpeta={tieneCarpeta}
-                setTieneCarpeta={cambiarTieneCarpeta}
-              />
+        {!personaresp && ciudadano && (
+          <>
+            <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700 }}>
+              Resultado de la verificación
+            </Typography>
+            <ValidarCiudadano
+              ciudadano={ciudadano}
+              persona={persona ?? ciudadanoToPersona(ciudadano)}
+              setPersona={setPersona}
+            />
+            {acciones(confirmarDatosCiudadano, "Confirmar datos")}
+          </>
+        )}
 
-              <LegajoForm
-                legajo={persona.legajo?.id_insert ?? null}
-                letra={persona.legajo?.letra ?? "A"}
-                setLetra={cambiarLetraLegajo}
-                setLegajo={(valor) =>
-                  actualizarLegajo({ id_insert: valor })
-                }
-                tieneLegajo={tieneLegajo}
-                setTieneLegajo={cambiarTieneLegajo}
-              />
-            </>
-          )}
+        {sinResultados && (
+          <Box
+            sx={{
+              p: { xs: 2, sm: 2.5 },
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 3,
+              bgcolor: "background.paper",
+            }}
+          >
+            <Stack spacing={1.5}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                Resultado de la verificación
+              </Typography>
+              <Alert severity="info">
+                No se encontraron datos previos ni datos en RENAPER para esta persona. Queda pendiente
+                de validación; no fue rechazada automáticamente.
+              </Alert>
+              {estado !== null ? (
+                <Button size="small" onClick={() => setEstado(null)} sx={{ alignSelf: "flex-start" }}>
+                  Revisar nuevamente
+                </Button>
+              ) : (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="error"
+                  onClick={rechazarDatos}
+                  sx={{ alignSelf: "flex-start", width: { xs: "100%", sm: "auto" } }}
+                >
+                  Rechazar datos manualmente
+                </Button>
+              )}
+            </Stack>
+          </Box>
+        )}
 
-        </Stack>
-    </>}
-    />
+        {!tieneResultado && (
+          <Box
+            sx={{
+              p: { xs: 2, sm: 2.5 },
+              border: "1px dashed",
+              borderColor: "divider",
+              borderRadius: 3,
+              bgcolor: "background.paper",
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
+              Resultado de la verificación
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Usá “Buscar datos” para consultar los antecedentes y los datos de RENAPER.
+            </Typography>
+          </Box>
+        )}
+      </Stack>
+    </Box>
   )
 }

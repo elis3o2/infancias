@@ -3,14 +3,13 @@ import { Box, Button, CircularProgress, Alert, Stack } from "@mui/material"
 import { DniForm } from "../DniForm"
 import { SexoForm } from "../SexoForm"
 import { getCiudadano } from "../../api"
-import type { Setter } from "@/common/types"
 import type { PersonaCreate, Vinculo } from "../../types"
 import { PersonaList } from "./PersonaList"
 import { ciudadanoToPersona } from "../../utils"
 import { VinculoForm } from "../VinculoForm"
 import { TelefonoOpcionalForm } from "../TelefonoOpcionalForm"
 import { DomicilioOpcionalForm } from "@/features/domicilio/components/DomicilioOpcionalForm"
-import type { Departamento, Provincia } from "@/features/domicilio/types"
+import type { Departamento, DomicilioFormData, Provincia } from "@/features/domicilio/types"
 
 
 type Props = {
@@ -32,15 +31,22 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
     const [telefono, setTelefono] = useState("")
     const [provincia, setProvincia] = useState<Provincia | null>(null)
     const [departamento, setDepartamento] = useState<Departamento | null>(null)
-    const [domicilio, setDomicilo] = useState("")
+    const [domicilio, setDomicilio] = useState<DomicilioFormData | null>(null)
 
     const [camposVisibles, setCamposVisibles] = useState({
         telefono: false,
         domicilio: false,
     });
 
-    const formCompleto = !datos_extra || (vinculo && (telefono.length == 10 || !camposVisibles.telefono)
-                        && ((departamento && provincia && domicilio != "") || !camposVisibles.domicilio))  
+    const formCompleto = !datos_extra || (
+        vinculo !== null &&
+        (!camposVisibles.telefono || telefono.length === 10) &&
+        (!camposVisibles.domicilio || (
+            domicilio !== null &&
+            domicilio.nombre.trim() !== "" &&
+            domicilio.id_departamento !== null
+        ))
+    )
 
     const cambiarCampo = (campo: keyof typeof camposVisibles, valor: boolean) => {
         setCamposVisibles(prev => ({...prev, [campo]: valor}));
@@ -58,7 +64,7 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
             return
             }
             setPersona(ciudadanoToPersona(data))
-        } catch (e) {
+        } catch {
             setError("No se encontro a la persona")
         } finally {
             setLoading(false)
@@ -72,14 +78,7 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
             ...persona,
             vinculo,
             telefono: camposVisibles.telefono ? telefono : null,
-            domicilio: camposVisibles.domicilio && departamento
-                ? {
-                    nombre: domicilio,
-                    id_departamento: departamento.id,
-                    observaciones: null,
-                    domicilio_validado: null
-                }
-                : null,
+            domicilio: camposVisibles.domicilio ? domicilio : null,
         }
 
         onPersonaAgregado(personaActualizada)
@@ -92,7 +91,7 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
         setTelefono("")
         setProvincia(null)
         setDepartamento(null)
-        setDomicilo("")
+        setDomicilio(null)
         setCamposVisibles({
             telefono: false,
             domicilio: false,
@@ -103,8 +102,8 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
 
     return (
     <Stack spacing={2}>
-        <DniForm dni={dni} setDni={setDni as Setter<string>} />
-        <SexoForm sexo={sexo} setSexo={setSexo as Setter<"M" | "F" | "">} />
+        <DniForm dni={dni} setDni={setDni} />
+        <SexoForm sexo={sexo} setSexo={setSexo} />
 
         <Button
         variant="outlined"
@@ -137,7 +136,7 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
                     <DomicilioOpcionalForm
                         condicion={camposVisibles.domicilio}
                         domicilio={domicilio}
-                        setDomicilio={setDomicilo}
+                        setDomicilio={setDomicilio}
                         provincia={provincia}
                         setProvincia={setProvincia}
                         departamento={departamento}

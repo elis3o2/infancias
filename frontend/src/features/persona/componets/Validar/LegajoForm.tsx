@@ -1,85 +1,67 @@
-import {
-    FormControl,
-    FormControlLabel,
-    InputLabel,
-    MenuItem,
-    Select,
-    Stack,
-    Switch,
-    TextField,
-} from "@mui/material"
+import { FormControlLabel, Stack, Switch, TextField } from "@mui/material"
 
 type Props = {
-    tieneLegajo: boolean
-    setTieneLegajo: (valor: boolean) => void
-    legajo: number | null
-    letra: "A" | "B" | "C"
-    setLegajo: (valor: number | null) => void
-    setLetra: (valor: "A" | "B" | "C") => void
+  tieneLegajo: boolean
+  setTieneLegajo: (valor: boolean) => void
+  legajo: number | null
+  setLegajo: (valor: number | null) => void
+  carpeta: number | null
+  setCarpeta: (valor: number | null) => void
 }
 
+const actualizarNumero = (
+  valor: string,
+  actualizar: (numero: number | null) => void,
+) => {
+  if (!/^\d*$/.test(valor)) return
+  actualizar(valor === "" ? null : Number(valor))
+}
+
+/**
+ * Legajo y carpeta son una sola decisión operativa: existen juntos o no se
+ * cargan. Las letras son un detalle de compatibilidad del servidor y no se
+ * muestran ni se envían desde la interfaz.
+ */
 export const LegajoForm = ({
-    tieneLegajo,
-    setTieneLegajo,
-    legajo,
-    letra,
-    setLegajo,
-    setLetra,
+  tieneLegajo,
+  setTieneLegajo,
+  legajo,
+  setLegajo,
+  carpeta,
+  setCarpeta,
 }: Props) => {
-    return (
-        <Stack spacing={2}>
-            <FormControlLabel
-                control={
-                    <Switch
-                        checked={tieneLegajo}
-                        onChange={(e) => {
-                            const activo = e.target.checked
-                            setTieneLegajo(activo)
+  return (
+    <Stack spacing={1.5}>
+      <FormControlLabel
+        control={
+          <Switch
+            checked={tieneLegajo}
+            onChange={(event) => setTieneLegajo(event.target.checked)}
+          />
+        }
+        label="¿Tiene legajo y carpeta?"
+      />
 
-                            if (!activo) {
-                                setLegajo(null)
-                            }
-                        }}
-                    />
-                }
-                label="¿Tiene legajo?"
-            />
-
-            {tieneLegajo && (
-                <Stack direction="row" spacing={2}>
-                    <FormControl sx={{ minWidth: 120 }}>
-                        <InputLabel id="letra-legajo-label">
-                            Letra
-                        </InputLabel>
-
-                        <Select
-                            labelId="letra-legajo-label"
-                            value={letra}
-                            label="Letra"
-                            onChange={(e) =>
-                                setLetra(e.target.value as "A" | "B")
-                            }
-                        >
-                            <MenuItem value="A">A</MenuItem>
-                            <MenuItem value="B">B</MenuItem>
-                        </Select>
-                    </FormControl>
-
-                    <TextField
-                        label="Número de legajo"
-                        type="number"
-                        value={legajo ?? ""}
-                        onChange={(e) =>
-                            setLegajo(
-                                e.target.value === ""
-                                    ? null
-                                    : Number(e.target.value)
-                            )
-                        }
-                        fullWidth
-                    />
-                </Stack>
-            )}
+      {tieneLegajo && (
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+          <TextField
+            fullWidth
+            label="Número de legajo"
+            type="text"
+            slotProps={{ htmlInput: { inputMode: "numeric", pattern: "[0-9]*" } }}
+            value={legajo ?? ""}
+            onChange={(event) => actualizarNumero(event.target.value, setLegajo)}
+          />
+          <TextField
+            fullWidth
+            label="Número de carpeta"
+            type="text"
+            slotProps={{ htmlInput: { inputMode: "numeric", pattern: "[0-9]*" } }}
+            value={carpeta ?? ""}
+            onChange={(event) => actualizarNumero(event.target.value, setCarpeta)}
+          />
         </Stack>
-    )
+      )}
+    </Stack>
+  )
 }
