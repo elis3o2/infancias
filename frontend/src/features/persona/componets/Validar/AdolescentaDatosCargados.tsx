@@ -1,4 +1,4 @@
-import type { PersonaResp, RelacionResp, SolicitudResp } from "../../types"
+import type { PersonaResp, RelacionResp, SolicitudResp } from "@/features/api_externa/types"
 import { Box, Chip, Stack, Typography } from "@mui/material"
 import { TitledCard } from "@/common/components/TitleCard"
 import { formatFecha } from "@/common/utils"

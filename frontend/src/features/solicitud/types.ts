@@ -4,10 +4,10 @@ import type {
   AdolescenteInput,
   Equipo,
   Familiar,
-  FamiliarInput,
   Persona,
   PersonaCreate,
-  RelacionResp,
+  RelacionAdolescenteInput,
+  Vinculo,
 } from "../persona/types"
 
 export type MotivoSolicitud = {
@@ -15,10 +15,7 @@ export type MotivoSolicitud = {
   nombre: string
 }
 
-/**
- * Archivo seleccionado localmente, antes de crear la solicitud.
- * The numeric id is only used as a stable React key during this form.
- */
+
 export type Archivo = {
   id: number
   nombre: string
@@ -32,18 +29,10 @@ export type ArchivoSimple = {
   tipo_mime: string
 }
 
-/**
- * A reference institution can be an existing record or a complete new one.
- * The API expects `id` for existing references (not `id_institucion`).
- */
-export type ReferenciaInstitucionInput =
-  | { id: number }
-  | Exclude<InstitucionInput, { id_institucion: number }>
 
 export type SolicitudCreate = {
   adolescentes: AdolescenteInput[]
-  familiares: FamiliarInput[]
-  referencias_instituciones_data: ReferenciaInstitucionInput[]
+  relaciones_adolescentes: RelacionAdolescenteInput[]
   id_motivo: number
   correo: string
   telefono: string
@@ -51,8 +40,16 @@ export type SolicitudCreate = {
   archivos: File[]
 } & (
   | { id_institucion: number; institucion?: never }
-  | { institucion: InstitucionInput; id_institucion?: never }
+  | { institucion: Exclude<InstitucionInput, { id_institucion: number }>; id_institucion?: never }
 )
+
+
+export type {
+  AdolescenteSolicitudInput, SaludDatosInput, LegajoValidacionInput, FamiliarValidacionInput,
+  AdolescenteValidacionInput, SolicitudValidacionInput,
+} from "./contracts"
+export type { RelacionAdolescenteInput } from "../persona/types"
+export type { ReferenciaInstitucionInput } from "../domicilio/types"
 
 /**
  * Shared detail returned by the API for pending, validated and rejected
@@ -62,13 +59,23 @@ export type SolicitudCreate = {
  */
 export type AdolescenteSolicitud = AdolescenteCrud & {
   persona: Persona | null
-  relaciones: RelacionResp[]
+  relaciones: { id: number; vinculo: Vinculo; persona: Persona }[]
+  familiares: Familiar[]
+  referencias_instituciones: Institucion[]
+}
+
+export type RelacionAdolescente = {
+  id: number
+  adolescente1: number
+  adolescente2: number
+  vinculo: Vinculo
 }
 
 type SolicitudDetalleBase = {
   id: number
-  institucion: Institucion
+  institucion: Institucion | null
   adolescentes: AdolescenteSolicitud[]
+  relaciones_adolescentes: RelacionAdolescente[]
   familiares: Familiar[]
   /** Personas confirmadas como familiares o referentes, una sola vez por solicitud. */
   familiares_validados: Persona[]
@@ -136,31 +143,6 @@ export type PersonaValidacionInput = Omit<
   "domicilio"
 > & {
   domicilio: DomicilioInput | null
-}
-
-/** Extra fields used only while a caseworker validates a request. */
-export type FamiliarValidacionInput = PersonaValidacionInput & {
-  id_familiar?: number
-  id_vinculo: number
-}
-
-export type AdolescenteValidacionInput =
-  | {
-      id: number
-      estado: "confirmado"
-      adolescente_validado: PersonaValidacionInput
-      familiares_validados?: FamiliarValidacionInput[]
-      /** IDs de familiares de la solicitud que se revisaron y rechazaron. */
-      familiares_rechazados?: number[]
-    }
-  | {
-      id: number
-      estado: "rechazado"
-    }
-
-export type SolicitudValidacionInput = {
-  descripcion_extra: string
-  adolescentes: AdolescenteValidacionInput[]
 }
 
 export type ArchivoPendiente = {

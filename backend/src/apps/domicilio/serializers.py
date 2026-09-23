@@ -113,6 +113,14 @@ class InstitucionSerializer(serializers.ModelSerializer):
 
 
 class ReferenciaInstitucionInputSerializer(serializers.Serializer):
+    # Identifica una referencia nueva que se reutiliza dentro de una misma
+    # solicitud. No se persiste: la asociación siempre es adolescente ↔
+    # institución.
+    id_temp = serializers.CharField(
+        max_length=64,
+        required=False,
+        allow_blank=False,
+    )
     id = serializers.PrimaryKeyRelatedField(
         queryset=Institucion.objects.all(),
         required=False,

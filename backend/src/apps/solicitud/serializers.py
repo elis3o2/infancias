@@ -1,10 +1,19 @@
 from rest_framework import serializers
-from .models import MotivoSolicitud, Solicitud, Archivo, SolicitudComentario, SolicitudInstitucion
+from .models import MotivoSolicitud, Solicitud, Archivo, SolicitudComentario
 from src.serializers import EquipoSerializer
-from src.apps.persona.serializers import (AdolescenteCreateSerializer, AdolescenteReadSerializer, AdolescenteWriteSerializer,
-                                            AdolescenteValReadSerializer, FamiliarSerializer, PersonaSerializer)
-from src.apps.domicilio.serializers import InstitucionSerializer, ReferenciaInstitucionInputSerializer
+from src.apps.persona.serializers import (
+    AdolescenteCreateSerializer,
+    AdolescenteReadSerializer,
+    AdolescenteValReadSerializer,
+    AdolescenteValidateSerializer,
+    FamiliarSerializer,
+    PersonaSerializer,
+    RelacionAdolescenteCreateSerializer,
+    RelacionAdolescenteSerializer,
+)
+from src.apps.persona.models import RelacionAdolescente
 from src.apps.domicilio.models import Institucion
+from src.apps.domicilio.serializers import InstitucionSerializer
 
 class MotivoSolicitudSerializer(serializers.ModelSerializer):
 
@@ -20,15 +29,6 @@ class ArchivoSerializer(serializers.ModelSerializer):
 
 
 
-class SolicitudInstitucionSerializer(serializers.ModelSerializer):
-    institucion = InstitucionSerializer(read_only=True)
-
-    class Meta:
-        model = SolicitudInstitucion
-        fields = ["institucion"]
-
-
-
 class SolicitudComentarioSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -40,6 +40,7 @@ class SolicitudComentarioSerializer(serializers.ModelSerializer):
             "fecha_hora_ultmod",
             "usuario",
         ]
+
 
 class SolicitudListSerializer(serializers.ModelSerializer):
     motivo = MotivoSolicitudSerializer(read_only=True)
@@ -60,34 +61,30 @@ class SolicitudListSerializer(serializers.ModelSerializer):
         ]
 
 
-
-
 class SolicitudCreateSerializer(serializers.ModelSerializer):
 
     adolescentes = AdolescenteCreateSerializer(many=True)
-    familiares = FamiliarSerializer(many=True, required=False)
-    institucion = InstitucionSerializer(required=False, allow_null=True)
-    referencias_instituciones_data = ReferenciaInstitucionInputSerializer(many=True, required=False)
+    relaciones_adolescentes = RelacionAdolescenteCreateSerializer(many=True, required=False)
+    id_motivo = serializers.PrimaryKeyRelatedField(
+        queryset=MotivoSolicitud.objects.all(),
+        source="motivo",
+        write_only=True,
+    )
+    institucion    = InstitucionSerializer(required=False)
     id_institucion = serializers.PrimaryKeyRelatedField(
         queryset=Institucion.objects.all(),
         source="institucion",
         write_only=True,
-        required=False,
-        allow_null=True
+        required=False
     )
-    id_motivo = serializers.PrimaryKeyRelatedField(
-        queryset=MotivoSolicitud.objects.all(),
-        source="motivo",
-        write_only=True
-    )
+
 
     class Meta:
         model = Solicitud
         fields = [
             "adolescentes",
-            "familiares",
+            "relaciones_adolescentes",
             "institucion",
-            "referencias_instituciones_data",
             "id_institucion",
             "id_motivo",
             "correo",
@@ -100,14 +97,32 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Debe existir al menos un adolescente."
             )
-
         return value
 
     def validate(self, attrs):
-        if attrs.get("institucion") is None:
+        if "institucion" in self.initial_data and "id_institucion" in self.initial_data:
             raise serializers.ValidationError({
-                "institucion": "Debe indicar una institución de origen."
+                "institucion": "Envíe institucion o id_institucion, no ambos."
             })
+
+        ids_temp = [adolescente["id_temp"] for adolescente in attrs["adolescentes"]]
+        if len(ids_temp) != len(set(ids_temp)):
+            raise serializers.ValidationError({"adolescentes": "Los id_temp no pueden repetirse."})
+        relaciones = set()
+        for relacion in attrs.get("relaciones_adolescentes", []):
+            primero, segundo = relacion["id_temp1"], relacion["id_temp2"]
+            if primero not in ids_temp or segundo not in ids_temp:
+                raise serializers.ValidationError({
+                    "relaciones_adolescentes": "Los id_temp deben pertenecer a esta solicitud."
+                })
+            if primero == segundo:
+                raise serializers.ValidationError({
+                    "relaciones_adolescentes": "Un adolescente no puede relacionarse consigo mismo."
+                })
+            clave = (primero, segundo, relacion["vinculo"].pk)
+            if clave in relaciones:
+                raise serializers.ValidationError({"relaciones_adolescentes": "Hay relaciones repetidas."})
+            relaciones.add(clave)
         return attrs
 
 
@@ -115,7 +130,7 @@ class SolicitudReadSerializer(serializers.ModelSerializer):
     adolescentes = AdolescenteReadSerializer(many=True, read_only=True)
     familiares = FamiliarSerializer(many=True, read_only=True)
     familiares_validados = serializers.SerializerMethodField()
-    referencias_instituciones = serializers.SerializerMethodField()
+    relaciones_adolescentes = serializers.SerializerMethodField()
     institucion = InstitucionSerializer(read_only=True)
     motivo = MotivoSolicitudSerializer(read_only=True)
     archivos = ArchivoSerializer(
@@ -132,7 +147,7 @@ class SolicitudReadSerializer(serializers.ModelSerializer):
             "adolescentes",
             "familiares",
             "familiares_validados",
-            "referencias_instituciones",
+            "relaciones_adolescentes",
             "motivo",
             "correo",
             "telefono",
@@ -148,22 +163,25 @@ class SolicitudReadSerializer(serializers.ModelSerializer):
             "equipo",
         ]
 
-    def get_referencias_instituciones(self, obj):
-        referencias = obj.referencias_instituciones.select_related(
-            "institucion__tipo",
-            "institucion__domicilio__departamento",
-        )
-        return InstitucionSerializer(
-            [referencia.institucion for referencia in referencias],
-            many=True,
-        ).data
+    def get_relaciones_adolescentes(self, obj):
+        relaciones = RelacionAdolescente.objects.filter(
+            adolescente1__solicitud=obj, adolescente2__solicitud=obj,
+        ).select_related("vinculo").order_by("id")
+        return RelacionAdolescenteSerializer(relaciones, many=True).data
 
     def get_familiares_validados(self, obj):
         familiares = obj.familiares.filter(persona__isnull=False).select_related(
             "persona__legajo__carpeta"
         ).order_by("id")
+        personas = []
+        ids_personas = set()
+        for familiar in familiares:
+            if familiar.persona_id in ids_personas:
+                continue
+            ids_personas.add(familiar.persona_id)
+            personas.append(familiar.persona)
         return PersonaSerializer(
-            [familiar.persona for familiar in familiares],
+            personas,
             many=True,
         ).data
 
@@ -173,7 +191,6 @@ class SolicitudValReadSerializer(SolicitudReadSerializer):
 
     adolescentes = AdolescenteValReadSerializer(many=True, read_only=True)
     comentarios = SolicitudComentarioSerializer(
-        source="comentarios",
         many=True,
         read_only=True,
     )
@@ -182,19 +199,21 @@ class SolicitudValReadSerializer(SolicitudReadSerializer):
         fields = [*SolicitudReadSerializer.Meta.fields, "comentarios"]
 
 
-class SolicitudWriteSerializer(serializers.Serializer):
+class SolicitudValidateSerializer(serializers.Serializer):
     """Decisiones de validación para todos los adolescentes de una solicitud."""
 
-    adolescentes = AdolescenteWriteSerializer(many=True)
+    adolescentes = AdolescenteValidateSerializer(many=True)
     descripcion_extra = serializers.CharField(
         max_length=256,
         required=False,
         allow_blank=True,
     )
-
     def validate_adolescentes(self, value):
         if not value:
             raise serializers.ValidationError(
                 "Debe validar al menos un adolescente."
             )
+        ids = [adolescente["id"] for adolescente in value]
+        if len(ids) != len(set(ids)):
+            raise serializers.ValidationError("No puede validar dos veces al mismo adolescente.")
         return value

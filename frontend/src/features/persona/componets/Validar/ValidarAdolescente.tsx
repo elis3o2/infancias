@@ -1,4 +1,5 @@
-import type { AdolescenteCrud, Ciudadano, PersonaCreate, PersonaResp, RelacionResp, SolicitudResp } from "../../types"
+import type { AdolescenteCrud, PersonaCreate } from "../../types"
+import type { Ciudadano, PersonaResp, RelacionResp, SolicitudResp } from "@/features/api_externa/types"
 
 import { Alert, Box, Button, Stack, Typography } from "@mui/material"
 import { Mapa } from "@/features/domicilio/components/Mapa"
@@ -55,7 +56,8 @@ export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, se
   const confirmarDatosInternos = () => {
     if (!personaresp) return
 
-    setPersona(personaRegistradaAForm(personaresp))
+    const datos = personaRegistradaAForm(personaresp)
+    setPersona({ ...datos, legajo: persona?.legajo ?? datos.legajo })
     setEstado("confirmado")
   }
 

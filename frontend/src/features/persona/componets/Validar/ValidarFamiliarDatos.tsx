@@ -1,16 +1,15 @@
-import { Alert, Box, Button, Chip, Stack, Typography } from "@mui/material"
+import { Alert, Box, Button, Stack, Typography } from "@mui/material"
 import type {
   Familiar,
-  FamiliarResp,
   PersonaCreate,
-  PersonaResp,
-  RelacionResp,
 } from "../../types"
+import type { FamiliarResp, PersonaResp } from "@/features/api_externa/types"
 import type { DomicilioFormData } from "@/features/domicilio/types"
 import { FamiliarList } from "../Familiar/FamiliarList"
 import { CiudadanoList } from "./CiudadanoList"
 import { ciudadanoToPersona } from "../../utils"
-import { formatFecha } from "@/common/utils"
+import { DatosPersonaEncontrada } from "./DatosPersonaEncontrada"
+import { AccionesValidacion } from "./AccionesValidacion"
 
 type Estado = "confirmado" | "rechazado" | null
 
@@ -49,14 +48,8 @@ const personaRegistradaAFormulario = (
   domicilio: domicilioAFormulario(familiar.domicilio),
   vinculo: familiar.vinculo,
   id_familiar: familiar.id,
-  id_vinculo: familiar.vinculo.id,
-  legajo:
-    persona.legajo !== null || persona.carpeta !== null
-      ? {
-          id_insert: persona.legajo,
-          carpeta_id: persona.carpeta,
-        }
-      : null,
+  id_vinculo: familiar.vinculo?.id,
+  legajo: null,
 })
 
 const ciudadanoAFormulario = (ciudadano: NonNullable<FamiliarResp["ciudadano"]>, familiar: Familiar) => ({
@@ -65,52 +58,8 @@ const ciudadanoAFormulario = (ciudadano: NonNullable<FamiliarResp["ciudadano"]>,
   domicilio: domicilioAFormulario(familiar.domicilio),
   vinculo: familiar.vinculo,
   id_familiar: familiar.id,
-  id_vinculo: familiar.vinculo.id,
+  id_vinculo: familiar.vinculo?.id,
 })
-
-const DatosInternos = ({ persona, relaciones = [] }: { persona: PersonaResp; relaciones?: RelacionResp[] }) => (
-  <Stack spacing={1.5}>
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
-        gap: 1,
-      }}
-    >
-      {[
-        ["Nombre", `${persona.nombre} ${persona.apellido}`],
-        ["DNI", persona.dni],
-        ["Sexo", persona.sexo],
-        ["Fecha de nacimiento", formatFecha(persona.fecha_nacimiento)],
-      ].map(([etiqueta, valor]) => (
-        <Box key={etiqueta} sx={{ p: 1.25, borderRadius: 2, bgcolor: "action.hover" }}>
-          <Typography variant="caption" color="text.secondary">
-            {etiqueta}
-          </Typography>
-          <Typography sx={{ fontWeight: 700 }}>{valor}</Typography>
-        </Box>
-      ))}
-    </Box>
-
-    {relaciones.length > 0 && (
-      <Box>
-        <Typography variant="subtitle2" sx={{ mb: 0.75, fontWeight: 700 }}>
-          Relaciones registradas
-        </Typography>
-        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-          {relaciones.map((relacion, index) => (
-            <Chip
-              key={`${relacion.persona.dni}-${index}`}
-              label={`${relacion.vinculo}: ${relacion.persona.nombre} ${relacion.persona.apellido}`}
-              variant="outlined"
-              size="small"
-            />
-          ))}
-        </Stack>
-      </Box>
-    )}
-  </Stack>
-)
 
 /**
  * Shows the result collected by the page-wide identity lookup. A missing
@@ -194,7 +143,7 @@ export const ValidarFamiliarDatos = ({
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                 Persona encontrada en el sistema
               </Typography>
-              <DatosInternos persona={resultado.persona} relaciones={resultado.relaciones} />
+              <DatosPersonaEncontrada persona={resultado.persona} relaciones={resultado.relaciones} />
               <AccionesValidacion
                 estado={estado}
                 onConfirmar={confirmarPersonaInterna}
@@ -252,52 +201,5 @@ export const ValidarFamiliarDatos = ({
         </Stack>
       </Box>
     </Box>
-  )
-}
-
-type AccionesProps = {
-  estado: Estado
-  onConfirmar: () => void
-  onRechazar: () => void
-  onLimpiar: () => void
-  confirmarLabel?: string
-}
-
-const AccionesValidacion = ({
-  estado,
-  onConfirmar,
-  onRechazar,
-  onLimpiar,
-  confirmarLabel = "Confirmar datos",
-}: AccionesProps) => {
-  if (estado !== null) {
-    return (
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={1}
-        sx={{ alignItems: { xs: "stretch", sm: "center" } }}
-      >
-        <Chip
-          color={estado === "confirmado" ? "success" : "error"}
-          label={estado === "confirmado" ? "Datos confirmados" : "Datos rechazados"}
-          size="small"
-          sx={{ alignSelf: { xs: "flex-start", sm: "center" } }}
-        />
-        <Button size="small" onClick={onLimpiar} sx={{ width: { xs: "100%", sm: "auto" } }}>
-          Revisar nuevamente
-        </Button>
-      </Stack>
-    )
-  }
-
-  return (
-    <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-      <Button variant="contained" size="small" onClick={onConfirmar} sx={{ width: { xs: "100%", sm: "auto" } }}>
-        {confirmarLabel}
-      </Button>
-      <Button variant="outlined" color="error" size="small" onClick={onRechazar} sx={{ width: { xs: "100%", sm: "auto" } }}>
-        Rechazar datos
-      </Button>
-    </Stack>
   )
 }

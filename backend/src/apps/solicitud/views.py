@@ -10,7 +10,7 @@ from django.utils.http import content_disposition_header
 from django.db.models.functions import Coalesce
 from .models import MotivoSolicitud, Solicitud, Archivo, SolicitudComentario
 from .serializers import (MotivoSolicitudSerializer, ArchivoSerializer,
-                        SolicitudListSerializer, SolicitudCreateSerializer, SolicitudReadSerializer, SolicitudValReadSerializer, SolicitudWriteSerializer)
+                        SolicitudListSerializer, SolicitudCreateSerializer, SolicitudReadSerializer, SolicitudValReadSerializer, SolicitudValidateSerializer)
 from .permissions import SolicitudPermission
 from .services import crear_solicitud, validar_solicitud, derivar_solicitud, rechazar_solicitud
 from src.permissions import IsOperationalUser, ReadOnly
@@ -55,7 +55,7 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             return SolicitudCreateSerializer
 
         if self.action == "validar":
-            return SolicitudWriteSerializer
+            return SolicitudValidateSerializer
 
         return SolicitudReadSerializer
 
@@ -165,9 +165,8 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         error = self._normalizar_campos_json(
             data,
             "adolescentes",
-            "familiares",
+            "relaciones_adolescentes",
             "institucion",
-            "referencias_instituciones_data",
         )
         if error is not None:
             return error
@@ -176,8 +175,14 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         self._validar_archivos(archivos)
 
         serializer = SolicitudCreateSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
 
+        if not serializer.is_valid():
+            print("ERROR DE VALIDACIÓN:")
+            print(serializer.errors)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
         solicitud = crear_solicitud(
             datos_solicitud=serializer.validated_data,
             archivos=archivos,
@@ -221,20 +226,11 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             key: request.data.get(key)
             for key in request.data.keys()
         }
-
-        error = self._normalizar_campos_json(data, "adolescentes", "adolescente")
+        error = self._normalizar_campos_json(data, "adolescentes")
         if error is not None:
             return error
 
-        # Se acepta el campo singular antiguo, pero internamente el contrato
-        # siempre opera sobre la colección de adolescentes de la solicitud.
-        if "adolescentes" not in data and "adolescente" in data:
-            adolescente = data.pop("adolescente")
-            data["adolescentes"] = (
-                adolescente if isinstance(adolescente, list) else [adolescente]
-            )
-
-        serializer = SolicitudWriteSerializer(
+        serializer = SolicitudValidateSerializer(
             data=data,
             context={"request": request},
         )

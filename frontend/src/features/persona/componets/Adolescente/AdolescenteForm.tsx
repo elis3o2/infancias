@@ -1,4 +1,5 @@
 import type { AdolescenteCreate } from "../../types";
+import type { ReactNode } from "react";
 import type { Setter } from "@/common/types";
 import { DniForm } from "../DniForm";
 import { SexoForm } from "../SexoForm";
@@ -17,9 +18,13 @@ type Props = {
   onCancelar: () => void;
   domicilios: DomicilioFormData[]
   setDomicilios: Setter<DomicilioFormData[]>
+  children?: ReactNode
+  puedeCargar?: boolean
+  textoGuardar?: string
 };
 
-export const AdolescenteForm = ({ adolescente, setAdolescente, onCargar, onCancelar, domicilios, setDomicilios }: Props) => {
+export const AdolescenteForm = ({ adolescente, setAdolescente, onCargar, onCancelar, domicilios, setDomicilios,
+  children, puedeCargar = true, textoGuardar = "Cargar" }: Props) => {
 
   function setNombre(nombre: string) {
     setAdolescente({ ...adolescente, nombre });
@@ -69,7 +74,7 @@ export const AdolescenteForm = ({ adolescente, setAdolescente, onCargar, onCance
     adolescente.domicilio != null
 
   const handleCargar = () => {
-    if (!formCompleto) return;
+    if (!formCompleto || !puedeCargar) return;
 
     onCargar();
   };
@@ -149,18 +154,20 @@ return (
         onGuardar={handleGuardarDomicilio}
         onLimpiar={() => setDomicilio(null)}
       />
+      {children}
 
     </Stack>
 
       <Button
         variant="contained"
         onClick={handleCargar}
-        disabled={!formCompleto}
+        disabled={!formCompleto || !puedeCargar}
         fullWidth
         sx={{ mt: 4 }}
       >
-        Cargar
+        {textoGuardar}
       </Button>
 
     </>
-);};
+  )
+};

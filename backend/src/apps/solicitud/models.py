@@ -16,12 +16,12 @@ class MotivoSolicitud(models.Model):
 class Solicitud(models.Model):
     id = models.AutoField(primary_key=True)
     institucion = models.ForeignKey(
-        Institucion, models.DO_NOTHING, db_column='id_institucion')
+        Institucion, models.DO_NOTHING, db_column='id_institucion', null=True, blank=True)
     motivo = models.ForeignKey(
         MotivoSolicitud, models.DO_NOTHING, db_column='id_motivo')
     correo = models.CharField(max_length=32)
     telefono = models.CharField(max_length=32)
-    descripcion = models.CharField(max_length=256)
+    descripcion = models.CharField(max_length=256, blank=True, default="")
     descripcion_extra = models.CharField(max_length=256, null=True, blank=True)
     fecha_hora_creacion = models.DateTimeField()
     fecha_hora_entrada = models.DateTimeField(blank=True, null=True)
@@ -69,15 +69,3 @@ class SolicitudComentario(models.Model):
         managed = False
         db_table = 'solicitud_comentario'
 
-
-class SolicitudInstitucion(models.Model):
-    id = models.AutoField(primary_key=True)
-    solicitud = models.ForeignKey(
-        Solicitud, models.DO_NOTHING, db_column="id_solicitud",
-        related_name="referencias_instituciones")
-    institucion = models.ForeignKey(
-        Institucion, models.DO_NOTHING, db_column="id_institucion")
-
-    class Meta:
-        managed = False
-        db_table = "solicitud_institucion"

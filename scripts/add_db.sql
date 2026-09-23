@@ -1,11 +1,15 @@
-INSERT INTO vinculo (nombre) VALUES
-('Padre/Madre'),
-('Hermano/a'),
-('Tio/a'),
-('Abuelo/a'),
-('Vecino/a'),
-('Sobrino/a'),
-('Otro');
+INSERT INTO vinculo (nombre, adolescente) VALUES
+('Padre/Madre', false),
+('Hermano/a', false),
+('Tio/a', false),
+('Abuelo/a', false),
+('Vecino/a', false),
+('Sobrino/a', false),
+('Otro', false),
+('Hermano/a', true),
+('Medio hermano/a', true),
+('Hermanastro/a', true),
+('Primo', true);
 
 
 INSERT INTO tipo_institucion (nombre) VALUES

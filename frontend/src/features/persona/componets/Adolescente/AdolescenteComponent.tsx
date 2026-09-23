@@ -1,114 +1,44 @@
-import { useState } from "react";
-import type { Setter } from "@/common/types";
-import { AdolescenteInicial, type AdolescenteCreate } from "../../types";
-import { AdolescenteForm } from "./AdolescenteForm";
-import { ConditionalCard } from "@/common/components/ConditionalCard";
-import { AdolescentesList } from "./AdolescentesList";
-import type { DomicilioFormData } from "@/features/domicilio/types";
-import { Button } from "@mui/material";
+import { useState } from "react"
+import { Divider, Stack } from "@mui/material"
+import type { Setter } from "@/common/types"
+import type  { DomicilioFormData } from "@/features/domicilio/types"
+import { AdolescenteInicial, type AdolescenteCreate } from "@/features/persona/types"
+import { AdolescenteForm } from "@/features/persona/componets/Adolescente/AdolescenteForm"
+import { RelacionAdolescenteForm } from "../../../../pages/CreatePage/RelacionAdolescenteForm"
+import { crearIdTemporal, type AdolescenteFormulario } from "../../../../pages/CreatePage/formTypes"
 
 type Props = {
-  adolescentes: AdolescenteCreate[];
-  setAdolescentes: Setter<AdolescenteCreate[]>;
-  finishAdolescente: boolean
-  setFinishAdolescente: Setter<boolean>
+  actual?: AdolescenteFormulario
+  anteriores: AdolescenteFormulario[]
   domicilios: DomicilioFormData[]
   setDomicilios: Setter<DomicilioFormData[]>
-};
+  onGuardar: (adolescente: AdolescenteFormulario) => void
+  onCancelar: () => void
+}
 
-export const AdolescenteComponent = ({ adolescentes, setAdolescentes,finishAdolescente, setFinishAdolescente, domicilios, setDomicilios }: Props) => {
-  
-  const [adolescente, setAdolescente] = useState<AdolescenteCreate>(AdolescenteInicial);
-  const [editando, setEditando] = useState(false);
-
-  const agregarAdolescente = () => {
-    setAdolescentes([
-      ...adolescentes,
-      adolescente,
-    ]);
-
-    setAdolescente(AdolescenteInicial);
-    setFinishAdolescente(true);
-  };
-
-  const editarAdolescente = (index: number) => {
-    const adolescenteEditar = adolescentes[index];
-
-    // Cargarlo en el formulario
-    setAdolescente(adolescenteEditar);
-
-    // Sacarlo de la lista definitivamente
-    setAdolescentes(
-      adolescentes.filter((_, i) => i !== index)
-    );
-
-    setEditando(true);
-    setFinishAdolescente(false);
-  };
-
-  const guardarEdicion = () => {
-    setAdolescentes([
-      ...adolescentes,
-      adolescente,
-    ]);
-
-    setAdolescente(AdolescenteInicial);
-    setEditando(false);
-    setFinishAdolescente(true);
-  };
-
-  const cancelarCarga = () => {
-    setAdolescente(AdolescenteInicial);
-    setEditando(false);
-    setFinishAdolescente(true);
-  };
-
-  const agregarOtro = () => {
-    setAdolescente(AdolescenteInicial);
-    setEditando(false);
-    setFinishAdolescente(false);
-  };
+export function AdolescenteComponent({ actual, anteriores, domicilios, setDomicilios, onGuardar, onCancelar }: Props) {
+  const [datos, setDatos] = useState<AdolescenteCreate>(actual?.datos ?? AdolescenteInicial)
+  const [relacion, setRelacion] = useState(actual?.relacion ?? null)
+  const puedeCargar =  !anteriores.length || relacion !== null
 
   return (
-    <ConditionalCard
-      titulo="Niños, Niñas y Adolescentes"
-      condicion={finishAdolescente && adolescentes.length > 0}
-      componenteTrue={
-        <>
-          <AdolescentesList
-            adolescentes={adolescentes}
-            onEditar={editarAdolescente}
-          />
-
-          <Button
-            variant="outlined"
-            onClick={agregarOtro}
-          >
-            Agregar otro
-          </Button>
-        </>
-      }
-      componenteFalse={
-        <>
-          <AdolescentesList
-            adolescentes={adolescentes}
-            onEditar={editarAdolescente}
-          />
-
-          <AdolescenteForm
-            adolescente={adolescente}
-            setAdolescente={setAdolescente}
-            onCargar={
-              editando
-                ? guardarEdicion
-                : agregarAdolescente
-            }
-            domicilios={domicilios}
-            onCancelar={cancelarCarga}
-            setDomicilios={setDomicilios}
-          />
-        </>
-      }
-    />
-  );
-};
+    <AdolescenteForm
+      adolescente={datos}
+      setAdolescente={setDatos}
+      domicilios={domicilios}
+      setDomicilios={setDomicilios}
+      onCancelar={onCancelar}
+      puedeCargar={puedeCargar}
+      textoGuardar={actual ? "Guardar cambios del adolescente" : "Agregar adolescente"}
+      onCargar={() => onGuardar({
+        id_temp: actual?.id_temp ?? crearIdTemporal(), datos, referencias: actual?.referencias ?? [],
+        familiares: actual?.familiares ?? [], relacion,
+    })}>
+    <Divider />
+    <Stack spacing={2} sx={{ minWidth: 0 }}>
+      {anteriores.length > 0 && <RelacionAdolescenteForm adolescentes={anteriores}
+        relacion={relacion} onChange={setRelacion} />}
+    </Stack>
+  </AdolescenteForm>
+  )
+}

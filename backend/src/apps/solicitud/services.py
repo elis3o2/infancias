@@ -4,11 +4,14 @@ from pathlib import Path
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
-from .models import Solicitud, Archivo, SolicitudInstitucion
-from src.apps.domicilio.models import Institucion
-from src.apps.domicilio.services import crear_institucion 
+from .models import Solicitud, Archivo
+from src.apps.persona.models import Familiar, RelacionAdolescente
 from src.models import Equipo
-from src.apps.persona.services import (crear_adolescente, crear_familiar, validar_adolescente, validar_familiar)
+from src.apps.persona.services import (
+    crear_adolescente, validar_adolescente, validar_familiar, resolver_legajos_solicitud,
+)
+from src.apps.domicilio.models import Institucion
+from src.apps.domicilio.services import crear_institucion
 from src.utils import enviar_correo
 from django.core.files.uploadedfile import UploadedFile
 
@@ -31,54 +34,51 @@ def crear_solicitud(datos_solicitud: dict, archivos: list[UploadedFile] | None =
     datos_solicitud = datos_solicitud.copy()
 
     adolescentes_data = datos_solicitud.pop("adolescentes", [])
-    institucion_data = datos_solicitud.pop("institucion", None)
-    familiares_data = datos_solicitud.pop("familiares", [])
-    referencias_data = datos_solicitud.pop("referencias_instituciones_data", [])
+    relaciones_data = datos_solicitud.pop("relaciones_adolescentes", [])
+    institucion_solicitante = datos_solicitud.get("institucion")
+    if isinstance(institucion_solicitante, dict):
+        datos_solicitud["institucion"] = crear_institucion(
+            institucion_solicitante.copy()
+        )
+    elif institucion_solicitante is not None and not isinstance(
+        institucion_solicitante, Institucion
+    ):
+        raise ValidationError({"institucion": "La institución solicitante es inválida."})
 
-    institucion_obj = None
-
-    if isinstance(institucion_data, dict):
-        institucion_obj = crear_institucion(institucion_data)
-
-    elif isinstance(institucion_data, Institucion):
-        institucion_obj = institucion_data
-
-    datos_solicitud["institucion"] = institucion_obj
     datos_solicitud["fecha_hora_creacion"] = timezone.now()
     datos_solicitud["validado"] = False
     datos_solicitud["rechazado"] = False
 
     solicitud = Solicitud.objects.create(
         equipo_id=ID_ENTRADA,
-        **datos_solicitud
+        **datos_solicitud,
     )
 
+    adolescentes = {}
+    referencias_por_temp = {}
     for adolescente_data in adolescentes_data:
-        crear_adolescente(adolescente_data, solicitud)
+        id_temp = adolescente_data["id_temp"]
+        if id_temp in adolescentes:
+            raise ValidationError({"adolescentes": "Los id_temp no pueden repetirse."})
+        adolescentes[id_temp] = crear_adolescente(
+            adolescente_data,
+            solicitud,
+            referencias_por_temp=referencias_por_temp,
+        )
 
-    for familiar_data in familiares_data:
-        crear_familiar(familiar_data, solicitud)
-
-    for referencia_data in referencias_data:
-        referencia_data = referencia_data.copy()
-
-        institucion_referida = referencia_data.pop("id", None)
-
-        if isinstance(institucion_referida, Institucion):
-            institucion = institucion_referida
-        elif institucion_referida is not None:
-            try:
-                institucion = Institucion.objects.get(pk=institucion_referida)
-            except Institucion.DoesNotExist as exc:
-                raise ValidationError(
-                    {"referencias_instituciones_data": "La institución indicada no existe."}
-                ) from exc
-        else:
-            institucion = crear_institucion(referencia_data)
-
-        SolicitudInstitucion.objects.create(
-            solicitud=solicitud,
-            institucion=institucion,
+    for relacion_data in relaciones_data:
+        adolescente1 = adolescentes.get(relacion_data["id_temp1"])
+        adolescente2 = adolescentes.get(relacion_data["id_temp2"])
+        if adolescente1 is None or adolescente2 is None or adolescente1 == adolescente2:
+            raise ValidationError({"relaciones_adolescentes": "Los adolescentes de la relación son inválidos."})
+        if not relacion_data["vinculo"].adolescente:
+            raise ValidationError({
+                "relaciones_adolescentes": "El vínculo debe ser de tipo adolescente."
+            })
+        RelacionAdolescente.objects.get_or_create(
+            adolescente1=adolescente1,
+            adolescente2=adolescente2,
+            vinculo=relacion_data["vinculo"],
         )
 
     if archivos:
@@ -104,154 +104,82 @@ def crear_solicitud(datos_solicitud: dict, archivos: list[UploadedFile] | None =
 
 @transaction.atomic
 def validar_solicitud(solicitud: Solicitud, data: dict) -> Solicitud:
+    solicitud = Solicitud.objects.select_for_update().get(pk=solicitud.pk)
     if solicitud.validado or solicitud.rechazado:
         raise ValidationError({"error": "La solicitud ya fue procesada."})
 
-    data = data.copy()
-
-    adolescentes_data = data.pop("adolescentes", [])
+    adolescentes_data = data.get("adolescentes", [])
     if not adolescentes_data:
-        raise ValidationError(
-            {"adolescentes": "Debe validar al menos un adolescente."}
-        )
+        raise ValidationError({"adolescentes": "Debe validar al menos un adolescente."})
 
     adolescentes_solicitud = {
         adolescente.id: adolescente
         for adolescente in solicitud.adolescentes.select_related("persona__legajo__carpeta")
     }
-    ids_recibidos: set[int] = set()
-    personas_adolescentes = []
-    familiares_data = []
-    familiares_rechazados_ids: list[int] = []
-    se_informaron_decisiones_familiares = False
-    adolescentes_confirmados = 0
+    ids = [datos["id"] for datos in adolescentes_data]
+    if len(ids) != len(set(ids)):
+        raise ValidationError({"adolescentes": "No puede validar dos veces al mismo adolescente."})
+    if set(ids) - set(adolescentes_solicitud):
+        raise ValidationError({"adolescentes": "Hay adolescentes que no pertenecen a la solicitud."})
+    if set(adolescentes_solicitud) - set(ids):
+        raise ValidationError({"adolescentes": "Debe validar todos los adolescentes de la solicitud."})
+    if solicitud.familiares.filter(adolescente__isnull=True).exists():
+        raise ValidationError({
+            "familiares": "Hay familiares históricos sin adolescente. Debe asociarlos antes de validar."
+        })
 
+    personas_legajos = []
     for adolescente_data in adolescentes_data:
-        adolescente_id = adolescente_data.get("id")
-        if adolescente_id in ids_recibidos:
-            raise ValidationError(
-                {"adolescentes": f"El adolescente {adolescente_id} fue enviado más de una vez."}
-            )
+        adolescente = adolescentes_solicitud[adolescente_data["id"]]
+        persona = validar_adolescente(adolescente, adolescente_data["salud"])
+        familiares = {familiar.id: familiar for familiar in adolescente.familiares.all()}
+        recibidos = set()
+        identidades = set()
 
-        adolescente = adolescentes_solicitud.get(adolescente_id)
-        if adolescente is None:
-            raise ValidationError(
-                {"adolescentes": f"El adolescente {adolescente_id} no pertenece a la solicitud."}
-            )
+        for familiar_data in adolescente_data.get("familiares", []):
+            identidad = (familiar_data["dni"], familiar_data["sexo"])
+            if identidad in identidades:
+                raise ValidationError({"familiares": "Un familiar está repetido para el mismo adolescente."})
+            identidades.add(identidad)
 
-        ids_recibidos.add(adolescente_id)
-
-        # Los rechazados forman parte de la decisión completa de la solicitud,
-        # pero no generan ni actualizan una Persona.
-        if adolescente_data.get("estado", "confirmado") == "rechazado":
-            continue
-
-        adolescentes_confirmados += 1
-        persona_adolescente = validar_adolescente(
-            adolescente=adolescente,
-            data=adolescente_data["adolescente_validado"],
-        )
-        if all(persona.id != persona_adolescente.id for persona in personas_adolescentes):
-            personas_adolescentes.append(persona_adolescente)
-
-        familiares_data.extend(adolescente_data.get("familiares_validados", []))
-        if "familiares_rechazados" in adolescente_data:
-            se_informaron_decisiones_familiares = True
-            familiares_rechazados_ids.extend(
-                adolescente_data["familiares_rechazados"]
-            )
-
-    faltantes = set(adolescentes_solicitud) - ids_recibidos
-    if faltantes:
-        raise ValidationError(
-            {
-                "adolescentes": (
-                    "Faltan datos de validación para los adolescentes: "
-                    + ", ".join(str(adolescente_id) for adolescente_id in sorted(faltantes))
+            familiar_id = familiar_data.get("id")
+            if familiar_id is not None:
+                familiar = familiares.get(familiar_id)
+                if familiar is None:
+                    raise ValidationError({"familiares": "El familiar no pertenece a este adolescente."})
+            else:
+                coincidencias = [
+                    familiar for familiar in familiares.values()
+                    if (familiar.dni, familiar.sexo) == identidad
+                ]
+                if len(coincidencias) > 1:
+                    raise ValidationError({"familiares": "Indique el id del familiar para evitar ambigüedad."})
+                familiar = coincidencias[0] if coincidencias else Familiar(
+                    solicitud=solicitud, adolescente=adolescente,
                 )
-            }
-        )
 
-    if adolescentes_confirmados == 0:
-        raise ValidationError(
-            {
-                "adolescentes": (
-                    "No hay adolescentes confirmados. Para rechazar toda la "
-                    "solicitud use la acción de rechazo."
-                )
-            }
-        )
+            if familiar.pk is not None:
+                if familiar.pk in recibidos:
+                    raise ValidationError({"familiares": "No puede validar dos veces al mismo familiar."})
+                recibidos.add(familiar.pk)
 
-    familiares_recibidos: set[int] = set()
-    for familiar_data in familiares_data:
-        familiar_id = familiar_data.get("id_familiar")
-        if familiar_id is not None:
-            if familiar_id in familiares_recibidos:
-                raise ValidationError(
-                    {"familiares_validados": f"El familiar {familiar_id} fue enviado más de una vez."}
-                )
-            familiares_recibidos.add(familiar_id)
+            validar_familiar(familiar, familiar_data, persona)
 
-    if se_informaron_decisiones_familiares:
-        familiares_rechazados = set(familiares_rechazados_ids)
-        if len(familiares_rechazados) != len(familiares_rechazados_ids):
-            raise ValidationError({
-                "familiares_rechazados": (
-                    "Un familiar no puede rechazarse más de una vez."
-                )
-            })
+        if set(familiares) - recibidos:
+            raise ValidationError({"familiares": "Debe validar todos los familiares del adolescente."})
 
-        familiares_solicitud = set(
-            solicitud.familiares.values_list("id", flat=True)
-        )
-        familiares_desconocidos = (
-            familiares_recibidos | familiares_rechazados
-        ) - familiares_solicitud
-        if familiares_desconocidos:
-            raise ValidationError({
-                "familiares_validados": (
-                    "Hay familiares que no pertenecen a la solicitud: "
-                    + ", ".join(str(id_) for id_ in sorted(familiares_desconocidos))
-                )
-            })
+        personas_legajos.append((persona, adolescente_data.get("legajo")))
 
-        repetidos = familiares_recibidos & familiares_rechazados
-        if repetidos:
-            raise ValidationError({
-                "familiares_validados": (
-                    "Un familiar no puede confirmarse y rechazarse a la vez: "
-                    + ", ".join(str(id_) for id_ in sorted(repetidos))
-                )
-            })
+    resolver_legajos_solicitud(personas_legajos)
 
-        familiares_sin_decision = familiares_solicitud - (
-            familiares_recibidos | familiares_rechazados
-        )
-        if familiares_sin_decision:
-            raise ValidationError({
-                "familiares_validados": (
-                    "Faltan decisiones para los familiares: "
-                    + ", ".join(str(id_) for id_ in sorted(familiares_sin_decision))
-                )
-            })
-
-    for familiar_data in familiares_data:
-        validar_familiar(
-            adolescente=None,
-            persona_adolescente=None,
-            personas_adolescentes=personas_adolescentes,
-            solicitud=solicitud,
-            data=familiar_data,
-        )
-
-    descripcion_extra = data.pop("descripcion_extra", None)
-    if descripcion_extra is not None:
-        solicitud.descripcion_extra = descripcion_extra
-
+    if "descripcion_extra" in data:
+        solicitud.descripcion_extra = data["descripcion_extra"]
     solicitud.validado = True
     solicitud.equipo_id = ID_ADMISION
     solicitud.fecha_hora_entrada = timezone.now()
-    solicitud.save()
+    solicitud.save(update_fields=[
+        "descripcion_extra", "validado", "equipo", "fecha_hora_entrada",
+    ])
 
     if solicitud.correo:
         transaction.on_commit(
@@ -261,7 +189,6 @@ def validar_solicitud(solicitud: Solicitud, data: dict) -> Solicitud:
                 correo=solicitud.correo,
             )
         )
-
     return solicitud
 
 

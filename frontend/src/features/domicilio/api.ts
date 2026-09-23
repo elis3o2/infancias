@@ -1,13 +1,7 @@
 import http from '@/common/api/client'
-import type { APIGeo1, Departamento, Geolocalizacion, Institucion, Provincia, Referencia, TipoInstitucion } from './types'
+import type { Departamento, Institucion, Provincia, Referencia, TipoInstitucion } from './types'
 
-export const getGeo = (direccion: string) : Promise<APIGeo1[]> => {
-    return http.get<APIGeo1[]>(`domicilio/geolocalizacion/features?domicilio=${direccion}`).then(res => res.data)
-}
 
-export const getDic = (direccion: string) : Promise<Geolocalizacion[]> => {
-    return http.get<Geolocalizacion[]>(`domicilio/geolocalizacion/features?domicilio=${direccion}`).then(res => res.data)
-}
 
 export const getTipoInstitucionAll = () : Promise<TipoInstitucion[]> => {
     return http.get<TipoInstitucion[]>(`domicilio/tipo_institucion/`).then(res => res.data)
@@ -25,13 +19,7 @@ export const getInstitucionTerritorial = () : Promise<Institucion[]> => {
     return http.get<Institucion[]>(`domicilio/institucion/territorial/`).then(res => res.data)
 }
 
-export const getReferenciaGubernamental = () : Promise<Referencia[]> => {
-    return http.get<Referencia[]>(`domicilio/referencia_gubernamental/`).then(res => res.data)
-}
 
-export const getReferenciaNoGubernamental = () : Promise<Referencia[]> => {
-    return http.get<Referencia[]>(`domicilio/referencia_no_gubernamental/`).then(res => res.data)
-}
 
 export const getProvincias = () : Promise<Provincia[]> => {
     return http.get<Provincia[]>(`domicilio/provincia/`).then(res => res.data)

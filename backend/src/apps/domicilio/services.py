@@ -1,21 +1,24 @@
-import requests
-from decouple import config
+import logging
+
 from django.db import transaction
 from .models import (DomicilioValidado, Distrito, Vecinal, Barrio, SeccionalPolicial,Institucion, IdentidadBarrial, Domicilio)
-from rest_framework.exceptions import APIException, NotFound
+from src.apps.api_externa.services import ServicioExternoError, obtener_direccion_geo
+
+
+logger = logging.getLogger(__name__)
 
 @transaction.atomic
 def crear_domicilio_validado(datos: dict) -> DomicilioValidado:
 
     try:
-        informacion_geo = obtener_direccion(
+        informacion_geo = obtener_direccion_geo(
             codigo_calle=datos["codigo_calle"],
             altura=datos["altura"],
             bis=datos["bis"],
             letra=datos.get("letra"),
         )
-    except Exception as exc:
-        print(f"ERROR API GEO2: {exc}")
+    except ServicioExternoError as exc:
+        logger.warning("No fue posible consultar API_GEO2: %s", exc)
         informacion_geo = {}
 
     relaciones = {
@@ -111,90 +114,14 @@ def obtener_direccion(
     bis: bool,
     letra: str | None = None,
 ) -> dict:
-
-    url = (
-        f"{config('API_GEO2')}"
-        f"?idCalle={codigo_calle}"
-        f"&altura={altura}"
-        f"&bis={bis}"
-        f"{f'&letra={letra}' if letra else ''}"
-    )
-
+    """Compatibilidad para llamados antiguos del módulo domicilio."""
     try:
-        response = requests.get(
-            url,
-            timeout=10,
-            proxies={"http": None, "https": None},
-            verify=True,
+        return obtener_direccion_geo(
+            codigo_calle=codigo_calle,
+            altura=altura,
+            bis=bis,
+            letra=letra,
         )
-
-        if response.status_code == 404:
-            return {}
-
-        response.raise_for_status()
-
-        data = response.json()
-
-    except requests.RequestException as exc:
-        print(f"ERROR GEO2: {exc}")
+    except ServicioExternoError as exc:
+        logger.warning("No fue posible consultar API_GEO2: %s", exc)
         return {}
-
-    resultado = {
-        "distrito": None,
-        "vecinal": None,
-        "barrio": None,
-        "seccional_policial": None,
-        "fraccion_censal": None,
-        "radio_censal": None,
-        "zona_notificacion": None,
-        "identidad_barrial": None,
-        "localidad": data.get("localidad"),
-        "puntoX": data.get("puntoX"),
-        "puntoY": data.get("puntoY"),
-    }
-
-    for division in data.get("divsAdmins", []):
-        tipo = division.get("nombreTipo")
-        codigo = division.get("codigo")
-        nombre = division.get("valor")
-
-        if codigo is None:
-            continue
-
-        if tipo == "Distrito":
-            resultado["distrito"] = {
-                "id": int(codigo),
-                "nombre": nombre,
-            }
-
-        elif tipo == "Vecinal":
-            resultado["vecinal"] = {
-                "id": int(codigo),
-                "nombre": nombre,
-            }
-
-        elif tipo == "Barrio":
-            resultado["barrio"] = {
-                "id": int(codigo),
-                "nombre": nombre,
-            }
-
-        elif tipo == "Seccional Policial":
-            resultado["seccional_policial"] = {
-                "id": int(codigo),
-                "nombre": nombre,
-            }
-
-        elif tipo == "Fracción Censal":
-            resultado["fraccion_censal"] = int(codigo)
-
-        elif tipo == "Radio Censal":
-            resultado["radio_censal"] = int(codigo)
-
-        elif tipo == "Identidad Barrial":
-            resultado["identidad_barrial"] = {
-                "id": int(codigo),
-                "nombre": nombre,
-            }
-
-    return resultado

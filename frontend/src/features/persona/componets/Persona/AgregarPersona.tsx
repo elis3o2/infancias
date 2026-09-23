@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Box, Button, CircularProgress, Alert, Stack } from "@mui/material"
 import { DniForm } from "../DniForm"
 import { SexoForm } from "../SexoForm"
-import { getCiudadano } from "../../api"
+import { getCiudadanoData } from "@/features/api_externa/api"
 import type { PersonaCreate, Vinculo } from "../../types"
 import { PersonaList } from "./PersonaList"
 import { ciudadanoToPersona } from "../../utils"
@@ -25,7 +25,7 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
     const [persona, setPersona] = useState<PersonaCreate | null>(null)
     const [vinculo, setVinculo] = useState<Vinculo | null> (null)
     
-    const dniValido = /^\d{7,8}$/.test(dni)
+    const dniValido = /^\d{7,9}$/.test(dni)
     const puedeBuscar = dniValido && sexo !== "" && !loading
 
     const [telefono, setTelefono] = useState("")
@@ -58,12 +58,15 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
         setError("")
         setPersona(null)
         try {
-            const data = await getCiudadano(dni, sexo)
-            if (!data) {
-            setError("No se encontró ningún ciudadano con ese DNI y sexo.")
-            return
+            const data = await getCiudadanoData([], [{ id: 0, dni, sexo }])
+            const resultado = data.familiares[0]
+            if (resultado?.persona) {
+                setPersona({ ...resultado.persona, telefono: null, domicilio: null, vinculo: null, legajo: null })
+            } else if (resultado?.ciudadano) {
+                setPersona(ciudadanoToPersona(resultado.ciudadano))
+            } else {
+                setError("No se encontró una persona con ese DNI y sexo.")
             }
-            setPersona(ciudadanoToPersona(data))
         } catch {
             setError("No se encontro a la persona")
         } finally {
@@ -102,8 +105,12 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
 
     return (
     <Stack spacing={2}>
-        <DniForm dni={dni} setDni={setDni} />
-        <SexoForm sexo={sexo} setSexo={setSexo} />
+        <Box component="fieldset" disabled={loading} sx={{ p: 0, m: 0, border: 0 }}>
+            <Stack spacing={2}>
+                <DniForm dni={dni} setDni={(valor) => { setDni(valor); setPersona(null); setError("") }} />
+                <SexoForm sexo={sexo} setSexo={(valor) => { setSexo(valor); setPersona(null); setError("") }} />
+            </Stack>
+        </Box>
 
         <Button
         variant="outlined"

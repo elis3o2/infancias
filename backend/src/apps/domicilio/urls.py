@@ -2,7 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from .views import (ProvinciaViewSet, DepartamentoViewSet, InstitucionViewSet, TipoInstitucionViewSet, DomicilioViewSet,
-                    GeoDataViewSet)
+                    )
+from src.apps.api_externa.views import GeoDataViewSet
 
 router = DefaultRouter()
 router.register("provincia", ProvinciaViewSet, basename='provincia')
@@ -17,4 +18,3 @@ router.register("geolocalizacion", GeoDataViewSet, basename='geolocalizacion')
 urlpatterns = [
     path("", include(router.urls))
 ]
-

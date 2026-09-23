@@ -2,13 +2,11 @@ import type {
   AdolescenteCreate,
   AdolescenteInput,
   AdolescenteWriteInput,
-  Ciudadano,
   FamiliarCreate,
   FamiliarInput,
-  HermanoCreate,
-  HermanoInput,
   PersonaCreate,
 } from "./types";
+import type { Ciudadano } from "@/features/api_externa/types"
 import { domicilioFormToDomicilioInput } from "../domicilio/utils";
 
 export function correoEsValido(correo: string) : boolean {
@@ -23,15 +21,6 @@ function sexoFormToSexoInput(sexo: "M" | "F" | ""): "M" | "F" {
   return sexo;
 }
 
-export function hermanoCreateToHermanoInput(hermano: HermanoCreate): HermanoInput {
-  return {
-    dni: hermano.dni,
-    sexo: sexoFormToSexoInput(hermano.sexo),
-    nombre: hermano.nombre,
-    apellido: hermano.apellido,
-    fecha_nacimiento: hermano.fecha_nacimiento,
-  };
-}
 
 export function familiarCreateToFamiliarInput(familiar: FamiliarCreate): FamiliarInput {
   if (familiar.vinculo == null) {
@@ -51,7 +40,8 @@ export function familiarCreateToFamiliarInput(familiar: FamiliarCreate): Familia
   };
 }
 
-export function adolescenteCreateToAdolescenteInput(adolescente: AdolescenteCreate): AdolescenteInput {
+export function adolescenteCreateToAdolescenteInput(adolescente: AdolescenteCreate):
+  Omit<AdolescenteInput, "id_temp" | "familiares" | "referencias_instituciones_data"> {
 
   if (adolescente.domicilio == null) {
     throw new Error("El domicilio es obligatorio");
@@ -72,7 +62,7 @@ export function adolescenteCreateToAdolescenteInput(adolescente: AdolescenteCrea
 
 export function ciudadanoToPersona(ciudadano: Ciudadano): PersonaCreate {
   return{
-    dni: ciudadano.nroDocumento,
+    dni: String(ciudadano.nroDocumento),
     sexo: ciudadano.sexo,
     nombre: ciudadano.nombre,
     apellido: ciudadano.apellido,

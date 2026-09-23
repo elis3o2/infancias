@@ -25,18 +25,13 @@ export const getSolicitudById = (id: number): Promise<SolicitudDetalle> =>
 export const postSolicitud = (solicitud: SolicitudCreate): Promise<SolicitudDetalle> => {
   const formData = new FormData()
 
-  if (solicitud.id_institucion != null) {
+  formData.append("adolescentes", JSON.stringify(solicitud.adolescentes))
+  formData.append("relaciones_adolescentes", JSON.stringify(solicitud.relaciones_adolescentes))
+  if (solicitud.id_institucion !== undefined) {
     formData.append("id_institucion", String(solicitud.id_institucion))
   } else {
     formData.append("institucion", JSON.stringify(solicitud.institucion))
   }
-
-  formData.append("adolescentes", JSON.stringify(solicitud.adolescentes))
-  formData.append("familiares", JSON.stringify(solicitud.familiares))
-  formData.append(
-    "referencias_instituciones_data",
-    JSON.stringify(solicitud.referencias_instituciones_data),
-  )
   formData.append("correo", solicitud.correo.trim())
   formData.append("telefono", solicitud.telefono.trim())
   formData.append("id_motivo", String(solicitud.id_motivo))
@@ -46,8 +41,10 @@ export const postSolicitud = (solicitud: SolicitudCreate): Promise<SolicitudDeta
     formData.append("archivos", archivo, archivo.name)
   })
 
-  // Do not manually set multipart/form-data: Axios adds the required boundary.
-  return http.post<SolicitudDetalle>(SOLICITUDES_URL, formData).then(({ data }) => data)
+  // Quita el JSON predeterminado para que el navegador genere el multipart y su boundary.
+  return http.post<SolicitudDetalle>(SOLICITUDES_URL, formData, {
+    headers: { "Content-Type": undefined },
+  }).then(({ data }) => data)
 }
 
 export const getArchivoById = (id: number): Promise<AxiosResponse<Blob>> =>

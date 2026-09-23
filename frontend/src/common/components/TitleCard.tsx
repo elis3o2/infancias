@@ -29,11 +29,7 @@ export const TitledCard = ({ titulo, componente, sx }: Props) => {
     >
       <CardHeader
         title={titulo}
-        titleTypographyProps={{
-          variant: 'h6',
-          fontWeight: 600,
-          letterSpacing: '-0.01em',
-        }}
+        slotProps={{ title: { variant: 'h6', sx: { fontWeight: 600, letterSpacing: '-0.01em' } } }}
         sx={{
           px: { xs: 2, sm: 3 },
           pt: { xs: 2, sm: 2.5 },

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Box, Divider, TextField } from "@mui/material"
-import type { APIGeo1, DomicilioFormData } from "@/features/domicilio/types"
-
+import type { DomicilioFormData } from "@/features/domicilio/types"
+import type { APIGeo1 } from "@/features/api_externa/types"
 import { DireccionForm } from "./DireccionForm"
 import { SelectDireccion } from "./SelectDireccion"
 import { DireccionConfirmarButtons } from "./DireccionConfirmarButtons"

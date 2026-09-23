@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Box, Stack, Typography } from "@mui/material"
-import type { Ciudadano, PersonaCreate } from "../../types"
+import type { PersonaCreate } from "../../types"
+import type { Ciudadano } from "@/features/api_externa/types"
 import { TitledCard } from "@/common/components/TitleCard"
 import { LegajoForm } from "./LegajoForm"
 import { CiudadanoList } from "./CiudadanoList"

@@ -1,17 +1,26 @@
 import logging
-from collections.abc import Iterable
-
-import requests
-from decouple import config
+from datetime import date
+from email.utils import parsedate_to_datetime
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
-from .models import (Persona, PersonaDomicilio, PersonaTelefono, Adolescente, Legajo,
-    Carpeta, Relacion, Familiar, Vinculo)
-from src.apps.domicilio.services import crear_domicilio
+from .models import (
+    Persona,
+    PersonaDomicilio,
+    PersonaTelefono,
+    Adolescente,
+    AdolescenteInstitucion,
+    Legajo,
+    Carpeta,
+    Relacion,
+    Familiar,
+    Vinculo,
+)
+from src.apps.domicilio.services import crear_domicilio, crear_institucion
+from src.apps.domicilio.models import Institucion
 from src.apps.solicitud.models import Solicitud
-
+from src.apps.api_externa.services import consultar_ciudadano, consultar_hcf
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +29,10 @@ logger = logging.getLogger(__name__)
 # llegaron desde el sistema externo y "B" los registros creados localmente.
 MARCADOR_RECIBIDO = "A"
 MARCADOR_LOCAL = "B"
+DATOS_SALUD = (
+    "hcf", "discapacidades", "consumos_problematicos", "intentos_de_suicidio",
+    "problemas_socioambientales", "violencias",
+)
 
 
 
@@ -92,13 +105,17 @@ def procesar_datos_persona(persona: Persona, domicilio_data, telefono: str | Non
 
 
 @transaction.atomic
-def crear_familiar(datos_familiar: dict, solicitud: Solicitud) -> Familiar:
+def crear_familiar(datos_familiar: dict, adolescente: Adolescente) -> Familiar:
     datos_familiar = datos_familiar.copy()
     domicilio_data = datos_familiar.pop("domicilio", None)
 
     for field in ("telefono", "dni", "sexo"):
         if datos_familiar.get(field) == "":
             datos_familiar[field] = None
+
+    vinculo = datos_familiar.get("vinculo")
+    if vinculo is not None and vinculo.adolescente:
+        raise ValidationError({"id_vinculo": "El vínculo debe ser de tipo familiar."})
 
     domicilio_obj = (
         crear_domicilio(dict(domicilio_data))
@@ -107,7 +124,8 @@ def crear_familiar(datos_familiar: dict, solicitud: Solicitud) -> Familiar:
     )
 
     familiar = Familiar.objects.create(
-        solicitud=solicitud,
+        solicitud=adolescente.solicitud,
+        adolescente=adolescente,
         domicilio=domicilio_obj,
         **datos_familiar,
     )
@@ -115,10 +133,53 @@ def crear_familiar(datos_familiar: dict, solicitud: Solicitud) -> Familiar:
     return familiar
 
 
+def _resolver_referencia_institucion(
+    referencia_data: dict,
+    referencias_por_temp: dict[str, Institucion] | None,
+) -> Institucion:
+    """Resuelve una referencia existente o crea una sola por ``id_temp``.
+
+    El caché dura únicamente durante la creación de una solicitud. Así dos
+    adolescentes pueden apuntar a la misma institución nueva sin convertir la
+    referencia en un dato de ``Solicitud``.
+    """
+    referencia_data = referencia_data.copy()
+    id_temp = referencia_data.pop("id_temp", None)
+    referencia = referencia_data.pop("id", None)
+
+    if id_temp and referencias_por_temp is not None and id_temp in referencias_por_temp:
+        existente = referencias_por_temp[id_temp]
+        if referencia is not None and referencia.pk != existente.pk:
+            raise ValidationError({
+                "referencias_instituciones_data": (
+                    "Un id_temp de referencia no puede identificar instituciones distintas."
+                )
+            })
+        return existente
+
+    if referencia is None:
+        referencia = crear_institucion(referencia_data)
+    elif not isinstance(referencia, Institucion):
+        raise ValidationError({"referencias_instituciones_data": "La institución es inválida."})
+
+    if id_temp and referencias_por_temp is not None:
+        referencias_por_temp[id_temp] = referencia
+
+    return referencia
+
+
 @transaction.atomic
-def crear_adolescente(datos_adolescente: dict, solicitud: Solicitud) -> Adolescente:
+def crear_adolescente(
+    datos_adolescente: dict,
+    solicitud: Solicitud,
+    *,
+    referencias_por_temp: dict[str, Institucion] | None = None,
+) -> Adolescente:
     datos_adolescente = datos_adolescente.copy()
     domicilio_data = datos_adolescente.pop("domicilio", None)
+    datos_adolescente.pop("id_temp", None)
+    familiares_data = datos_adolescente.pop("familiares", [])
+    referencias_data = datos_adolescente.pop("referencias_instituciones_data", [])
 
     if domicilio_data is None:
         raise ValidationError({"adolescentes": "El domicilio es obligatorio."})
@@ -131,11 +192,22 @@ def crear_adolescente(datos_adolescente: dict, solicitud: Solicitud) -> Adolesce
         **datos_adolescente,
     )
 
+    for familiar_data in familiares_data:
+        crear_familiar(familiar_data, adolescente)
+
+    for referencia_data in referencias_data:
+        referencia = _resolver_referencia_institucion(
+            referencia_data,
+            referencias_por_temp,
+        )
+        AdolescenteInstitucion.objects.get_or_create(
+            adolescente=adolescente, institucion=referencia,
+        )
+
     return adolescente
 
 
 def _resolver_carpeta(numero: int | None) -> Carpeta:
-    """Resuelve una carpeta externa (A) o una creada localmente (B)."""
     if numero is not None:
         carpeta = (
             Carpeta.objects.filter(
@@ -155,7 +227,6 @@ def _resolver_carpeta(numero: int | None) -> Carpeta:
 
 
 def _resolver_legajo(numero: int | None, carpeta: Carpeta) -> Legajo:
-    """Resuelve un legajo externo (A) o uno creado localmente (B)."""
     if numero is not None:
         legajo = (
             Legajo.objects.filter(
@@ -194,279 +265,187 @@ def resolver_legajo(legajo_data=None, carpeta_data=None, carpeta_adolescente=Non
     return _resolver_legajo(numero_legajo, carpeta)
 
 
-def _asegurar_legajo_familiar_nulo(persona: Persona) -> None:
-    """Quita el legajo de un familiar sin alterar a un adolescente asociado."""
-    if persona.adolescentes.exists():
+
+def _actualizar_salud(persona: Persona, datos: dict) -> None:
+    campos = [campo for campo in DATOS_SALUD if campo in datos]
+    for campo in campos:
+        setattr(persona, campo, datos[campo])
+    if campos:
+        persona.save(update_fields=campos)
+
+
+def _crear_persona_ciudadano(dni: str, sexo: str, salud: dict) -> Persona:
+    ciudadano = consultar_ciudadano(dni=dni, sexo=sexo)
+    if ciudadano is None:
         raise ValidationError({
-            "familiares_validados": (
-                "La persona indicada ya está asociada como adolescente y no "
-                "puede validarse también como familiar."
-            )
+            "ciudadano": "No se obtuvieron datos completos de Ciudadano para crear la persona."
         })
+    if str(ciudadano.nroDocumento) != dni or ciudadano.sexo != sexo:
+        raise ValidationError({"ciudadano": "La identidad recibida no coincide con la consultada."})
 
-    persona.legajo = None
+    try:
+        fecha_nacimiento = date.fromisoformat(ciudadano.fechaNacimiento)
+    except ValueError:
+        try:
+            fecha_nacimiento = parsedate_to_datetime(ciudadano.fechaNacimiento).date()
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ValidationError({"ciudadano": "La fecha de nacimiento recibida es inválida."}) from exc
+
+    datos_salud = {campo: False for campo in DATOS_SALUD if campo != "hcf"}
+    datos_salud.update({campo: salud[campo] for campo in DATOS_SALUD if campo in salud})
+    return Persona.objects.create(
+        nombre=ciudadano.nombre,
+        apellido=ciudadano.apellido,
+        sexo=ciudadano.sexo,
+        dni=str(ciudadano.nroDocumento),
+        fecha_nacimiento=fecha_nacimiento,
+        legajo=None,
+        **datos_salud,
+    )
 
 
-def validar_adolescente(adolescente: Adolescente, data) -> Persona:
+@transaction.atomic
+def validar_adolescente(adolescente: Adolescente, datos: dict) -> Persona:
+    persona = buscar_persona(dni=adolescente.dni, sexo=adolescente.sexo)
+    if persona is None:
+        persona = _crear_persona_ciudadano(adolescente.dni, adolescente.sexo, datos)
+    else:
+        _actualizar_salud(persona, datos)
 
-    data = data.copy()
+    if adolescente.persona_id is not None and adolescente.persona_id != persona.id:
+        raise ValidationError({"adolescentes": "El adolescente ya tiene otra persona asociada."})
 
-    legajo_data = data.pop("legajo", None)
-    domicilio_data = data.pop("domicilio", None)
-    telefono = data.pop("telefono", None)
+    if adolescente.persona_id != persona.id:
+        adolescente.persona = persona
+        adolescente.save(update_fields=["persona"])
 
-    dni = data.get("dni")
-    sexo = data.get("sexo")
+    actualizar_domicilio(persona, adolescente.domicilio)
+    return persona
 
-    if not dni:
-        raise ValidationError({
-            "adolescente_validado": (
-                "El DNI es obligatorio."
-            )
-        })
 
-    if not sexo:
-        raise ValidationError({
-            "adolescente_validado": (
-                "El sexo es obligatorio."
-            )
-        })
+@transaction.atomic
+def validar_familiar(
+    familiar: Familiar,
+    datos: dict,
+    adolescente: Persona,
+) -> Persona:
+    if familiar.adolescente_id is None or familiar.adolescente.persona_id != adolescente.id:
+        raise ValidationError({"familiares": "El familiar no pertenece al adolescente indicado."})
+    if familiar.solicitud_id != familiar.adolescente.solicitud_id:
+        raise ValidationError({"familiares": "La solicitud del familiar no coincide con la del adolescente."})
+
+    dni = datos["dni"]
+    sexo = datos["sexo"]
+    vinculo = datos["vinculo"]
+    salud = datos.get("salud", {})
+
+    if vinculo.adolescente:
+        raise ValidationError({"vinculo": "El vínculo debe ser de tipo familiar."})
 
     persona = buscar_persona(dni=dni, sexo=sexo)
-
-    if persona is not None:
-        # Encontrar una persona existente no debe reemplazar su legajo por uno
-        # vacío creado desde el formulario de validación.
-        for campo in ("dni", "sexo", "nombre", "apellido", "fecha_nacimiento"):
-            setattr(persona, campo, data[campo])
-
-        if legajo_data and any(legajo_data.values()):
-            persona.legajo = resolver_legajo(legajo_data=legajo_data)
-        elif persona.legajo_id is None:
-            # Sin números externos se crean legajo y carpeta locales (B).
-            persona.legajo = resolver_legajo()
-        persona.save()
+    if persona is None:
+        persona = _crear_persona_ciudadano(dni, sexo, salud)
     else:
-        try:
-            persona = Persona.objects.create(
-                legajo=resolver_legajo(legajo_data=legajo_data),
-                **data,
-            )
-        except Exception as exc:
-            raise ValidationError({
-                "adolescente_validado": (
-                    "No se pudo crear la persona: "
-                    f"{exc}"
-                )
-            }) from exc
+        _actualizar_salud(persona, salud)
 
-    # Asociar Persona al Adolescente
-    if adolescente.persona_id != persona.id:
+    if persona.id == adolescente.id:
+        raise ValidationError({"familiares": "El adolescente no puede ser su propio familiar."})
+    if familiar.persona_id is not None and familiar.persona_id != persona.id:
+        raise ValidationError({"familiares": "El familiar ya tiene otra persona asociada."})
 
-        adolescente.persona = persona
+    if datos.get("domicilio") is not None:
+        familiar.domicilio = crear_domicilio(datos["domicilio"].copy())
+    if "telefono" in datos:
+        familiar.telefono = datos["telefono"] or None
 
-        adolescente.save(
-            update_fields=["persona"]
-        )
+    actualizar_domicilio(persona, familiar.domicilio)
+    actualizar_telefono(persona, familiar.telefono)
 
-    # Domicilio y teléfono
-    procesar_datos_persona(
-        persona=persona,
-        domicilio_data=domicilio_data,
-        telefono=telefono,
-    )
+    familiar.persona = persona
+    familiar.vinculo = vinculo
+    familiar.dni = persona.dni
+    familiar.sexo = persona.sexo
+    familiar.nombre = persona.nombre
+    familiar.apellido = persona.apellido
+    familiar.save()
 
+    relacion = Relacion.objects.filter(
+        Q(persona_1=adolescente, persona_2=persona)
+        | Q(persona_1=persona, persona_2=adolescente),
+        vinculo=vinculo,
+    ).exists()
+    if not relacion:
+        Relacion.objects.create(persona_1=adolescente, persona_2=persona, vinculo=vinculo)
     return persona
 
 
+def resolver_legajos_solicitud(personas_datos: list[tuple[Persona, dict | None]]) -> None:
+    """Asigna los legajos al final, sin mover legajos entre carpetas existentes."""
+    carpetas = {}
+    legajos = []
+    personas_recibidas = set()
+    numeros_recibidos = set()
+    for persona, datos in personas_datos:
+        if persona.id in personas_recibidas:
+            raise ValidationError({"adolescentes": "Una misma persona figura en dos adolescentes."})
+        personas_recibidas.add(persona.id)
+        datos = datos or {}
+        numero = datos.get("id_insert")
+        numero_carpeta = datos.get("carpeta_id")
+        legajo = persona.legajo
 
+        if numero is not None:
+            if numero in numeros_recibidos:
+                raise ValidationError({"legajo": "Un mismo legajo no puede asignarse a dos adolescentes."})
+            numeros_recibidos.add(numero)
 
-def validar_familiar(
-    adolescente: Adolescente | None,
-    persona_adolescente: Persona | None,
-    data: dict,
-    *,
-    solicitud: Solicitud | None = None,
-    personas_adolescentes: Iterable[Persona] | None = None,
-    vinculo_por_defecto: str | None = None,
-) -> Persona:
+        if datos.get("id") is not None:
+            recibido = Legajo.objects.filter(pk=datos["id"]).first()
+            if recibido is None:
+                raise ValidationError({"legajo": "El legajo indicado no existe."})
+            if legajo is not None and legajo.id != recibido.id:
+                raise ValidationError({"legajo": "La persona ya tiene otro legajo."})
+            legajo = recibido
 
-    data = data.copy()
+        if numero is not None:
+            if legajo is not None and (
+                legajo.id_insert != numero or legajo.letra != MARCADOR_RECIBIDO
+            ):
+                raise ValidationError({"legajo": "El número informado no coincide con el legajo existente."})
+            if legajo is None:
+                legajo = Legajo.objects.filter(
+                    id_insert=numero, letra=MARCADOR_RECIBIDO,
+                ).order_by("id").first()
 
-    if solicitud is None and adolescente is not None:
-        solicitud = adolescente.solicitud
-    if solicitud is None:
-        raise ValidationError({"familiares_validados": "No se encontró la solicitud."})
+        if legajo is not None:
+            if Persona.objects.filter(legajo=legajo).exclude(pk=persona.id).exists():
+                raise ValidationError({"legajo": "El legajo ya pertenece a otra persona."})
+            carpetas[legajo.carpeta_id] = legajo.carpeta
 
-    personas_adolescentes = list(personas_adolescentes or [])
-    if persona_adolescente is not None and persona_adolescente not in personas_adolescentes:
-        personas_adolescentes.append(persona_adolescente)
-    if not personas_adolescentes:
+        if numero_carpeta is not None:
+            carpeta = _resolver_carpeta(numero_carpeta)
+            carpetas[carpeta.id] = carpeta
+
+        legajos.append((persona, legajo, numero))
+
+    if len(carpetas) > 1:
         raise ValidationError({
-            "familiares_validados": "Primero se debe validar al adolescente."
+            "legajo": "Los adolescentes tienen carpetas distintas. Debe resolver el conflicto antes de validar."
         })
+    if not legajos:
+        return
 
-    familiar_id = data.pop("id_familiar", None)
-    domicilio_data = data.pop("domicilio", None)
-
-    telefono = data.pop("telefono", None)
-
-    vinculo_id = data.pop("id_vinculo", None)
-
-    # Los familiares no tienen legajo propio.
-    data.pop("legajo", None)
-
-    dni = data.get("dni")
-    sexo = data.get("sexo")
-
-    # -----------------------------------------------------
-    # Validar vínculo
-    # -----------------------------------------------------
-
-    if vinculo_id is None and vinculo_por_defecto:
-        vinculo_id = (
-            Vinculo.objects.filter(nombre__iexact=vinculo_por_defecto)
-            .values_list("id", flat=True)
-            .first()
-        )
-
-    if vinculo_id is None:
-        raise ValidationError({
-            "familiares_validados": (
-                "El id_vinculo es obligatorio."
-            )
-        })
-
-    vinculo = Vinculo.objects.filter(
-        pk=vinculo_id,
-    ).first()
-
-    if vinculo is None:
-        raise ValidationError({
-            "familiares_validados": (
-                f"El vínculo {vinculo_id} no existe."
-            )
-        })
-
-    if not dni:
-        raise ValidationError({
-            "familiares_validados": (
-                "El DNI es obligatorio."
-            )
-        })
-
-    if not sexo:
-        raise ValidationError({
-            "familiares_validados": (
-                "El sexo es obligatorio."
-            )
-        })
-
-    persona = buscar_persona(dni=dni,sexo=sexo)
-
-    if persona is not None:
-
-        # La Persona es global. Si ya está asociada a un adolescente, quitar
-        # su legajo para usarla como familiar dañaría ese registro.
-        _asegurar_legajo_familiar_nulo(persona)
-
-        for campo, valor in data.items():
-            setattr(
-                persona,
-                campo,
-                valor,
-            )
-
-        persona.save()
-
-    else:
-        try:
-            persona = Persona.objects.create(
-                legajo=None,
-                **data,
-            )
-        except Exception as exc:
-            raise ValidationError({
-                "familiares_validados": (
-                    "No se pudo crear la Persona "
-                    f"del familiar: {exc}"
-                )
-            }) from exc
-
-
-    if familiar_id is not None:
-        familiar = Familiar.objects.filter(
-            pk=familiar_id,
-            solicitud=solicitud,
-        ).first()
-
-        if familiar is None:
-            raise ValidationError({
-                "familiares_validados": (
-                    f"El familiar {familiar_id} "
-                    "no pertenece a la solicitud."
-                )
-            })
-
-        if (
-            familiar.persona_id is not None
-            and familiar.persona_id != persona.id
-        ):
-            raise ValidationError({
-                "familiares_validados": (
-                    f"El familiar {familiar_id} "
-                    "ya tiene una Persona asociada."
-                )
-            })
-
-    # Domicilio y teléfono se registran en el historial de la persona. Para
-    # familiares nuevos reutilizamos ese domicilio también en la solicitud.
-    domicilio = procesar_datos_persona(
-        persona=persona,
-        domicilio_data=domicilio_data,
-        telefono=telefono,
-    )
-
-    if familiar_id is not None:
-        familiar.persona = persona
-        familiar.vinculo = vinculo
-        if domicilio is not None:
-            familiar.domicilio = domicilio
-        if telefono is not None:
-            familiar.telefono = telefono or None
-        for campo in ("dni", "sexo", "nombre", "apellido"):
-            setattr(familiar, campo, data[campo])
-        familiar.save()
-    else:
-        Familiar.objects.create(
-            solicitud=solicitud,
-            persona=persona,
-            vinculo=vinculo,
-            domicilio=domicilio,
-            telefono=telefono or None,
-            dni=data["dni"],
-            sexo=data["sexo"],
-            nombre=data["nombre"],
-            apellido=data["apellido"],
-        )
-
-    for adolescente_persona in personas_adolescentes:
-        if adolescente_persona.id == persona.id:
-            continue
-
-        relacion_existe = Relacion.objects.filter(
-            Q(persona_1=adolescente_persona, persona_2=persona)
-            | Q(persona_1=persona, persona_2=adolescente_persona),
-            vinculo=vinculo,
-        ).exists()
-        if not relacion_existe:
-            Relacion.objects.create(
-                persona_1=adolescente_persona,
-                persona_2=persona,
-                vinculo=vinculo,
-            )
-
-    return persona
+    carpeta = next(iter(carpetas.values())) if carpetas else _resolver_carpeta(None)
+    usados = set()
+    for persona, legajo, numero in legajos:
+        if legajo is None:
+            legajo = _resolver_legajo(numero, carpeta)
+        if legajo.carpeta_id != carpeta.id or legajo.id in usados:
+            raise ValidationError({"legajo": "No se pudo asignar un legajo individual en la carpeta compartida."})
+        usados.add(legajo.id)
+        if persona.legajo_id != legajo.id:
+            persona.legajo = legajo
+            persona.save(update_fields=["legajo"])
 
 
 def consultar_personas(adolescentes, familiares, *, equipo_id: int | None = None):
@@ -554,7 +533,7 @@ def consultar_adolescente(data, *, equipo_id: int | None = None):
         ),
 
         "persona": _serializar_persona_consulta(persona),
-        "ciudadano": ciudadano,
+        "ciudadano": ciudadano.como_dict() if ciudadano is not None else None,
         "relaciones": relaciones,
     }
 
@@ -626,147 +605,6 @@ def consultar_solicitudes(
     ]
 
 
-def consultar_ciudadano(dni, sexo):
-    """Consulta la fuente externa sin convertir una ausencia en un rechazo."""
-    if not sexo:
-        return None
-
-    # Esta consulta de identidad usa la misma fuente HC configurada por la
-    # aplicación. API_HCF es otro servicio, exclusivamente para integrantes
-    # de una historia clínica familiar.
-    url = config("API_HC", default="")
-    api_key = config("KEY_HC", default="")
-    if not url:
-        logger.warning("La consulta de ciudadano no está configurada.")
-        return None
-
-    try:
-        # El entorno de desarrollo expone proxies locales que no existen en
-        # el servidor de la aplicación. La conexión directa es la ruta usada
-        # por el servicio de Ciudadano.
-        session = requests.Session()
-        session.trust_env = False
-        response = session.get(
-            url,
-            params={
-                "api_key": api_key,
-                "documento": dni,
-                "sexo": sexo,
-            },
-            timeout=10,
-        )
-    except requests.Timeout:
-        logger.warning("La consulta de ciudadano excedió el tiempo de espera.")
-        return None
-    except requests.RequestException as exc:
-        # No registrar ``str(exc)``: puede incluir la URL con la clave API.
-        logger.warning(
-            "No fue posible conectar con el servicio de ciudadano (%s).",
-            type(exc).__name__,
-        )
-        return None
-
-    # La fuente utiliza 404 cuando el documento no tiene resultados. Es una
-    # ausencia normal, no una caída del servicio ni un rechazo automático.
-    if response.status_code == 404:
-        logger.info("No se encontraron datos de ciudadano para la consulta.")
-        return None
-
-    try:
-        response.raise_for_status()
-    except requests.HTTPError:
-        logger.warning(
-            "El servicio de ciudadano respondió con HTTP %s.",
-            response.status_code,
-        )
-        return None
-
-    try:
-        data = response.json()
-    except ValueError:
-        logger.warning("El servicio de ciudadano devolvió una respuesta inválida.")
-        return None
-
-    if not isinstance(data, dict):
-        logger.warning("El servicio de ciudadano devolvió una respuesta inesperada.")
-        return None
-
-    sisa_data = data.get("sisa_data")
-    if not isinstance(sisa_data, dict):
-        sisa_data = {}
-
-    # API_HC puede entregar los datos identificatorios en ``ciudadano`` o
-    # directamente dentro de ``sisa_data``. Sólo aceptamos una estructura que
-    # realmente tenga algún dato de identidad, para no confundir coberturas o
-    # adscripciones sin persona con un resultado válido.
-    def contiene_identidad(valor):
-        return isinstance(valor, dict) and any(
-            valor.get(campo) not in (None, "")
-            for campo in (
-                "nombre", "nombres", "apellido", "apellidos", "nroDocumento",
-                "dni", "documento", "fechaNacimiento", "fecha_nacimiento",
-            )
-        )
-
-    ciudadano = next(
-        (
-            candidato
-            for candidato in (
-                data.get("ciudadano"),
-                sisa_data.get("ciudadano"),
-                sisa_data,
-                data,
-            )
-            if contiene_identidad(candidato)
-        ),
-        None,
-    )
-    results_query1 = data.get("results_query1", [])
-    if not isinstance(results_query1, list):
-        results_query1 = []
-
-    if ciudadano is None:
-        logger.info("El servicio de ciudadano no informó datos para la consulta.")
-        return None
-
-    fecha_nacimiento = ciudadano.get("fechaNacimiento") or ciudadano.get("fecha_nacimiento")
-    nro_documento = (
-        ciudadano.get("nroDocumento") or ciudadano.get("dni") or ciudadano.get("documento") or dni
-    )
-    hcf = (
-        ciudadano.get("hcf")
-        or ciudadano.get("hc")
-        or next(
-            (
-                item.get("hc")
-                for item in results_query1
-                if isinstance(item, dict) and item.get("hc")
-            ),
-            None,
-        )
-    )
-
-    return {
-        "nombre": ciudadano.get("nombre") or ciudadano.get("nombres"),
-        "apellido": ciudadano.get("apellido") or ciudadano.get("apellidos"),
-        "sexo": ciudadano.get("sexo"),
-        "fechaNacimiento": fecha_nacimiento,
-        "nroDocumento": nro_documento,
-        # Alias utilizados por la vista de antecedentes interna.
-        "fecha_nacimiento": fecha_nacimiento,
-        "dni": nro_documento,
-        "hcf": hcf,
-        "adscripcion": list(
-            dict.fromkeys(
-                item.get("adscripcion")
-                for item in results_query1
-                if isinstance(item, dict) and item.get("adscripcion")
-            )
-        ),
-        "fallecido": ciudadano.get("fallecido"),
-    }
-
-
 def consultar_familiar(data):
 
     dni = data["dni"]
@@ -781,33 +619,6 @@ def consultar_familiar(data):
     return {
         "id": data["id"],
         "persona": _serializar_persona_consulta(persona),
-        "ciudadano": ciudadano,
+        "ciudadano": ciudadano.como_dict() if ciudadano is not None else None,
         "relaciones": consultar_relaciones(persona) if persona else [],
     }
-
-
-def consultar_hcf(hcf):
-    url = config("API_HCF", default="")
-    api_key = config("HCF_PPVV_API_KEY", default="")
-    if not url:
-        return None
-
-    try:
-        session = requests.Session()
-        session.trust_env = False
-        response = session.get(
-            url,
-            params={"hcf": hcf},
-            headers={
-                "HCF_PPVV_API_KEY": api_key,
-            },
-            timeout=10,
-        )
-
-        response.raise_for_status()
-
-        return response.json()
-
-    except (requests.RequestException, ValueError, TypeError):
-        logger.warning("No fue posible consultar la historia clínica familiar.")
-        return None

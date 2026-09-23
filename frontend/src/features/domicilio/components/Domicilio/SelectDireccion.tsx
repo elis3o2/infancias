@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Box, List, ListItemButton, ListItemText, Alert } from "@mui/material";
-import type { APIGeo1 } from "@/features/domicilio/types";
-import { getGeo } from "@/features/domicilio/api";
 import { Mapa } from "../Mapa";
-
+import { getGeo } from "@/features/api_externa/api";
+import type { APIGeo1 } from "@/features/api_externa/types";
 
 type Props = {
     direccion: string;

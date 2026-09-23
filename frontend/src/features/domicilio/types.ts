@@ -9,35 +9,6 @@ export type Departamento = {
     provincia: Provincia
 }
 
-export type APIGeo1 = {
-    altura: number | null 
-    bis: boolean | null 
-    codigoCalle: number
-    codigoInterseccion: number | null
-    id: string
-    letra: string 
-    name: string
-    nombreCalle: string
-    nombreInterseccion: string | null
-    coordenada_x: number
-    coordenada_y: number
-    longitud: number
-    latitud: number
-}
-
-
-export type APIGeo2 = {
-    distrito: {id: number, nombre: string}
-    vecinal: {id: number, nombre: string}
-    barrio: {id: number, nombre: string}
-    seccional_policial: {id: number, nombre: string}
-    fraccion_sensal: number 
-    radio_sensal: number 
-    identidad_barrial: {id: number, nombre: string}
-    localidad: string
-    puntoX: number 
-    puntoY: number 
-}
 
 export type DomicilioValidado = {
     id: number
@@ -107,21 +78,6 @@ export type DomicilioInput = {
 }
 
 
-export type Geolocalizacion = {
-    properties : {
-        altura: number
-        bis: boolean
-        codigoCalle: number
-        codigoInterseccion: number | null
-        id: string
-        letra: string
-        name: string
-        nombreCalle: string
-        nombreInterseccion: string | null
-        subtipo: string
-    }
-    geometry: {coordinates : [number, number]}
-}
 
 
 export type TipoInstitucion = {
@@ -173,3 +129,6 @@ export type Referencia = {
 }
 
 
+export type ReferenciaInstitucionInput =
+  | { id: number }
+  | (Exclude<InstitucionInput, { id_institucion: number }> & { id_temp?: string })

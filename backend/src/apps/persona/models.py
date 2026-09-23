@@ -1,5 +1,5 @@
 from django.db import models
-from src.apps.domicilio.models import Domicilio
+from src.apps.domicilio.models import Domicilio, Institucion
 from src.apps.solicitud.models import Solicitud
 
 class Carpeta(models.Model):
@@ -34,6 +34,11 @@ class Persona(models.Model):
     legajo = models.ForeignKey(
         Legajo, models.DO_NOTHING, db_column="id_legajo", null=True, blank=True)
     hcf = models.IntegerField(blank=True, null=True)
+    discapacidades = models.BooleanField()
+    consumos_problematicos = models.BooleanField()
+    intentos_de_suicidio = models.BooleanField()
+    problemas_socioambientales = models.BooleanField()
+    violencias = models.BooleanField()
 
     class Meta:
         managed = False
@@ -43,6 +48,7 @@ class Persona(models.Model):
 class Vinculo(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=64)
+    adolescente = models.BooleanField()
 
     class Meta:
         managed = False
@@ -118,13 +124,63 @@ class Familiar(models.Model):
     solicitud = models.ForeignKey(
         Solicitud, models.DO_NOTHING, db_column="id_solicitud", related_name="familiares")
     vinculo = models.ForeignKey(
-        Vinculo, models.DO_NOTHING, db_column="id_vinculo")
+        Vinculo, models.DO_NOTHING, db_column="id_vinculo", null=True, blank=True)
     telefono = models.CharField(max_length=16, null=True, blank=True)
     domicilio = models.ForeignKey(
         Domicilio, models.DO_NOTHING, db_column="id_domicilio", blank=True, null=True)
+    adolescente = models.ForeignKey(
+        Adolescente, models.DO_NOTHING, db_column="id_adolescente",
+        related_name="familiares", null=True, blank=True)
     persona = models.ForeignKey(
         Persona, models.DO_NOTHING, db_column="id_persona", related_name="familiares", null=True, blank=True)
 
     class Meta:
         managed = False
         db_table = "familiar"
+
+
+
+class RelacionAdolescente(models.Model):
+    id = models.AutoField(primary_key=True)
+    adolescente1 = models.ForeignKey(
+        Adolescente, models.DO_NOTHING, db_column="id_adolescente1",
+        related_name="relaciones_como_adolescente1")
+    adolescente2 = models.ForeignKey(
+        Adolescente, models.DO_NOTHING, db_column="id_adolescente2",
+        related_name="relaciones_como_adolescente2")
+    vinculo = models.ForeignKey(
+        Vinculo, models.DO_NOTHING, db_column="id_vinculo")
+
+    class Meta:
+        managed = False
+        db_table = "relacion_adolescente"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["adolescente1", "adolescente2", "vinculo"],
+                name="relacion_adolescente_unica",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(adolescente1=models.F("adolescente2")),
+                name="relacion_adolescente_distintos",
+            ),
+        ]
+
+
+
+class AdolescenteInstitucion(models.Model):
+    """Instituciones de referencia informadas para un adolescente.
+
+    La institución que presenta la solicitud vive en ``Solicitud.institucion``.
+    Esta tabla sólo representa referencias de cada adolescente y no debe
+    usarse como una relación de la solicitud.
+    """
+
+    id = models.AutoField(primary_key=True)
+    institucion = models.ForeignKey(
+        Institucion, models.DO_NOTHING, db_column="id_institucion")
+    adolescente = models.ForeignKey(
+        Adolescente, models.DO_NOTHING, db_column="id_adolescente", related_name="referencias_instituciones")
+
+    class Meta:
+        managed = False
+        db_table = "adolescente_institucion"

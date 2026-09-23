@@ -16,7 +16,7 @@ export const FamiliaresList = ({ familiares, onEliminar }: Props) => {
               {...(familiar.dni != null && { dni: familiar.dni })}
               {...(familiar.nombre != null && { nombre: familiar.nombre })}
               {...(familiar.apellido != null && { apellido: familiar.apellido })}
-              {...(familiar.sexo != "" && { sexo: familiar.sexo })}
+              {...(familiar.sexo != null && familiar.sexo !== "" && { sexo: familiar.sexo })}
               {...(familiar.domicilio?.nombre != null && { domicilio: familiar.domicilio.nombre})}
               {...(familiar.telefono != null && { telefono: familiar.telefono })}
               {...(familiar.vinculo != null && { vinculo: familiar.vinculo.nombre })}

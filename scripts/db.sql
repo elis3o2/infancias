@@ -130,13 +130,19 @@ CREATE TABLE IF NOT EXISTS persona (
     fecha_nacimiento DATE NOT NULL,
     id_legajo INT NULL,
     hcf INT NULL,
+    discapacidades BOOLEAN NOT NULL DEFAULT false,
+    consumos_problematicos BOOLEAN NOT NULL DEFAULT false,
+    intentos_de_suicidio BOOLEAN NOT NULL DEFAULT false,
+    problemas_socioambientales BOOLEAN NOT NULL DEFAULT false,
+    violencias BOOLEAN NOT NULL DEFAULT false,
     FOREIGN KEY (id_legajo) REFERENCES legajo(id)
 );
 
 
 CREATE TABLE IF NOT EXISTS vinculo (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(64) NOT NULL
+    nombre VARCHAR(64) NOT NULL,
+    adolescente BOOLEAN NOT NULL
 );
 
 
@@ -147,7 +153,11 @@ CREATE TABLE IF NOT EXISTS relacion (
     id_vinculo INT NOT NULL,
     FOREIGN KEY (id_persona_1) REFERENCES persona(id),
     FOREIGN KEY (id_persona_2) REFERENCES persona(id),
-    FOREIGN KEY (id_vinculo) REFERENCES vinculo (id)
+    FOREIGN KEY (id_vinculo) REFERENCES vinculo (id),
+    CONSTRAINT relacion_adolescente_unica
+        UNIQUE (id_persona_1, id_persona_2, id_vinculo),
+    CONSTRAINT relacion_adolescente_distintos
+        CHECK (id_persona_1 <> id_persona_2)
 );
 
 
@@ -190,7 +200,7 @@ CREATE TABLE IF NOT EXISTS equipo (
 
 CREATE TABLE IF NOT EXISTS solicitud (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_institucion INT NOT NULL,
+    id_institucion INT NULL,
     correo VARCHAR(32) NOT NULL,
     telefono VARCHAR(32) NOT NULL,
     id_motivo INT NOT NULL,
@@ -211,7 +221,6 @@ CREATE TABLE IF NOT EXISTS solicitud (
 );
 
 
-
 CREATE TABLE IF NOT EXISTS adolescente (
     id INT AUTO_INCREMENT PRIMARY KEY,
     dni VARCHAR(9) NOT NULL,
@@ -228,6 +237,22 @@ CREATE TABLE IF NOT EXISTS adolescente (
     FOREIGN KEY (id_solicitud) REFERENCES solicitud(id)
 );
 
+
+CREATE TABLE IF NOT EXISTS relacion_adolescente (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_adolescente1 INT NOT NULL,
+    id_adolescente2 INT NOT NULL,
+    id_vinculo INT NOT NULL,
+    FOREIGN KEY (id_adolescente1) REFERENCES adolescente(id),
+    FOREIGN KEY (id_adolescente2) REFERENCES adolescente(id),
+    FOREIGN KEY (id_vinculo) REFERENCES vinculo(id),
+    CONSTRAINT relacion_adolescente_unica
+        UNIQUE (id_adolescente1, id_adolescente2, id_vinculo),
+    CONSTRAINT relacion_adolescente_distintos
+        CHECK (id_adolescente1 <> id_adolescente2)
+);
+
+
 CREATE TABLE IF NOT EXISTS familiar (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(32) NOT NULL,
@@ -235,11 +260,13 @@ CREATE TABLE IF NOT EXISTS familiar (
     sexo CHAR NULL,
     dni VARCHAR(9) NULL,
     id_solicitud INT NOT NULL,
-    id_vinculo INT NOT NULL,
+    id_adolescente INT NULL,
+    id_vinculo INT NULL,
     telefono VARCHAR(16) NULL,
     id_persona INT NULL,
     id_domicilio INT NULL,
     FOREIGN KEY (id_solicitud) REFERENCES solicitud(id),
+    FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
     FOREIGN KEY (id_vinculo) REFERENCES vinculo (id),
     FOREIGN KEY (id_persona) REFERENCES persona (id),
     FOREIGN KEY (id_domicilio) REFERENCES domicilio(id)
@@ -256,11 +283,11 @@ CREATE TABLE  IF NOT EXISTS archivo (
 );
 
 
-CREATE TABLE IF NOT EXISTS solicitud_institucion (
+CREATE TABLE IF NOT EXISTS adolescente_institucion (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_solicitud INT NOT NULL,
+    id_adolescente INT NULL,
     id_institucion INT NOT NULL,
-    FOREIGN KEY (id_solicitud) REFERENCES solicitud(id),
+    FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
     FOREIGN KEY (id_institucion) REFERENCES institucion(id)
 );
 
