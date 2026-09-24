@@ -6,7 +6,8 @@ import type {
   FamiliarInput,
   PersonaCreate,
 } from "./types";
-import type { Ciudadano } from "@/features/api_externa/types"
+import type { Ciudadano, PersonaResp } from "@/features/api_externa/types"
+import { obtenerDatosSalud } from "./salud"
 import { domicilioFormToDomicilioInput } from "../domicilio/utils";
 
 export function correoEsValido(correo: string) : boolean {
@@ -62,6 +63,7 @@ export function adolescenteCreateToAdolescenteInput(adolescente: AdolescenteCrea
 
 export function ciudadanoToPersona(ciudadano: Ciudadano): PersonaCreate {
   return{
+    ...obtenerDatosSalud(ciudadano),
     dni: String(ciudadano.nroDocumento),
     sexo: ciudadano.sexo,
     nombre: ciudadano.nombre,
@@ -71,6 +73,17 @@ export function ciudadanoToPersona(ciudadano: Ciudadano): PersonaCreate {
     vinculo: null,
     domicilio: null,
     legajo: null
+  }
+}
+
+export function personaRegistradaAFormulario(persona: PersonaResp): PersonaCreate {
+  return {
+    ...obtenerDatosSalud(persona),
+    nombre: persona.nombre, apellido: persona.apellido, dni: persona.dni,
+    sexo: persona.sexo, fecha_nacimiento: persona.fecha_nacimiento,
+    telefono: null, domicilio: null, vinculo: null,
+    legajo: persona.legajo !== null || persona.carpeta !== null
+      ? { id_insert: persona.legajo, carpeta_id: persona.carpeta } : null,
   }
 }
 

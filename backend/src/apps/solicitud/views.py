@@ -5,12 +5,14 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from django.http import HttpResponse
-from django.utils import timezone
+from django.db.models import Prefetch
 from django.utils.http import content_disposition_header
 from django.db.models.functions import Coalesce
 from .models import MotivoSolicitud, Solicitud, Archivo, SolicitudComentario
 from .serializers import (MotivoSolicitudSerializer, ArchivoSerializer,
                         SolicitudListSerializer, SolicitudCreateSerializer, SolicitudReadSerializer, SolicitudValReadSerializer, SolicitudValidateSerializer)
+from .serializers import SolicitudComentarioSerializer
+from .comentarios import crear_comentario, editar_comentario
 from .permissions import SolicitudPermission
 from .services import crear_solicitud, validar_solicitud, derivar_solicitud, rechazar_solicitud
 from src.permissions import IsOperationalUser, ReadOnly
@@ -143,6 +145,11 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             return qs.none()
 
         qs = qs.filter(equipo=user.equipo)
+        if self.action == "retrieve":
+            qs = qs.prefetch_related(Prefetch(
+                "comentarios",
+                queryset=SolicitudComentario.objects.select_related("usuario").order_by("fecha_hora_creacion", "id"),
+            ))
         
         desde = self.request.query_params.get("desde")
         hasta = self.request.query_params.get("hasta")
@@ -284,25 +291,26 @@ class SolicitudViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def comentar(self, request, pk=None):
         solicitud = self.get_object()
-
-        comentario = request.data.get("comentario")
-
-        if not comentario:
-            return Response(
-                {"error": "El comentario es obligatorio"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        SolicitudComentario.objects.create(
-            solicitud=solicitud,
-            comentario=comentario,
-            fecha_hora_creacion=timezone.now(),
-            fecha_hora_ultmod=timezone.now(),
-            usuario=request.user,
+        serializer = SolicitudComentarioSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        comentario = crear_comentario(
+            solicitud, request.user, serializer.validated_data["comentario"],
+        )
+        return Response(
+            SolicitudComentarioSerializer(comentario, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
         )
 
+    @action(detail=True, methods=["patch"], url_path=r"comentarios/(?P<comentario_id>[0-9]+)")
+    def editar_comentario(self, request, pk=None, comentario_id=None):
+        solicitud = self.get_object()
+        serializer = SolicitudComentarioSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        comentario = editar_comentario(
+            solicitud, comentario_id, request.user, serializer.validated_data["comentario"],
+        )
         return Response(
-            status=status.HTTP_201_CREATED
+            SolicitudComentarioSerializer(comentario, context={"request": request}).data,
         )
 
 class ArchivoViewSet(viewsets.ReadOnlyModelViewSet):

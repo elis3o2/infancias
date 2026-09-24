@@ -3,7 +3,6 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
-from decouple import config
 from django.db.models import Case, When, Value, IntegerField
 from .models import Adolescente, Familiar, Vinculo, RelacionAdolescente
 from .serializers import (
@@ -13,10 +12,8 @@ from .serializers import (
     VinculoSerializer,
     RelacionAdolescenteSerializer,
 )
-from .services import consultar_ciudadano, consultar_personas
+from .services import consultar_personas
 from src.permissions import IsOperationalUser, ReadOnly
-from typing import Any
-import requests
 import json
 
 
@@ -101,5 +98,5 @@ class ConsultaPersonasAPIView(APIView):
         serializer = ConsultaPersonasSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         return Response(consultar_personas(
-            **serializer.validated_data, equipo_id=request.user.equipo_id,
+            **serializer.validated_data,
         ))

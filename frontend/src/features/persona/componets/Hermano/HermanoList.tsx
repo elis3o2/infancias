@@ -1,4 +1,4 @@
-import type { Hermano, HermanoCreate } from "../../types";
+import type { Hermano, HermanoCreate } from "./types";
 import { ListData } from "@/common/components/ListData";
 
 

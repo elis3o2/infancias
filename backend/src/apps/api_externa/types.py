@@ -12,6 +12,20 @@ from dataclasses import dataclass
 from typing import Protocol, TypeAlias, TypedDict
 
 
+
+class ServicioExternoError(RuntimeError):
+    """La integración remota no pudo completar la operación."""
+
+
+class ServicioExternoNoConfigurado(ServicioExternoError):
+    """Falta la URL o credencial necesaria para una integración."""
+
+
+class RecursoExternoNoEncontrado(ServicioExternoError):
+    """El proveedor respondió que el recurso consultado no existe."""
+
+
+
 JsonScalar: TypeAlias = str | int | float | bool | None
 JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
 JsonObject: TypeAlias = dict[str, JsonValue]
@@ -21,37 +35,72 @@ CabecerasHTTP: TypeAlias = dict[str, str]
 CoordenadaEntrada: TypeAlias = str | int | float
 
 
-class RespuestaDigitalizacion(TypedDict, total=False):
-    ciudadano: JsonObject
-    sisa_data: JsonObject
-    results_query1: JsonArray
-    results_query2: JsonArray
-
-
-class DatosDigitalizacion(TypedDict):
-    nombre: str | None
-    apellido: str | None
-    sexo: str | None
-    fechaNacimiento: JsonValue
-    nroDocumento: JsonValue
-    fecha_nacimiento: JsonValue
-    hcf: JsonValue
-    adscripcion: list[JsonValue]
-    fallecido: JsonValue
-
-
-class AntecedentesHistoriaClinica(TypedDict):
-    adscripcion: list[JsonValue]
-    efectores: list[JsonValue]
-    obra_social: list[JsonValue]
-
-
 class DatosCiudadano(TypedDict):
     nombre: str
     apellido: str
     nroDocumento: int
     sexo: str
     fechaNacimiento: str
+
+
+class DatosDigitalizacion(DatosCiudadano):
+    hc: str | None
+
+
+class RespuestaCiudadano(TypedDict):
+    ciudadano: DatosCiudadano
+
+
+class HistoriaDigitalizacion(TypedDict):
+    """Campo consumido del primer elemento de results_query1."""
+
+    hc: str | None
+
+
+class RespuestaDigitalizacion(TypedDict):
+    """Secciones consumidas de API_DIGITALIZACION, sin nombres alternativos."""
+
+    sisa_data: RespuestaCiudadano
+    results_query1: list[HistoriaDigitalizacion]
+
+
+
+class HCFResultado(TypedDict):
+    idPersona: int
+    DNI: str
+    numeroHCI: int
+    apellido: str
+    nombre: str
+    sexo: str
+    fechaNacimiento: str
+
+    codigoCalle: int
+    nombreCalle: str
+    numCalle: str
+
+    coordXPacienteUltimaAtencion: float
+    coordYPacienteUltimaAtencion: float
+
+    fecha_insert: str
+    fechaFallecido: str | None
+    fallecido: int
+
+    validated_at: str
+
+    latitud_wgs84: float
+    longitud_wgs84: float
+
+    flag_discapacidades: int
+    flag_consumos_problematicos: int
+    flag_intentos_de_suicidio: int
+    flag_problemas_socioambientales: int
+    flag_violencias: int
+
+
+class HCFResponse(TypedDict):
+    hcf: str
+    resultados: list[HCFResultado]
+
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,6 +122,7 @@ class Ciudadano:
             "sexo": self.sexo,
             "fechaNacimiento": self.fechaNacimiento,
         }
+
 
 
 class FeatureGeografico(TypedDict):

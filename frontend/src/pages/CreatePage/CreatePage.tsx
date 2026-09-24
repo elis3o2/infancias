@@ -45,14 +45,7 @@ export const CreatePage = () => {
                 finishInstitucion={form.finishInstitucion}
                 setFinishInstitucion={form.setFinishInstitucion}
               />
-              <SolicitudComponent
-                motivoSeleccionado={form.motivo}
-                setMotivoSeleccionado={form.setMotivo}
-                descripcion={form.descripcion}
-                setDescripcion={form.setDescripcion}
-                finishSolicitudSection={form.finishSolicitud}
-                setFinishSolicitudSection={form.setFinishSolicitud}
-              />
+
               <Box component="fieldset" disabled={form.editorFamiliar || form.editorReferencia !== null} sx={grupo}>
                 <AdolescentesSection 
                   adolescentes={form.adolescentes} 
@@ -63,6 +56,14 @@ export const CreatePage = () => {
                   setDomicilios={form.setDomicilios}
                 />
               </Box>
+              <SolicitudComponent
+                motivoSeleccionado={form.motivo}
+                setMotivoSeleccionado={form.setMotivo}
+                descripcion={form.descripcion}
+                setDescripcion={form.setDescripcion}
+                finishSolicitudSection={form.finishSolicitud}
+                setFinishSolicitudSection={form.setFinishSolicitud}
+              />
               <Box component="fieldset" disabled={form.editorAdolescente !== null || form.editorReferencia !== null} sx={grupo}>
                 <FamiliaresSection 
                   adolescentes={form.adolescentes}

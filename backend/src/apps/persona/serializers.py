@@ -218,6 +218,7 @@ class AdolescenteValReadSerializer(AdolescenteReadSerializer):
 
 
 class SaludDatosSerializer(serializers.Serializer):
+    hc = serializers.IntegerField(required=False, allow_null=True)
     hcf = serializers.IntegerField(required=False, allow_null=True)
     discapacidades = serializers.BooleanField(required=False)
     consumos_problematicos = serializers.BooleanField(required=False)
@@ -226,10 +227,17 @@ class SaludDatosSerializer(serializers.Serializer):
     violencias = serializers.BooleanField(required=False)
 
 
+class PersonaValidateSerializer(SaludDatosSerializer):
+    nombre = serializers.CharField(max_length=32)
+    apellido = serializers.CharField(max_length=32)
+    dni = serializers.CharField(max_length=9)
+    sexo = serializers.ChoiceField(choices=("M", "F", "X"))
+    fecha_nacimiento = serializers.DateField()
+
+
 class FamiliarValidateSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False, min_value=1)
-    dni = serializers.CharField(max_length=9)
-    sexo = serializers.CharField(max_length=1)
+    persona = PersonaValidateSerializer()
     vinculo = serializers.PrimaryKeyRelatedField(
         queryset=VINCULOS_FAMILIARES, required=False)
     id_vinculo = serializers.PrimaryKeyRelatedField(
@@ -237,7 +245,6 @@ class FamiliarValidateSerializer(serializers.Serializer):
     telefono = serializers.CharField(
         max_length=16, required=False, allow_blank=True, allow_null=True)
     domicilio = DomicilioSerializer(required=False, allow_null=True)
-    salud = SaludDatosSerializer(required=False)
 
     def to_internal_value(self, data):
         if "vinculo" in data and "id_vinculo" in data:
@@ -245,10 +252,6 @@ class FamiliarValidateSerializer(serializers.Serializer):
         return super().to_internal_value(data)
 
     def validate(self, attrs):
-        attrs["dni"] = attrs["dni"].strip()
-        attrs["sexo"] = attrs["sexo"].strip().upper()
-        if attrs["sexo"] not in {"M", "F", "X"}:
-            raise serializers.ValidationError({"sexo": "El sexo debe ser M, F o X."})
         if attrs.get("vinculo") is None:
             raise serializers.ValidationError({"vinculo": "El vínculo es obligatorio."})
         return attrs
@@ -297,7 +300,7 @@ class PersonaRelacionSerializer(serializers.Serializer):
 
 class AdolescenteValidateSerializer(serializers.Serializer):
     id = serializers.IntegerField(min_value=1)
-    salud = SaludDatosSerializer()
+    persona = PersonaValidateSerializer()
     familiares = FamiliarValidateSerializer(many=True, required=False)
     legajo = LegajoInputSerializer(required=False, allow_null=True)
 
@@ -328,4 +331,4 @@ class PersonaConsultaInputSerializer(serializers.Serializer):
 
 class ConsultaPersonasSerializer(serializers.Serializer):
     adolescentes = PersonaConsultaInputSerializer(many=True)
-    familiares = PersonaConsultaInputSerializer(many=True, required=False)
+    familiares = PersonaConsultaInputSerializer(many=True, required=False, default=list)

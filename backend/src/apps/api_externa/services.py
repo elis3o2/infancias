@@ -12,104 +12,38 @@ import requests
 from decouple import config
 
 from .types import (
-    AntecedentesHistoriaClinica,
     ArchivosAdjuntos,
-    CabecerasHTTP,
     Ciudadano,
     CoordenadaEntrada,
+    DatosCiudadano,
     DatosDigitalizacion,
     DestinatariosCorreo,
     DireccionGeografica,
     FeatureGeografico,
-    JsonArray,
+    HCFResponse,
     JsonObject,
     JsonValue,
     ParametrosConsulta,
     RespuestaCorreo,
     RespuestaDigitalizacion,
+    ServicioExternoError,
+    ServicioExternoNoConfigurado,
+    RecursoExternoNoEncontrado
 )
 
+from .utils import (
+    TIMEOUT_EXTERNO,
+    _como_coordenada,
+    _como_lista,
+    _como_objeto,
+    _como_texto,
+    _numero,
+    _obtener_json,
+    _url_configurada,
+)
 
 logger = logging.getLogger(__name__)
-TIMEOUT_EXTERNO = 10
 
-
-class ServicioExternoError(RuntimeError):
-    """La integración remota no pudo completar la operación."""
-
-
-class ServicioExternoNoConfigurado(ServicioExternoError):
-    """Falta la URL o credencial necesaria para una integración."""
-
-
-class RecursoExternoNoEncontrado(ServicioExternoError):
-    """El proveedor respondió que el recurso consultado no existe."""
-
-
-def _url_configurada(nombre: str) -> str:
-    url = config(nombre, default="").strip()
-    if not url:
-        raise ServicioExternoNoConfigurado(
-            f"El servicio externo {nombre} no está configurado."
-        )
-    return url
-
-
-def _obtener_json(
-    url: str,
-    *,
-    params: ParametrosConsulta | None = None,
-    headers: CabecerasHTTP | None = None,
-) -> JsonValue:
-    """Hace un GET directo, sin heredar proxies del entorno de ejecución."""
-    try:
-        with requests.Session() as session:
-            session.trust_env = False
-            response = session.get(
-                url,
-                params=params,
-                headers=headers,
-                timeout=TIMEOUT_EXTERNO,
-            )
-    except requests.RequestException as exc:
-        raise ServicioExternoError("No fue posible conectar con el servicio externo.") from exc
-
-    if response.status_code == 404:
-        raise RecursoExternoNoEncontrado()
-
-    try:
-        response.raise_for_status()
-    except requests.RequestException as exc:
-        raise ServicioExternoError(
-            f"El servicio externo respondió con HTTP {response.status_code}."
-        ) from exc
-
-    try:
-        return cast(JsonValue, response.json())
-    except ValueError as exc:
-        raise ServicioExternoError(
-            "El servicio externo devolvió una respuesta inválida."
-        ) from exc
-
-
-def _como_objeto(valor: JsonValue | None) -> JsonObject | None:
-    return valor if isinstance(valor, dict) else None
-
-
-def _como_lista(valor: JsonValue | None) -> JsonArray | None:
-    return valor if isinstance(valor, list) else None
-
-
-def _como_texto(valor: JsonValue | None) -> str | None:
-    return valor if isinstance(valor, str) else None
-
-
-def _como_coordenada(valor: JsonValue) -> CoordenadaEntrada | None:
-    if isinstance(valor, bool):
-        return None
-    if isinstance(valor, (str, int, float)):
-        return valor
-    return None
 
 
 def _consultar_api_digitalizacion(dni: str, sexo: str) -> RespuestaDigitalizacion:
@@ -123,150 +57,62 @@ def _consultar_api_digitalizacion(dni: str, sexo: str) -> RespuestaDigitalizacio
     )
     if _como_objeto(data) is None:
         raise ServicioExternoError(
-            "El servicio de historia clínica devolvió una respuesta inesperada."
+            "El servicio de digitalización devolvió una respuesta inesperada."
         )
     return cast(RespuestaDigitalizacion, data)
 
 
 def consultar_digitalizacion(dni: str, sexo: str) -> DatosDigitalizacion | None:
-    """Consulta ciudadano y conserva ``None`` para ausencia o caída remota.
-
-    El contrato de las pantallas existentes interpreta ``None`` como datos no
-    disponibles, nunca como un rechazo automático de la solicitud.
-    """
+    """Identidad de sisa_data.ciudadano y HC de results_query1[0].hc."""
     if not sexo:
         return None
 
     try:
-        data = _consultar_api_hc(dni=dni, sexo=sexo)
+        data = _consultar_api_digitalizacion(dni=dni, sexo=sexo)
     except RecursoExternoNoEncontrado:
-        logger.info("No se encontraron datos de ciudadano para la consulta.")
+        logger.info("No se encontraron datos de digitalización para la consulta.")
         return None
     except ServicioExternoNoConfigurado:
-        logger.warning("La consulta de ciudadano no está configurada.")
+        logger.warning("La consulta de digitalización no está configurada.")
         return None
     except ServicioExternoError as exc:
-        logger.warning("No fue posible consultar el servicio de ciudadano: %s", exc)
+        logger.warning("No fue posible consultar el servicio de digitalización: %s", exc)
         return None
 
-    sisa_data = _como_objeto(data.get("sisa_data")) or {}
+    sisa_data = data.get("sisa_data")
+    datos_ciudadano = sisa_data.get("ciudadano") if isinstance(sisa_data, dict) else None
+    resultados = data.get("results_query1")
+    if not isinstance(datos_ciudadano, dict):
+        logger.warning("Digitalización no informó las secciones requeridas.")
+        return None
 
-    def contiene_identidad(valor: JsonValue | None) -> bool:
-        objeto = _como_objeto(valor)
-        return objeto is not None and any(
-            objeto.get(campo) not in (None, "")
-            for campo in (
-                "nombre",
-                "nombres",
-                "apellido",
-                "apellidos",
-                "nroDocumento",
-                "dni",
-                "documento",
-                "fechaNacimiento",
-            )
-        )
-
-    ciudadano = next(
-        (
-            candidato
-            for candidato in (
-                data.get("ciudadano"),
-                sisa_data.get("ciudadano"),
-                sisa_data,
-                data,
-            )
-            if contiene_identidad(candidato)
-        ),
-        None,
-    )
+    ciudadano = _crear_ciudadano(cast(DatosCiudadano, datos_ciudadano))
+    hc = None
+    if isinstance(resultados, list) and resultados and isinstance(resultados[0], dict):
+        hc = _como_texto(resultados[0].get("hc"))
     if ciudadano is None:
-        logger.info("El servicio de ciudadano no informó datos de identidad.")
+        logger.warning("Digitalización no informó todos los datos requeridos.")
         return None
-
-    results_query1 = _como_lista(data.get("results_query1")) or []
-
-    fecha_nacimiento = (
-        ciudadano.get("fechaNacimiento") or ciudadano.get("fecha_nacimiento")
-    )
-    nro_documento = (
-        ciudadano.get("nroDocumento")
-        or ciudadano.get("dni")
-        or ciudadano.get("documento")
-        or dni
-    )
-    hcf = ciudadano.get("hcf") or ciudadano.get("hc") or next(
-        (
-            item.get("hc")
-            for item in (_como_objeto(valor) for valor in results_query1)
-            if item is not None and item.get("hc")
-        ),
-        None,
-    )
-
-    return {
-        "nombre": _como_texto(ciudadano.get("nombre")) or _como_texto(ciudadano.get("nombres")),
-        "apellido": _como_texto(ciudadano.get("apellido")) or _como_texto(ciudadano.get("apellidos")),
-        "sexo": _como_texto(ciudadano.get("sexo")),
-        "fechaNacimiento": fecha_nacimiento,
-        "nroDocumento": nro_documento,
-        # Alias que utilizan los consumidores internos actuales.
-        "fecha_nacimiento": fecha_nacimiento,
-        "hcf": hcf,
-        "adscripcion": list(
-            dict.fromkeys(
-                item.get("adscripcion")
-                for item in (_como_objeto(valor) for valor in results_query1)
-                if item is not None and item.get("adscripcion")
-            )
-        ),
-        "fallecido": ciudadano.get("fallecido"),
-    }
+    return {**ciudadano.como_dict(), "hc": hc}
 
 
 
-def consultar_historia_clinica(
-    dni: str,
-    sexo: str,
-) -> AntecedentesHistoriaClinica:
-    """Devuelve los antecedentes resumidos de la respuesta de API_HC."""
-    data = _consultar_api_hc(dni=dni, sexo=sexo)
-    query_1 = _como_lista(data.get("results_query1")) or []
-    query_2 = _como_lista(data.get("results_query2")) or []
-    sisa_data = _como_objeto(data.get("sisa_data")) or {}
-    coberturas = _como_lista(sisa_data.get("coberturas")) or []
-
-    return {
-        "adscripcion": [
-            item.get("adscripcion")
-            for item in (_como_objeto(valor) for valor in query_1)
-            if item is not None and item.get("adscripcion")
-        ],
-        "efectores": list(
-            dict.fromkeys(
-                item.get("efector")
-                for item in (_como_objeto(valor) for valor in query_2)
-                if item is not None and item.get("efector")
-            )
-        ),
-        "obra_social": list(
-            dict.fromkeys(
-                item.get("nombreObraSocial")
-                for item in (_como_objeto(valor) for valor in coberturas)
-                if item is not None and item.get("nombreObraSocial")
-            )
-        ),
-    }
-
-
-def consultar_hcf(hcf: int | str) -> JsonValue | None:
-    """Consulta integrantes de una historia clínica familiar si existe."""
+def consultar_hcf(hcf: int | str) -> HCFResponse | None:
+    """Consulta la HCF y sus integrantes a partir de una HC individual."""
     try:
-        return _obtener_json(
+        data = _obtener_json(
             _url_configurada("API_HCF"),
             params={"hcf": hcf},
             headers={"HCF_PPVV_API_KEY": config("HCF_PPVV_API_KEY", default="")},
         )
+        respuesta = _como_objeto(data)
+        if (
+            respuesta is None
+            or not isinstance(respuesta.get("hcf"), str)
+            or not isinstance(respuesta.get("resultados"), list)
+        ):
+            raise ServicioExternoError("API_HCF devolvió una respuesta inesperada.")
+        return cast(HCFResponse, respuesta)
     except RecursoExternoNoEncontrado:
         return None
     except ServicioExternoNoConfigurado:
@@ -306,6 +152,14 @@ def consultar_ciudadano(dni: str, sexo: str) -> Ciudadano | None:
         logger.warning("El servicio de ciudadano devolvió una respuesta inesperada.")
         return None
 
+    resultado = _crear_ciudadano(cast(DatosCiudadano, ciudadano))
+    if resultado is None:
+        logger.warning("El servicio de ciudadano no informó todos los datos requeridos.")
+    return resultado
+
+
+def _crear_ciudadano(ciudadano: DatosCiudadano) -> Ciudadano | None:
+    """Crea la identidad sólo con los cinco campos exactos del contrato."""
     nombre = _como_texto(ciudadano.get("nombre"))
     apellido = _como_texto(ciudadano.get("apellido"))
     sexo_ciudadano = _como_texto(ciudadano.get("sexo"))
@@ -320,7 +174,6 @@ def consultar_ciudadano(dni: str, sexo: str) -> Ciudadano | None:
         or isinstance(nro_documento, bool)
         or not isinstance(nro_documento, int)
     ):
-        logger.warning("El servicio de ciudadano no informó todos los datos requeridos.")
         return None
 
     return Ciudadano(
@@ -331,6 +184,12 @@ def consultar_ciudadano(dni: str, sexo: str) -> Ciudadano | None:
         fechaNacimiento=fecha_nacimiento,
     )
 
+
+"""
+
+APIS GEOGRAFICAS
+
+"""
 
 def transformar_coordenadas(
     x: CoordenadaEntrada,
@@ -399,12 +258,6 @@ def buscar_features_geo(domicilio: str) -> list[FeatureGeografico]:
         )
     return resultado
 
-
-def _numero(valor: JsonValue | None) -> int | None:
-    try:
-        return int(valor)
-    except (TypeError, ValueError):
-        return None
 
 
 def normalizar_direccion_geo(data: JsonObject) -> DireccionGeografica:

@@ -4,8 +4,8 @@ backend/src/apps/__pycache__
 backend/src/apps/persona/__pycache__
 backend/src/apps/domicilio/__pycache__
 backend/src/apps/solicitud/__pycache__
+backend/src/apps/api_externa/__pycache__
 backend/src/migrations
 backend/core/__pycache__
-
 frontend/.env
 env

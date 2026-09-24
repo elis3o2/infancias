@@ -5,7 +5,8 @@ import { SexoForm } from "../SexoForm"
 import { getCiudadanoData } from "@/features/api_externa/api"
 import type { PersonaCreate, Vinculo } from "../../types"
 import { PersonaList } from "./PersonaList"
-import { ciudadanoToPersona } from "../../utils"
+import { ciudadanoToPersona, personaRegistradaAFormulario } from "../../utils"
+import { DatosSalud } from "../DatosSalud"
 import { VinculoForm } from "../VinculoForm"
 import { TelefonoOpcionalForm } from "../TelefonoOpcionalForm"
 import { DomicilioOpcionalForm } from "@/features/domicilio/components/DomicilioOpcionalForm"
@@ -61,7 +62,7 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
             const data = await getCiudadanoData([], [{ id: 0, dni, sexo }])
             const resultado = data.familiares[0]
             if (resultado?.persona) {
-                setPersona({ ...resultado.persona, telefono: null, domicilio: null, vinculo: null, legajo: null })
+                setPersona({ ...personaRegistradaAFormulario(resultado.persona), legajo: null })
             } else if (resultado?.ciudadano) {
                 setPersona(ciudadanoToPersona(resultado.ciudadano))
             } else {
@@ -128,7 +129,9 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
             <Stack spacing={1}>
             <PersonaList
                 persona={persona}
-            />{datos_extra && (
+            />
+            <DatosSalud persona={persona} />
+            {datos_extra && (
                 <>
                     <VinculoForm
                         vinculoSeleccionado={vinculo}

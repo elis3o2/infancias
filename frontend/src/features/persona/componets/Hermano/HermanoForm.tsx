@@ -1,4 +1,4 @@
-import type { HermanoCreate } from "../../types"
+import type { HermanoCreate } from "./types"
 import { DniForm } from "../DniForm"
 import { SexoForm } from "../SexoForm"
 import { useState } from "react"

@@ -1,4 +1,5 @@
-import type { Hermano, PersonaCreate } from "../../types"
+import type { PersonaCreate } from "../../types"
+import type { Hermano } from "../Hermano/types"
 import { useState } from "react"
 import { Card, CardContent, Stack, Typography } from "@mui/material"
 import type { Setter } from "@/common/types"

@@ -1,4 +1,4 @@
-import type { HermanoCreate } from "../../types"
+import type { HermanoCreate } from "./types"
 import type { Setter } from "@/common/types"
 import { useState } from "react"
 import { Stack, Button } from "@mui/material"

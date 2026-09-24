@@ -11,6 +11,7 @@ import { ContactoCard } from "../Contacto/ContactoCard"
 import EquipoSelect from "../EquipoForm"
 import { DescripcionCard } from "../SolicitudSection/DescripcionCard"
 import { SolicitudPersonasDetalle } from "./SolicitudPersonasDetalle"
+import { ComentariosSolicitud } from "./ComentariosSolicitud"
 
 type Props = {
   solicitud: Solicitud
@@ -59,6 +60,9 @@ export const SolicitudValidada = ({ solicitud }: Props) => {
       )}
 
       <ArchivoVistaCard archivos={solicitud.archivos ?? []} />
+
+      <ComentariosSolicitud key={solicitud.id} solicitudId={solicitud.id}
+        iniciales={solicitud.comentarios ?? []} puedeComentar={solicitud.puede_comentar} />
 
       {solicitud.equipo?.id === 2 && (
         <Stack spacing={2} sx={{ mt: 2 }}>

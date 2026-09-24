@@ -1,11 +1,10 @@
-import type { DomicilioInput, Institucion, InstitucionInput } from "../domicilio/types"
+import type { Institucion, InstitucionInput } from "../domicilio/types"
 import type {
   AdolescenteCrud,
   AdolescenteInput,
   Equipo,
   Familiar,
   Persona,
-  PersonaCreate,
   RelacionAdolescenteInput,
   Vinculo,
 } from "../persona/types"
@@ -45,7 +44,7 @@ export type SolicitudCreate = {
 
 
 export type {
-  AdolescenteSolicitudInput, SaludDatosInput, LegajoValidacionInput, FamiliarValidacionInput,
+  AdolescenteSolicitudInput, PersonaValidacionInput, LegajoValidacionInput, FamiliarValidacionInput,
   AdolescenteValidacionInput, SolicitudValidacionInput,
 } from "./contracts"
 export type { RelacionAdolescenteInput } from "../persona/types"
@@ -79,7 +78,8 @@ type SolicitudDetalleBase = {
   familiares: Familiar[]
   /** Personas confirmadas como familiares o referentes, una sola vez por solicitud. */
   familiares_validados: Persona[]
-  referencias_instituciones: Institucion[]
+  /** Compatibilidad de lectura con respuestas históricas; las referencias actuales son de adolescentes. */
+  referencias_instituciones?: Institucion[]
   motivo: MotivoSolicitud
   descripcion: string
   archivos: ArchivoSimple[]
@@ -98,11 +98,23 @@ export type SolicitudCrud = SolicitudDetalleBase & {
   motivo_rechazo?: null
 }
 
+export type SolicitudComentario = {
+  id: number
+  comentario: string
+  fecha_hora_creacion: string
+  fecha_hora_ultmod: string
+  usuario: number
+  usuario_nombre: string
+  puede_editar: boolean
+}
+
 export type Solicitud = SolicitudDetalleBase & {
   validado: true
   rechazado: false
   descripcion_extra: string | null
   motivo_rechazo?: null
+  comentarios: SolicitudComentario[]
+  puede_comentar: boolean
 }
 
 export type SolicitudRechazada = SolicitudDetalleBase & {
@@ -110,6 +122,8 @@ export type SolicitudRechazada = SolicitudDetalleBase & {
   rechazado: true
   descripcion_extra?: string | null
   motivo_rechazo: string
+  comentarios: SolicitudComentario[]
+  puede_comentar: boolean
 }
 
 export type SolicitudDetalle =
@@ -125,24 +139,6 @@ export type SolicitudSimple = {
   validado: boolean
   rechazado: boolean
   equipo?: Equipo | null
-}
-
-/** Persona limpia de campos exclusivos de la interfaz, lista para la API. */
-export type PersonaValidacionInput = Omit<
-  Pick<
-    PersonaCreate,
-    | "nombre"
-    | "apellido"
-    | "dni"
-    | "fecha_nacimiento"
-    | "sexo"
-    | "telefono"
-    | "domicilio"
-    | "legajo"
-  >,
-  "domicilio"
-> & {
-  domicilio: DomicilioInput | null
 }
 
 export type ArchivoPendiente = {

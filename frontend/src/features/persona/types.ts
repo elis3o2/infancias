@@ -1,4 +1,5 @@
 import type { Domicilio, DomicilioFormData, DomicilioInput, Institucion, ReferenciaInstitucionInput } from "../domicilio/types"
+import type { DatosSalud } from "./salud"
 
 
 /******************************************
@@ -156,7 +157,7 @@ export type LegajoDetalle = {
  *          PERSONA
  ******************************************/
 
-export type Persona = {
+export type Persona = DatosSalud & {
     id: number
     nombre: string,
     apellido: string,
@@ -183,7 +184,7 @@ export type PersonaInput = {
 }
 
 
-export type PersonaCreate = {
+export type PersonaCreate = DatosSalud & {
     nombre: string,
     apellido: string,
     dni: string

@@ -14,9 +14,7 @@ from src.apps.domicilio.models import Institucion
 from src.apps.domicilio.services import crear_institucion
 from src.utils import enviar_correo
 from django.core.files.uploadedfile import UploadedFile
-
-ID_ENTRADA  = 1
-ID_ADMISION = 2
+from .constantes import ID_ENTRADA, ID_ADMISION
 
 logger = logging.getLogger(__name__)
 
@@ -131,13 +129,14 @@ def validar_solicitud(solicitud: Solicitud, data: dict) -> Solicitud:
     personas_legajos = []
     for adolescente_data in adolescentes_data:
         adolescente = adolescentes_solicitud[adolescente_data["id"]]
-        persona = validar_adolescente(adolescente, adolescente_data["salud"])
+        persona = validar_adolescente(adolescente, adolescente_data["persona"])
         familiares = {familiar.id: familiar for familiar in adolescente.familiares.all()}
         recibidos = set()
         identidades = set()
 
         for familiar_data in adolescente_data.get("familiares", []):
-            identidad = (familiar_data["dni"], familiar_data["sexo"])
+            datos_persona = familiar_data["persona"]
+            identidad = (datos_persona["dni"], datos_persona["sexo"])
             if identidad in identidades:
                 raise ValidationError({"familiares": "Un familiar está repetido para el mismo adolescente."})
             identidades.add(identidad)

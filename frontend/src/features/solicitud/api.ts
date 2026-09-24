@@ -7,6 +7,7 @@ import type {
   SolicitudDetalle,
   SolicitudSimple,
   SolicitudValidacionInput,
+  SolicitudComentario,
 } from "./types"
 import type { Equipo } from "../persona/types"
 
@@ -64,6 +65,14 @@ export const rechazarSolicitud = (id: number, motivo: string): Promise<Solicitud
     .then(({ data }) => data)
 
 export const getSolicitudSimple = getSolicitudes
+
+export const comentarSolicitud = (id: number, comentario: string): Promise<SolicitudComentario> =>
+  http.post<SolicitudComentario>(`${SOLICITUDES_URL}${id}/comentar/`, { comentario })
+    .then(({ data }) => data)
+
+export const editarComentarioSolicitud = (id: number, comentarioId: number, comentario: string): Promise<SolicitudComentario> =>
+  http.patch<SolicitudComentario>(`${SOLICITUDES_URL}${id}/comentarios/${comentarioId}/`, { comentario })
+    .then(({ data }) => data)
 
 export const derivarSolicitud = (idSolicitud: number, idDerivacion: number): Promise<void> =>
   http

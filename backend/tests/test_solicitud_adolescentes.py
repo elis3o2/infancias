@@ -10,7 +10,6 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIRequestFactory, force_authenticate
 
-from src.apps.api_externa.types import Ciudadano
 from src.apps.domicilio.models import (
     Departamento, Domicilio, Institucion, Provincia, TipoInstitucion,
 )
@@ -55,8 +54,8 @@ class SolicitudAdolescentesTests(TestCase):
             side_effect=AssertionError("Las pruebas no deben realizar solicitudes HTTP."),
         ).start()
         self.ciudadano = patch(
-            "src.apps.persona.services.consultar_ciudadano",
-            side_effect=self._ciudadano,
+            "src.apps.api_externa.services.consultar_ciudadano",
+            side_effect=AssertionError("La validación no debe volver a consultar Ciudadano."),
         ).start()
         self.correo = patch("src.apps.solicitud.services.enviar_correo").start()
         self.addCleanup(patch.stopall)
@@ -80,12 +79,11 @@ class SolicitudAdolescentesTests(TestCase):
         )
 
     @staticmethod
-    def _ciudadano(dni, sexo):
-        return Ciudadano(
-            nombre="Nombre verificado", apellido="Apellido verificado",
-            nroDocumento=int(dni), sexo=sexo,
-            fechaNacimiento="Mon, 18 Feb 2008 00:00:00 GMT",
-        )
+    def _datos_persona(dni, sexo):
+        return {
+            "nombre": "Nombre verificado", "apellido": "Apellido verificado",
+            "dni": dni, "sexo": sexo, "fecha_nacimiento": "2008-02-18",
+        }
 
     def _domicilio_input(self):
         return {"nombre": "Nuevo domicilio", "id_departamento": self.departamento.pk}
@@ -125,10 +123,10 @@ class SolicitudAdolescentesTests(TestCase):
     def _datos_validacion(self, adolescentes):
         return {"adolescentes": [
             {
-                "id": adolescente.pk, "salud": {},
+                "id": adolescente.pk, "persona": self._datos_persona(adolescente.dni, adolescente.sexo),
                 "familiares": [
-                    {"id": familiar.pk, "dni": familiar.dni,
-                     "sexo": familiar.sexo, "id_vinculo": self.vinculo.pk}
+                    {"id": familiar.pk, "persona": self._datos_persona(familiar.dni, familiar.sexo),
+                     "id_vinculo": self.vinculo.pk}
                     for familiar in adolescente.familiares.all()
                 ],
             }
@@ -238,12 +236,73 @@ class SolicitudAdolescentesTests(TestCase):
                 with self.assertRaises(ValidationError):
                     SolicitudCreateSerializer(data=datos).is_valid(raise_exception=True)
 
-    def test_valida_ciudadano_reutiliza_familiar_y_comparte_carpeta(self):
+    def test_creacion_acepta_institucion_solicitante_nueva(self):
+        datos = self._datos_creacion()
+        datos.pop("id_institucion")
+        datos["institucion"] = {
+            "nombre": "Institución solicitante nueva",
+            "id_tipo": self.tipo.pk,
+            "domicilio": self._domicilio_input(),
+        }
+
+        serializer = SolicitudCreateSerializer(data=datos)
+        serializer.is_valid(raise_exception=True)
+        solicitud = crear_solicitud(serializer.validated_data)
+
+        self.assertEqual(solicitud.institucion.nombre, "Institución solicitante nueva")
+
+    def test_creacion_exige_institucion_solicitante(self):
+        datos = self._datos_creacion()
+        datos.pop("id_institucion")
+        with self.assertRaises(ValidationError) as error:
+            SolicitudCreateSerializer(data=datos).is_valid(raise_exception=True)
+        self.assertIn("institucion", error.exception.detail)
+        self.assertEqual(Solicitud.objects.count(), 0)
+
+    def test_referencia_temporal_compartida_no_admite_datos_distintos(self):
+        originales = Institucion.objects.count()
+        for campo, valor in (
+            ("nombre", "Referencia distinta"),
+            ("domicilio", {**self._domicilio_input(), "nombre": "Otra dirección"}),
+        ):
+            datos = self._datos_creacion()
+            datos["adolescentes"][1]["referencias_instituciones_data"][0][campo] = valor
+            with self.subTest(campo=campo), self.assertRaises(ValidationError) as error:
+                SolicitudCreateSerializer(data=datos).is_valid(raise_exception=True)
+            self.assertIn("adolescentes", error.exception.detail)
+        self.assertEqual(Solicitud.objects.count(), 0)
+        self.assertEqual(Institucion.objects.count(), originales)
+
+    def test_creacion_rechaza_vinculos_de_categoria_incorrecta(self):
+        datos_familiar = self._datos_creacion()
+        datos_familiar["adolescentes"][0]["familiares"][0]["id_vinculo"] = (
+            self.vinculo_adolescente.pk
+        )
+        with self.assertRaises(ValidationError):
+            SolicitudCreateSerializer(data=datos_familiar).is_valid(raise_exception=True)
+
+        datos_relacion = self._datos_creacion()
+        datos_relacion["relaciones_adolescentes"][0]["id_vinculo"] = self.vinculo.pk
+        with self.assertRaises(ValidationError):
+            SolicitudCreateSerializer(data=datos_relacion).is_valid(raise_exception=True)
+
+        datos_ambas = self._datos_creacion()
+        datos_ambas["institucion"] = {
+            "nombre": "No debe coexistir",
+            "id_tipo": self.tipo.pk,
+            "domicilio": self._domicilio_input(),
+        }
+        with self.assertRaises(ValidationError):
+            SolicitudCreateSerializer(data=datos_ambas).is_valid(raise_exception=True)
+
+    def test_valida_persona_completa_sin_apis_reutiliza_familiar_y_comparte_carpeta(self):
         solicitud = self._solicitud()
         primero = self._adolescente(solicitud, "50000001")
         segundo = self._adolescente(solicitud, "50000002")
         familiar1, familiar2 = self._familiar(primero), self._familiar(segundo)
         datos = self._datos_validacion([primero, segundo])
+        datos["adolescentes"][0]["persona"].update(hc=100, hcf=50, discapacidades=True, violencias=True)
+        datos["adolescentes"][0]["familiares"][0]["persona"].update(hc=200, hcf=50, consumos_problematicos=True)
         datos["adolescentes"][0]["legajo"] = {"id_insert": 701, "carpeta_id": 801}
         familiar_data = datos["adolescentes"][1]["familiares"][0]
         familiar_data["vinculo"] = familiar_data.pop("id_vinculo")
@@ -260,13 +319,18 @@ class SolicitudAdolescentesTests(TestCase):
         self.assertIsNone(familiar1.persona.legajo_id)
         self.assertEqual(primero.persona.nombre, "Nombre verificado")
         self.assertEqual(primero.persona.fecha_nacimiento, date(2008, 2, 18))
+        self.assertEqual((primero.persona.hc, primero.persona.hcf), (100, 50))
+        self.assertTrue(primero.persona.discapacidades)
+        self.assertTrue(primero.persona.violencias)
+        self.assertEqual((familiar1.persona.hc, familiar1.persona.hcf), (200, 50))
+        self.assertTrue(familiar1.persona.consumos_problematicos)
         self.assertEqual(primero.persona.legajo.carpeta_id, segundo.persona.legajo.carpeta_id)
         self.assertEqual((primero.persona.legajo.id_insert, primero.persona.legajo.letra), (701, "A"))
         self.assertEqual((primero.persona.legajo.carpeta.id_insert, primero.persona.legajo.carpeta.letra), (801, "A"))
         self.assertEqual(segundo.persona.legajo.letra, "B")
         self.assertEqual(Relacion.objects.filter(persona_2=familiar1.persona).count(), 2)
         self.assertEqual(PersonaDomicilio.objects.count(), 2)
-        self.assertEqual(self.ciudadano.call_count, 3)
+        self.ciudadano.assert_not_called()
         self.correo.assert_called_once()
 
     def test_sin_datos_externos_crea_legajo_y_carpeta_locales(self):
@@ -284,7 +348,7 @@ class SolicitudAdolescentesTests(TestCase):
         adolescente = self._adolescente(solicitud, "50000001")
         persona = self._persona("50000001", hcf=101, discapacidades=True, consumos_problematicos=True)
         datos = self._datos_validacion([adolescente])
-        datos["adolescentes"][0]["salud"] = {"consumos_problematicos": False}
+        datos["adolescentes"][0]["persona"]["consumos_problematicos"] = False
         self._validar(solicitud, datos)
         persona.refresh_from_db()
         adolescente.refresh_from_db()
@@ -294,14 +358,15 @@ class SolicitudAdolescentesTests(TestCase):
         self.assertEqual(persona.hcf, 101)
         self.ciudadano.assert_not_called()
 
-    def test_ciudadano_ausente_revierte_personas_y_asociaciones_previas(self):
+    def test_familiar_con_identidad_del_adolescente_revierte_personas_y_asociaciones(self):
         solicitud = self._solicitud()
         adolescente = self._adolescente(solicitud, "50000001")
         familiar = self._familiar(adolescente)
-        self.ciudadano.side_effect = [self._ciudadano(adolescente.dni, adolescente.sexo), None]
+        datos = self._datos_validacion([adolescente])
+        datos["adolescentes"][0]["familiares"][0]["persona"] = datos["adolescentes"][0]["persona"].copy()
         with self.captureOnCommitCallbacks(execute=True):
             with self.assertRaises(ValidationError):
-                self._validar(solicitud, self._datos_validacion([adolescente]))
+                self._validar(solicitud, datos)
         for registro in (solicitud, adolescente, familiar):
             registro.refresh_from_db()
         self.assertFalse(solicitud.validado)
@@ -322,7 +387,7 @@ class SolicitudAdolescentesTests(TestCase):
             legajo = Legajo.objects.create(id_insert=indice, carpeta=carpeta, letra="A")
             existentes.append(self._persona(adolescente.dni, legajo=legajo))
         datos = self._datos_validacion(adolescentes)
-        datos["adolescentes"][1]["salud"] = {"violencias": True}
+        datos["adolescentes"][1]["persona"]["violencias"] = True
         with self.captureOnCommitCallbacks(execute=True):
             with self.assertRaises(ValidationError):
                 self._validar(solicitud, datos)
@@ -351,6 +416,18 @@ class SolicitudAdolescentesTests(TestCase):
                 solicitud.refresh_from_db()
                 self.assertFalse(solicitud.validado)
         self.assertIsNone(segundo.persona_id)
+
+    def test_validacion_rechaza_persona_que_no_coincide_con_el_adolescente(self):
+        solicitud = self._solicitud()
+        adolescente = self._adolescente(solicitud, "50000001")
+        datos = self._datos_validacion([adolescente])
+        datos["adolescentes"][0]["persona"]["dni"] = "50000002"
+        with self.assertRaises(ValidationError):
+            self._validar(solicitud, datos)
+        self.assertEqual(Persona.objects.count(), 0)
+        solicitud.refresh_from_db()
+        self.assertFalse(solicitud.validado)
+        self.ciudadano.assert_not_called()
 
     def test_validacion_rechaza_familiares_faltantes_duplicados_o_ajenos(self):
         solicitud = self._solicitud()
@@ -405,7 +482,7 @@ class SolicitudAdolescentesTests(TestCase):
         segundo = self._adolescente(solicitud, "50000002")
         datos = self._datos_validacion([primero, segundo])
         datos["adolescentes"][0]["familiares"] = [{
-            "dni": "30000001", "sexo": "F", "id_vinculo": self.vinculo.pk,
+            "persona": self._datos_persona("30000001", "F"), "id_vinculo": self.vinculo.pk,
         }]
         self._validar(solicitud, datos)
         primero.refresh_from_db()
@@ -446,7 +523,7 @@ class SolicitudAdolescentesTests(TestCase):
         solicitud = Solicitud.objects.get(pk=response.data["id"])
         adolescentes = list(solicitud.adolescentes.order_by("id"))
         validacion = self._datos_validacion(adolescentes)
-        validacion["adolescentes"][0]["familiares"][0].update(dni="30000001", sexo="F")
+        validacion["adolescentes"][0]["familiares"][0]["persona"].update(dni="30000001", sexo="F")
         request = factory.put("/api/solicitud/solicitud/validar/", validacion, format="json")
         force_authenticate(request, user=SimpleNamespace(
             is_authenticated=True, is_superuser=True, equipo=self.entrada, equipo_id=self.entrada.pk,

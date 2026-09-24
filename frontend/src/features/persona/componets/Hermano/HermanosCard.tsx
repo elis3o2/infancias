@@ -1,4 +1,4 @@
-import type { Hermano } from "../../types"
+import type { Hermano } from "./types"
 import { TitledCard } from "@/common/components/TitleCard"
 import { HermanosList } from "./HermanosList"
 

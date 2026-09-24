@@ -5,7 +5,7 @@ import { LegajoForm } from "@/features/persona/componets/Validar/LegajoForm"
 import type { AdolescenteResp, FamiliarResp } from "@/features/api_externa/types"
 import type { AdolescenteSolicitud } from "../../../types"
 import { FamiliarRevisionCard } from "./FamiliarRevisionCard"
-import { SaludValidacionForm } from "./SaludValidacionForm"
+import { DatosSalud } from "@/features/persona/componets/DatosSalud"
 import type { AdolescenteRevision, CambioRevision, FamiliarRevision } from "./types"
 
 type Props = {
@@ -18,6 +18,7 @@ type Props = {
 }
 
 export function AdolescenteRevisionCard({ adolescente, revision, resultado, resultadosFamiliares, busquedaRealizada, onChange }: Props) {
+  const datosSalud = resultado?.persona ?? resultado?.ciudadano
   const actualizarLegajo = (cambios: { id_insert?: number | null; carpeta_id?: number | null } | null) => {
     onChange((prev) => ({ persona: prev.persona ? { ...prev.persona, legajo: cambios === null ? null : {
       id_insert: prev.persona.legajo?.id_insert ?? null, carpeta_id: prev.persona.legajo?.carpeta_id ?? null, ...cambios,
@@ -35,9 +36,7 @@ export function AdolescenteRevisionCard({ adolescente, revision, resultado, resu
         personaresp={resultado?.persona ?? null} ciudadano={resultado?.ciudadano ?? null}
         relaciones={resultado?.relaciones ?? []} solicitudes={resultado?.solicitudes ?? []}
         sinResultados={busquedaRealizada && !resultado?.persona && !resultado?.ciudadano} />
-      {revision.estado === "confirmado" && (
-        <SaludValidacionForm salud={revision.salud} onChange={(salud) => onChange({ salud })} />
-      )}
+      {datosSalud && <DatosSalud persona={datosSalud} />}
       {revision.estado === "confirmado" && resultado?.persona && !revision.legajoRegistrado && (
         <LegajoForm tieneLegajo={revision.persona?.legajo != null}
           setTieneLegajo={(valor) => actualizarLegajo(valor ? {} : null)}

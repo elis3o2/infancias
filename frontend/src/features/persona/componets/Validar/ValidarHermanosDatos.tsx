@@ -1,4 +1,5 @@
-import type { Hermano, PersonaCreate } from "../../types"
+import type { PersonaCreate } from "../../types"
+import type { Hermano } from "../Hermano/types"
 import type { Ciudadano } from "@/features/api_externa/types"
 import { Alert, Box, Button, CircularProgress, Collapse, Divider, Stack, Typography } from "@mui/material"
 import FactCheckIcon from "@mui/icons-material/FactCheck"

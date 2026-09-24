@@ -1,4 +1,4 @@
-import type { HermanoCreate } from "../../types"
+import type { HermanoCreate } from "./types"
 import { Stack, Divider, Box } from "@mui/material"
 import { HermanoList } from "./HermanoList"
 

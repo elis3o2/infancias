@@ -15,12 +15,14 @@ export function RelacionAdolescenteForm({ adolescentes, relacion, onChange }: Pr
   const [seleccionado, setSeleccionado] = useState(relacion?.id_temp ?? "")
   const [vinculo, setVinculo] = useState<Vinculo | null>(relacion?.vinculo ?? null)
   const [error, setError] = useState(false)
+  const [cargando, setCargando] = useState(true)
   const [intento, setIntento] = useState(0)
   useEffect(() => {
     let activo = true
     getVinculosAdolescentes().then((datos) => {
       if (activo) { setVinculos(datos); setError(false) }
     }).catch(() => { if (activo) setError(true) })
+      .finally(() => { if (activo) setCargando(false) })
     return () => { activo = false }
   }, [intento])
 
@@ -44,8 +46,11 @@ export function RelacionAdolescenteForm({ adolescentes, relacion, onChange }: Pr
         }}>
         {vinculos.map((item) => <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>)}
       </TextField>
-      {error && <Alert severity="error" action={<Button onClick={() => setIntento((valor) => valor + 1)}>Reintentar</Button>}>
+      {error && <Alert severity="error" action={<Button onClick={() => { setCargando(true); setIntento((valor) => valor + 1) }}>Reintentar</Button>}>
         No se pudo cargar el catálogo de vínculos entre adolescentes.
+      </Alert>}
+      {!cargando && !error && !vinculos.length && <Alert severity="warning">
+        No hay vínculos habilitados para adolescentes. Es necesario completar el catálogo antes de agregar otro adolescente.
       </Alert>}
     </Stack>
   )

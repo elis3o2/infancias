@@ -1,6 +1,4 @@
 import logging
-from datetime import date
-from email.utils import parsedate_to_datetime
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -20,7 +18,8 @@ from .models import (
 from src.apps.domicilio.services import crear_domicilio, crear_institucion
 from src.apps.domicilio.models import Institucion
 from src.apps.solicitud.models import Solicitud
-from src.apps.api_externa.services import consultar_ciudadano, consultar_hcf
+from src.apps.api_externa.services import consultar_hcf, consultar_digitalizacion
+from src.apps.api_externa.types import HCFResponse, HCFResultado
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ logger = logging.getLogger(__name__)
 MARCADOR_RECIBIDO = "A"
 MARCADOR_LOCAL = "B"
 DATOS_SALUD = (
-    "hcf", "discapacidades", "consumos_problematicos", "intentos_de_suicidio",
+    "hc", "hcf", "discapacidades", "consumos_problematicos", "intentos_de_suicidio",
     "problemas_socioambientales", "violencias",
 )
 
@@ -274,31 +273,16 @@ def _actualizar_salud(persona: Persona, datos: dict) -> None:
         persona.save(update_fields=campos)
 
 
-def _crear_persona_ciudadano(dni: str, sexo: str, salud: dict) -> Persona:
-    ciudadano = consultar_ciudadano(dni=dni, sexo=sexo)
-    if ciudadano is None:
-        raise ValidationError({
-            "ciudadano": "No se obtuvieron datos completos de Ciudadano para crear la persona."
-        })
-    if str(ciudadano.nroDocumento) != dni or ciudadano.sexo != sexo:
-        raise ValidationError({"ciudadano": "La identidad recibida no coincide con la consultada."})
-
-    try:
-        fecha_nacimiento = date.fromisoformat(ciudadano.fechaNacimiento)
-    except ValueError:
-        try:
-            fecha_nacimiento = parsedate_to_datetime(ciudadano.fechaNacimiento).date()
-        except (TypeError, ValueError, OverflowError) as exc:
-            raise ValidationError({"ciudadano": "La fecha de nacimiento recibida es inválida."}) from exc
-
-    datos_salud = {campo: False for campo in DATOS_SALUD if campo != "hcf"}
-    datos_salud.update({campo: salud[campo] for campo in DATOS_SALUD if campo in salud})
+def _crear_persona_validada(datos: dict) -> Persona:
+    """Crea con los datos recibidos por PersonaValidateSerializer, sin repetir APIs."""
+    datos_salud = {campo: False for campo in DATOS_SALUD if campo not in ("hc", "hcf")}
+    datos_salud.update({campo: datos[campo] for campo in DATOS_SALUD if campo in datos})
     return Persona.objects.create(
-        nombre=ciudadano.nombre,
-        apellido=ciudadano.apellido,
-        sexo=ciudadano.sexo,
-        dni=str(ciudadano.nroDocumento),
-        fecha_nacimiento=fecha_nacimiento,
+        nombre=datos["nombre"],
+        apellido=datos["apellido"],
+        sexo=datos["sexo"],
+        dni=datos["dni"],
+        fecha_nacimiento=datos["fecha_nacimiento"],
         legajo=None,
         **datos_salud,
     )
@@ -306,9 +290,11 @@ def _crear_persona_ciudadano(dni: str, sexo: str, salud: dict) -> Persona:
 
 @transaction.atomic
 def validar_adolescente(adolescente: Adolescente, datos: dict) -> Persona:
+    if (datos["dni"], datos["sexo"]) != (adolescente.dni, adolescente.sexo):
+        raise ValidationError({"persona": "La identidad no coincide con el adolescente de la solicitud."})
     persona = buscar_persona(dni=adolescente.dni, sexo=adolescente.sexo)
     if persona is None:
-        persona = _crear_persona_ciudadano(adolescente.dni, adolescente.sexo, datos)
+        persona = _crear_persona_validada(datos)
     else:
         _actualizar_salud(persona, datos)
 
@@ -334,19 +320,19 @@ def validar_familiar(
     if familiar.solicitud_id != familiar.adolescente.solicitud_id:
         raise ValidationError({"familiares": "La solicitud del familiar no coincide con la del adolescente."})
 
-    dni = datos["dni"]
-    sexo = datos["sexo"]
+    datos_persona = datos["persona"]
+    dni = datos_persona["dni"]
+    sexo = datos_persona["sexo"]
     vinculo = datos["vinculo"]
-    salud = datos.get("salud", {})
 
     if vinculo.adolescente:
         raise ValidationError({"vinculo": "El vínculo debe ser de tipo familiar."})
 
     persona = buscar_persona(dni=dni, sexo=sexo)
     if persona is None:
-        persona = _crear_persona_ciudadano(dni, sexo, salud)
+        persona = _crear_persona_validada(datos_persona)
     else:
-        _actualizar_salud(persona, salud)
+        _actualizar_salud(persona, datos_persona)
 
     if persona.id == adolescente.id:
         raise ValidationError({"familiares": "El adolescente no puede ser su propio familiar."})
@@ -448,11 +434,12 @@ def resolver_legajos_solicitud(personas_datos: list[tuple[Persona, dict | None]]
             persona.save(update_fields=["legajo"])
 
 
-def consultar_personas(adolescentes, familiares, *, equipo_id: int | None = None):
-    """Obtiene antecedentes visibles para el equipo que realiza la consulta."""
+
+def consultar_personas(adolescentes, familiares):
+    """Consulta antecedentes sin filtrar solicitudes por equipo y agrupa por HCF."""
 
     adolescentes_resp = [
-        consultar_adolescente(adolescente, equipo_id=equipo_id)
+        consultar_adolescente(adolescente)
         for adolescente in adolescentes
     ]
 
@@ -461,26 +448,201 @@ def consultar_personas(adolescentes, familiares, *, equipo_id: int | None = None
         for familiar in familiares
     ]
 
-    hcf_ids = {
-        hcf
-        for x in familiares_resp + adolescentes_resp
-        for hcf in (
-            (x.get("ciudadano") or {}).get("hcf"),
-            (x.get("persona") or {}).get("hcf"),
+    personas_resp = adolescentes_resp + familiares_resp
+
+    def normalizar_hc(hc):
+        if hc is None:
+            return None
+
+        hc = str(hc).strip()
+
+        return hc if hc else None
+
+    def clave_persona(dni: str | None, sexo: str | None) -> tuple[str, str | None] | None:
+        """Identifica una persona por DNI + sexo, recibidos de su contrato exacto."""
+        if dni is None:
+            return None
+
+        return (
+            str(dni).strip(),
+            str(sexo).strip().upper() if sexo else None,
         )
-        if hcf is not None
+
+    # ---------------------------------------------------------
+    # Personas originales recibidas como input
+    # ---------------------------------------------------------
+
+    personas_input = {
+        clave
+        for persona in adolescentes + familiares
+        if (clave := clave_persona(persona["dni"], persona["sexo"])) is not None
     }
 
-    hcf_resp = [
-        respuesta
-        for hcf in hcf_ids
-        if (respuesta := consultar_hcf(hcf)) is not None
-    ]
+    # ---------------------------------------------------------
+    # HC individuales encontrados en persona / ciudadano
+    #
+    # Se mantiene el orden porque primero queremos consultar
+    # el primer HC y aprovechar todos los integrantes de su HCF.
+    # ---------------------------------------------------------
+
+    hc_ids = []
+    hc_vistos = set()
+
+    for persona_resp in personas_resp:
+        for origen in ("persona", "ciudadano"):
+            datos = persona_resp.get(origen) or {}
+
+            hc = normalizar_hc(datos.get("hc"))
+
+            if hc is not None and hc not in hc_vistos:
+                hc_vistos.add(hc)
+                hc_ids.append(hc)
+
+    # ---------------------------------------------------------
+    # HC individual -> datos devueltos por consultar_hcf
+    #
+    # Ejemplo:
+    #
+    # {
+    #     "391236": HCFResultado(...),
+    #     "123456": HCFResultado(...),
+    # }
+    # ---------------------------------------------------------
+
+    resultados_por_hc: dict[str, HCFResultado] = {}
+
+    # HC individual -> HCF a la que pertenece
+    #
+    # Ejemplo:
+    #
+    # {
+    #     "391236": "1546",
+    #     "123456": "1546",
+    # }
+    #
+    hcf_por_hc: dict[str, str] = {}
+
+    # Personas encontradas dentro de las HCF pero que
+    # no fueron enviadas originalmente como input.
+    personas_hcf_adicionales: dict[str, HCFResultado] = {}
+
+    # ---------------------------------------------------------
+    # Procesar una respuesta de consultar_hcf
+    # ---------------------------------------------------------
+
+    def procesar_respuesta_hcf(respuesta: HCFResponse | None) -> None:
+        if respuesta is None:
+            return
+
+        hcf = normalizar_hc(respuesta["hcf"])
+
+        for resultado in respuesta["resultados"]:
+            hc = normalizar_hc(resultado["numeroHCI"])
+
+            if hc is None:
+                continue
+
+            # Guardamos los datos de esa persona por su HC individual.
+            resultados_por_hc[hc] = resultado
+
+            # Guardamos a qué HCF pertenece ese HC.
+            if hcf is not None:
+                hcf_por_hc[hc] = hcf
+
+            # Si esta persona no estaba entre los inputs,
+            # queda como integrante adicional de la HCF.
+            clave = clave_persona(resultado["DNI"], resultado["sexo"])
+
+            if hc not in hc_vistos and clave not in personas_input:
+                personas_hcf_adicionales[hc] = resultado
+
+    # ---------------------------------------------------------
+    # Consultar HCF
+    #
+    # Ejemplo:
+    #
+    # Inputs:
+    #   HC 100
+    #   HC 200
+    #   HC 300
+    #
+    # consultar_hcf(100) devuelve:
+    #   HCF 50
+    #   integrantes HC 100, 200 y 400
+    #
+    # Entonces:
+    #   HC 200 ya fue encontrado -> NO se consulta
+    #   HC 300 no apareció       -> consultar_hcf(300)
+    # ---------------------------------------------------------
+
+    hc_consultados = set()
+
+    for hc in hc_ids:
+
+        # Si apareció dentro de una HCF consultada anteriormente,
+        # ya tenemos sus datos.
+        if hc in resultados_por_hc:
+            continue
+
+        if hc in hc_consultados:
+            continue
+
+        hc_consultados.add(hc)
+
+        respuesta = consultar_hcf(hc)
+
+        procesar_respuesta_hcf(respuesta)
+
+    # ---------------------------------------------------------
+    # Enriquecer adolescentes y familiares
+    # ---------------------------------------------------------
+
+    for persona_resp in personas_resp:
+
+        for origen in ("persona", "ciudadano"):
+
+            datos = persona_resp.get(origen)
+
+            if not datos:
+                continue
+
+            # Acá buscamos HC INDIVIDUAL, no HCF.
+            hc = normalizar_hc(datos.get("hc"))
+
+            if hc is None:
+                continue
+
+            resultado_hc = resultados_por_hc.get(hc)
+
+            if resultado_hc is None:
+                continue
+
+            datos.update({
+                # HCF a la que pertenece la persona
+                "hcf": hcf_por_hc.get(hc),
+
+                "discapacidades":
+                    resultado_hc["flag_discapacidades"],
+
+                "consumos_problematicos":
+                    resultado_hc["flag_consumos_problematicos"],
+
+                "intentos_de_suicidio":
+                    resultado_hc["flag_intentos_de_suicidio"],
+
+                "problemas_socioambientales":
+                    resultado_hc["flag_problemas_socioambientales"],
+
+                "violencias": resultado_hc["flag_violencias"],
+            })
 
     return {
         "adolescentes": adolescentes_resp,
         "familiares": familiares_resp,
-        "hcf": hcf_resp,
+        "hcf": [
+            {**persona, "hcf": hcf_por_hc.get(hc)}
+            for hc, persona in personas_hcf_adicionales.items()
+        ],
     }
 
 
@@ -501,11 +663,17 @@ def _serializar_persona_consulta(persona: Persona | None) -> dict | None:
             if persona.legajo_id and persona.legajo.carpeta_id
             else None
         ),
+        "hc": persona.hc,
         "hcf": persona.hcf,
+        "discapacidades": persona.discapacidades,
+        "consumos_problematicos": persona.consumos_problematicos,
+        "intentos_de_suicidio": persona.intentos_de_suicidio,
+        "problemas_socioambientales": persona.problemas_socioambientales,
+        "violencias": persona.violencias,
     }
 
 
-def consultar_adolescente(data, *, equipo_id: int | None = None):
+def consultar_adolescente(data):
 
     dni = data["dni"]
     sexo = data["sexo"]
@@ -515,7 +683,7 @@ def consultar_adolescente(data, *, equipo_id: int | None = None):
     ciudadano = None
 
     if not persona:
-        ciudadano = consultar_ciudadano(dni=dni, sexo=sexo)
+        ciudadano = consultar_digitalizacion(dni=dni, sexo=sexo)
 
     relaciones = []
 
@@ -528,12 +696,11 @@ def consultar_adolescente(data, *, equipo_id: int | None = None):
         "solicitudes": consultar_solicitudes(
             persona=persona,
             dni=dni,
-            sexo=sexo,
-            equipo_id=equipo_id,
+            sexo=sexo
         ),
 
         "persona": _serializar_persona_consulta(persona),
-        "ciudadano": ciudadano.como_dict() if ciudadano is not None else None,
+        "ciudadano": ciudadano if ciudadano is not None else None,
         "relaciones": relaciones,
     }
 
@@ -574,9 +741,7 @@ def consultar_relaciones(persona):
 def consultar_solicitudes(
     persona: Persona | None,
     dni=None,
-    sexo=None,
-    *,
-    equipo_id: int | None = None,
+    sexo=None
 ):
 
     if persona is None:
@@ -586,8 +751,6 @@ def consultar_solicitudes(
         adolescentes__persona=persona,
         rechazado=False
     )
-    if equipo_id is not None:
-        solicitudes = solicitudes.filter(equipo_id=equipo_id)
 
     solicitudes = solicitudes.select_related(
         "equipo",
@@ -614,11 +777,11 @@ def consultar_familiar(data):
     ciudadano = None
 
     if not persona:
-        ciudadano = consultar_ciudadano(dni=dni, sexo=sexo)
+        ciudadano = consultar_digitalizacion(dni=dni, sexo=sexo)
 
     return {
         "id": data["id"],
         "persona": _serializar_persona_consulta(persona),
-        "ciudadano": ciudadano.como_dict() if ciudadano is not None else None,
+        "ciudadano": ciudadano if ciudadano is not None else None,
         "relaciones": consultar_relaciones(persona) if persona else [],
     }

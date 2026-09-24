@@ -7,7 +7,7 @@ import { TitledCard } from "@/common/components/TitleCard"
 import { AdolescenteList } from "../Adolescente/AdolescenteList"
 import { AdolescenteDatosCargados } from "./AdolescentaDatosCargados"
 import { ValidarCiudadano } from "./ValidarCiudadano"
-import { ciudadanoToPersona } from "../../utils"
+import { ciudadanoToPersona, personaRegistradaAFormulario } from "../../utils"
 
 
 type Props = {
@@ -23,23 +23,6 @@ type Props = {
   sinResultados: boolean
 }
 
-const personaRegistradaAForm = (persona: PersonaResp): PersonaCreate => ({
-  nombre: persona.nombre,
-  apellido: persona.apellido,
-  dni: persona.dni,
-  sexo: persona.sexo,
-  fecha_nacimiento: persona.fecha_nacimiento,
-  telefono: null,
-  domicilio: null,
-  vinculo: null,
-  legajo: persona.legajo !== null || persona.carpeta !== null
-    ? {
-        id_insert: persona.legajo,
-        carpeta_id: persona.carpeta,
-      }
-    : null,
-})
-
 export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, setPersona,
   personaresp, ciudadano, relaciones, solicitudes, sinResultados, }: Props) => {
 
@@ -48,7 +31,7 @@ export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, se
 
     // The operator may have added a legajo/carpeta before confirming. Keep
     // that draft instead of recreating it from the RENAPER response.
-    setPersona(persona ?? ciudadanoToPersona(ciudadano))
+    setPersona({ ...ciudadanoToPersona(ciudadano), legajo: persona?.legajo ?? null })
 
     setEstado("confirmado")
   }
@@ -56,7 +39,7 @@ export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, se
   const confirmarDatosInternos = () => {
     if (!personaresp) return
 
-    const datos = personaRegistradaAForm(personaresp)
+    const datos = personaRegistradaAFormulario(personaresp)
     setPersona({ ...datos, legajo: persona?.legajo ?? datos.legajo })
     setEstado("confirmado")
   }

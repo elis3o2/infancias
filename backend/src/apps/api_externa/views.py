@@ -17,14 +17,15 @@ from .serializers import (
 )
 
 from .services import (
+    buscar_features_geo,
+    consultar_ciudadano,
+    obtener_direccion_geo,
+    obtener_latitud_longitud_geo,
+)
+from .types import (
     RecursoExternoNoEncontrado,
     ServicioExternoError,
     ServicioExternoNoConfigurado,
-    buscar_features_geo,
-    consultar_ciudadano,
-    consultar_historia_clinica,
-    obtener_direccion_geo,
-    obtener_latitud_longitud_geo,
 )
 
 
@@ -59,24 +60,6 @@ class CiudadanoAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         return Response(ciudadano.como_dict(), status=status.HTTP_200_OK)
-
-
-class HistoriaClinicaAPIView(APIView):
-    permission_classes = [IsOperationalUser]
-
-    def get(self, request: Request, *args: object, **kwargs: object) -> Response:
-        serializer = ConsultaPersonaExternaSerializer(data=request.query_params)
-        serializer.is_valid(raise_exception=True)
-        try:
-            resultado = consultar_historia_clinica(**serializer.validated_data)
-        except RecursoExternoNoEncontrado:
-            return Response(
-                {"detail": "No se encontraron antecedentes para la persona."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        except ServicioExternoError as exc:
-            return _respuesta_error_servicio(exc)
-        return Response(resultado, status=status.HTTP_200_OK)
 
 
 class GeoDataViewSet(ViewSet):

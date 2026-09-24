@@ -7,7 +7,7 @@ import type { FamiliarResp, PersonaResp } from "@/features/api_externa/types"
 import type { DomicilioFormData } from "@/features/domicilio/types"
 import { FamiliarList } from "../Familiar/FamiliarList"
 import { CiudadanoList } from "./CiudadanoList"
-import { ciudadanoToPersona } from "../../utils"
+import { ciudadanoToPersona, personaRegistradaAFormulario as personaRegistrada } from "../../utils"
 import { DatosPersonaEncontrada } from "./DatosPersonaEncontrada"
 import { AccionesValidacion } from "./AccionesValidacion"
 
@@ -39,11 +39,7 @@ const personaRegistradaAFormulario = (
   persona: PersonaResp,
   familiar: Familiar,
 ): PersonaCreate => ({
-  nombre: persona.nombre,
-  apellido: persona.apellido,
-  dni: persona.dni,
-  sexo: persona.sexo,
-  fecha_nacimiento: persona.fecha_nacimiento,
+  ...personaRegistrada(persona),
   telefono: familiar.telefono,
   domicilio: domicilioAFormulario(familiar.domicilio),
   vinculo: familiar.vinculo,

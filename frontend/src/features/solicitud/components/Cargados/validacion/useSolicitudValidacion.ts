@@ -15,8 +15,8 @@ export function useSolicitudValidacion(solicitud: SolicitudCrud) {
   const navigate = useNavigate()
   const [revisiones, setRevisiones] = useState<Revisiones>(() => Object.fromEntries(
     solicitud.adolescentes.map((adolescente) => [adolescente.id, {
-      estado: null, persona: null, legajoRegistrado: false, salud: {},
-      familiares: familiaresDelAdolescente(adolescente, solicitud.familiares).map((original) => ({ original, estado: null, persona: null, salud: {} })),
+      estado: null, persona: null, legajoRegistrado: false,
+      familiares: familiaresDelAdolescente(adolescente, solicitud.familiares).map((original) => ({ original, estado: null, persona: null })),
     }]),
   ))
   const [descripcion, setDescripcion] = useState("")
@@ -38,7 +38,7 @@ export function useSolicitudValidacion(solicitud: SolicitudCrud) {
       setAlerta({ mensaje: "Esta persona ya está asociada a ese adolescente o es el mismo adolescente.", severity: "warning" })
       return false
     }
-    actualizar(id, { familiares: [...revision.familiares, { original: null, estado: "confirmado", persona, salud: {} }] })
+    actualizar(id, { familiares: [...revision.familiares, { original: null, estado: "confirmado", persona }] })
     return true
   }
 

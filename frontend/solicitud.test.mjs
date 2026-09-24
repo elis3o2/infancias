@@ -5,11 +5,15 @@ import { mkdtemp, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { createServer } from "vite"
+import react from "@vitejs/plugin-react"
+import { createElement } from "react"
+import { renderToStaticMarkup } from "react-dom/server"
 
 const root = fileURLToPath(new URL(".", import.meta.url))
 const cacheDir = await mkdtemp(join(tmpdir(), "infancias-solicitud-test-"))
 const server = await createServer({
   configFile: false, root, cacheDir, logLevel: "silent",
+  plugins: [react()],
   resolve: { alias: { "@": `${root}src` } },
   server: { middlewareMode: true, hmr: false, watch: null },
 })
@@ -21,6 +25,9 @@ const { prepararAdolescentes, prepararInstitucion } = await server.ssrLoadModule
 const { agruparReferencias, guardarReferencia, quitarReferencia } = await server.ssrLoadModule("/src/pages/CreatePage/referencias.ts")
 const { crearIdTemporal } = await server.ssrLoadModule("/src/pages/CreatePage/formTypes.ts")
 const { crearPayloadValidacion } = await server.ssrLoadModule("/src/features/solicitud/components/Cargados/validacion/payload.ts")
+const { ciudadanoToPersona, personaRegistradaAFormulario } = await server.ssrLoadModule("/src/features/persona/utils.ts")
+const { DatosSalud } = await server.ssrLoadModule("/src/features/persona/componets/DatosSalud.tsx")
+const { HistoriaClinicaCard } = await server.ssrLoadModule("/src/features/solicitud/components/Cargados/validacion/HistoriaClinicaCard.tsx")
 
 const domicilio = { nombre: "Domicilio de prueba", id_departamento: 1, observaciones: null, domicilio_validado: null }
 const institucion = {
@@ -165,13 +172,14 @@ function personaRevision(dni) {
     nombre: "Persona", apellido: "Prueba", dni, sexo: "F", fecha_nacimiento: "2001-01-01",
     telefono: null, domicilio: null, vinculo: { id: 3, nombre: "Referente" },
     legajo: { id_insert: 100, carpeta_id: 50 },
+    hc: 100, hcf: 8, discapacidades: true, consumos_problematicos: false,
+    intentos_de_suicidio: false, problemas_socioambientales: true, violencias: false,
   }
 }
 
 function familiarRevision(dni, id = null) {
   return {
     original: id ? { id } : null, estado: "confirmado", persona: personaRevision(dni),
-    salud: { violencias: false },
   }
 }
 
@@ -179,20 +187,20 @@ function casoValidacion() {
   return {
     solicitud: { adolescentes: [{ id: 1, nombre: "Adolescente", apellido: "Uno" }, { id: 2, nombre: "Adolescente", apellido: "Dos" }] },
     revisiones: {
-      1: { estado: "confirmado", persona: personaRevision("40000001"), legajoRegistrado: true, salud: { hcf: 8 }, familiares: [familiarRevision("30000001", 5)] },
-      2: { estado: "confirmado", persona: personaRevision("40000002"), legajoRegistrado: false, salud: {}, familiares: [familiarRevision("30000001")] },
+      1: { estado: "confirmado", persona: personaRevision("40000001"), legajoRegistrado: true, familiares: [familiarRevision("30000001", 5)] },
+      2: { estado: "confirmado", persona: personaRevision("40000002"), legajoRegistrado: false, familiares: [familiarRevision("30000001")] },
     },
   }
 }
 
-test("validación conserva familiares por adolescente, salud y legajos sin enviar datos de identidad redundantes", () => {
+test("validación envía la persona completa de cada adolescente y familiar, sin salud duplicada", () => {
   const { solicitud, revisiones } = casoValidacion()
   const original = structuredClone(revisiones)
   const payload = crearPayloadValidacion(solicitud, revisiones, " Prueba ")
   assert.deepEqual(revisiones, original)
   assert.equal(payload.descripcion_extra, "Prueba")
   assert.deepEqual(Object.keys(payload).sort(), ["adolescentes", "descripcion_extra"])
-  assert.deepEqual(Object.keys(payload.adolescentes[0]).sort(), ["familiares", "id", "legajo", "salud"])
+  assert.deepEqual(Object.keys(payload.adolescentes[0]).sort(), ["familiares", "id", "legajo", "persona"])
   assert.equal(payload.adolescentes[0].familiares[0].id, 5)
   assert.equal("id" in payload.adolescentes[1].familiares[0], false)
   assert.equal(payload.adolescentes[0].legajo, null)
@@ -200,8 +208,71 @@ test("validación conserva familiares por adolescente, salud y legajos sin envia
   assert.equal(payload.adolescentes[0].familiares[0].id_vinculo, 3)
   assert.equal("legajo" in payload.adolescentes[0].familiares[0], false)
   assert.equal("nombre" in payload.adolescentes[0].familiares[0], false)
-  assert.deepEqual(payload.adolescentes[0].salud, { hcf: 8 })
-  assert.equal(payload.adolescentes[0].familiares[0].salud.violencias, false)
+  assert.deepEqual(payload.adolescentes[0].persona, {
+    nombre: "Persona", apellido: "Prueba", dni: "40000001", sexo: "F", fecha_nacimiento: "2001-01-01",
+    hc: 100, hcf: 8, discapacidades: true, consumos_problematicos: false,
+    intentos_de_suicidio: false, problemas_socioambientales: true, violencias: false,
+  })
+  assert.deepEqual(payload.adolescentes[0].familiares[0].persona, {
+    ...payload.adolescentes[0].persona, dni: "30000001",
+  })
+  assert.equal("salud" in payload.adolescentes[0].familiares[0], false)
+  assert.equal("dni" in payload.adolescentes[0].familiares[0], false)
+})
+
+test("conserva HC, HCF y los cinco indicadores desde las dos fuentes de personas", () => {
+  const salud = { hc: "100", hcf: "8", discapacidades: 1, consumos_problematicos: 0,
+    intentos_de_suicidio: 0, problemas_socioambientales: 1, violencias: 0 }
+  const ciudadano = ciudadanoToPersona({ ...salud, nombre: "Persona", apellido: "Prueba",
+    nroDocumento: 40000001, sexo: "F", fechaNacimiento: "Mon, 01 Jan 2001 00:00:00 GMT" })
+  const registrada = personaRegistradaAFormulario({ ...salud, nombre: "Persona", apellido: "Prueba",
+    dni: "40000001", sexo: "F", fecha_nacimiento: "2001-01-01", legajo: null, carpeta: null })
+  assert.deepEqual({ ...ciudadano, fecha_nacimiento: registrada.fecha_nacimiento }, registrada)
+  const { solicitud, revisiones } = casoValidacion()
+  revisiones[1].persona = ciudadano
+  assert.equal(crearPayloadValidacion(solicitud, revisiones, "").adolescentes[0].persona.fecha_nacimiento, "2001-01-01")
+  assert.equal(ciudadano.discapacidades, true)
+  assert.equal(ciudadano.violencias, false)
+})
+
+test("salud se muestra completa como texto, sin controles editables", () => {
+  const html = renderToStaticMarkup(createElement(DatosSalud, { persona: personaRevision("40000001") }))
+  for (const etiqueta of ["Historia clínica individual (HC)", "Historia clínica familiar (HCF)", "Discapacidades",
+    "Consumos problemáticos", "Intentos de suicidio", "Problemas socioambientales", "Violencias"]) {
+    assert.ok(html.includes(etiqueta), etiqueta)
+  }
+  assert.match(html, /Solo lectura/)
+  assert.doesNotMatch(html, /<(input|select|textarea|button)\b/)
+  assert.match(html, />Sí</)
+  assert.match(html, />No</)
+  const vacio = renderToStaticMarkup(createElement(DatosSalud, { persona: {} }))
+  assert.equal(vacio.match(/Sin informar/g).length, 7)
+})
+
+test("no inventa indicadores de salud ausentes y rechaza identidad incompleta", () => {
+  const { solicitud, revisiones } = casoValidacion()
+  revisiones[1].persona = ciudadanoToPersona({ nombre: "Persona", apellido: "Prueba", nroDocumento: 40000001,
+    sexo: "F", fechaNacimiento: "2001-01-01", hc: null })
+  const persona = crearPayloadValidacion(solicitud, revisiones, "").adolescentes[0].persona
+  assert.equal(persona.hc, null)
+  assert.equal(persona.hcf, null)
+  assert.equal("discapacidades" in persona, false)
+  revisiones[1].persona.fecha_nacimiento = "inválida"
+  assert.throws(() => crearPayloadValidacion(solicitud, revisiones, ""), /fecha de nacimiento/)
+})
+
+test("muestra identidad y salud de los integrantes adicionales de HCF con el contrato exacto", () => {
+  const html = renderToStaticMarkup(createElement(HistoriaClinicaCard, { respuestas: [{
+    idPersona: 20, nombre: "Integrante", apellido: "Prueba", DNI: "30000001", sexo: "F",
+    numeroHCI: 200, hcf: "50", fechaNacimiento: "1980-01-01", flag_discapacidades: 1,
+    flag_consumos_problematicos: 0, flag_intentos_de_suicidio: 0,
+    flag_problemas_socioambientales: 1, flag_violencias: 0,
+  }] }))
+  assert.match(html, /30000001/)
+  assert.match(html, />200</)
+  assert.match(html, />50</)
+  assert.match(html, /Violencias/)
+  assert.doesNotMatch(html, /Sin informar|<(input|select|textarea|button)\b/)
 })
 
 test("validación permite compartir familiar entre adolescentes pero rechaza duplicados dentro de un grupo", () => {

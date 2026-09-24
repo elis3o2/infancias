@@ -1,5 +1,5 @@
 import http from '@/common/api/client'
-import type { Departamento, Institucion, Provincia, Referencia, TipoInstitucion } from './types'
+import type { Departamento, Institucion, Provincia, TipoInstitucion } from './types'
 
 
 

@@ -16,7 +16,7 @@ export const getCiudadanoData = (
 ): Promise<RespCiudadano> => {
 
     return http.get<RespCiudadano>(
-        "externa/ciudadano/",
+        "persona/ciudadano/",
         {
             params: {
                 adolescentes: JSON.stringify(adolescentes),

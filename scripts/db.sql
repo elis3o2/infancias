@@ -129,6 +129,7 @@ CREATE TABLE IF NOT EXISTS persona (
     apellido VARCHAR(32) NOT NULL,
     fecha_nacimiento DATE NOT NULL,
     id_legajo INT NULL,
+    hc INT NULL,
     hcf INT NULL,
     discapacidades BOOLEAN NOT NULL DEFAULT false,
     consumos_problematicos BOOLEAN NOT NULL DEFAULT false,
@@ -154,9 +155,9 @@ CREATE TABLE IF NOT EXISTS relacion (
     FOREIGN KEY (id_persona_1) REFERENCES persona(id),
     FOREIGN KEY (id_persona_2) REFERENCES persona(id),
     FOREIGN KEY (id_vinculo) REFERENCES vinculo (id),
-    CONSTRAINT relacion_adolescente_unica
+    CONSTRAINT relacion_personas_unica
         UNIQUE (id_persona_1, id_persona_2, id_vinculo),
-    CONSTRAINT relacion_adolescente_distintos
+    CONSTRAINT relacion_personas_distintas
         CHECK (id_persona_1 <> id_persona_2)
 );
 
@@ -285,10 +286,11 @@ CREATE TABLE  IF NOT EXISTS archivo (
 
 CREATE TABLE IF NOT EXISTS adolescente_institucion (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_adolescente INT NULL,
+    id_adolescente INT NOT NULL,
     id_institucion INT NOT NULL,
     FOREIGN KEY (id_adolescente) REFERENCES adolescente(id),
-    FOREIGN KEY (id_institucion) REFERENCES institucion(id)
+    FOREIGN KEY (id_institucion) REFERENCES institucion(id),
+    CONSTRAINT adolescente_institucion_unica UNIQUE (id_adolescente, id_institucion)
 );
 
 

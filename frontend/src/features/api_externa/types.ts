@@ -1,3 +1,4 @@
+import type { SaludConsulta } from "../persona/salud"
 
 export type APIGeo1 = {
     altura: number | null 
@@ -46,17 +47,16 @@ export type Geolocalizacion = {
 }
 
 
-export type Ciudadano = {
+export type Ciudadano = SaludConsulta & {
     nombre: string
     apellido: string
-    departamento: string
-    localidad: string
-    domicilio: string
+    departamento?: string
+    localidad?: string
+    domicilio?: string
     fechaNacimiento: string
-    fallecido: string
+    fallecido?: string
     sexo: "M" | "F"
-    nroDocumento: string
-    hcf: number | null
+    nroDocumento: string | number
 }
 
 
@@ -67,7 +67,7 @@ export type Salud = {
 }
 
 
-export type PersonaResp = {
+export type PersonaResp = SaludConsulta & {
     nombre: string
     apellido: string
     sexo: "M" | "F"
@@ -75,8 +75,25 @@ export type PersonaResp = {
     dni: string
     legajo: number | null
     carpeta: number | null
-    hcf: number | null
 }
+
+export type HCFResultado = {
+    idPersona: number
+    DNI: string
+    numeroHCI: number
+    apellido: string
+    nombre: string
+    sexo: "M" | "F"
+    fechaNacimiento: string
+    flag_discapacidades: 0 | 1
+    flag_consumos_problematicos: 0 | 1
+    flag_intentos_de_suicidio: 0 | 1
+    flag_problemas_socioambientales: 0 | 1
+    flag_violencias: 0 | 1
+}
+
+/** Miembro adicional con la HCF resuelta durante la consulta de personas. */
+export type PersonaHistoriaFamiliar = HCFResultado & { hcf: string | null }
 
 
 export type RelacionResp = {
@@ -121,5 +138,5 @@ export type FamiliarResp = {
 export type RespCiudadano = {
     adolescentes: AdolescenteResp[]
     familiares: FamiliarResp[]
-    hcf: unknown[]
+    hcf: PersonaHistoriaFamiliar[]
 }

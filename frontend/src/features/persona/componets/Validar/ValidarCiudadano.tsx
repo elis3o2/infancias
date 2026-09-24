@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Box, Stack, Typography } from "@mui/material"
+import { Stack } from "@mui/material"
 import type { PersonaCreate } from "../../types"
 import type { Ciudadano } from "@/features/api_externa/types"
 import { TitledCard } from "@/common/components/TitleCard"
@@ -51,21 +51,6 @@ export const ValidarCiudadano = ({ ciudadano, persona, setPersona }: Props) => {
       componente={
         <Stack spacing={2}>
           <CiudadanoList ciudadano={ciudadano} />
-
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
-              gap: 1,
-            }}
-          >
-            <Box sx={{ p: 1.25, borderRadius: 2, bgcolor: "action.hover" }}>
-              <Typography variant="caption" color="text.secondary">
-                Historia clínica familiar
-              </Typography>
-              <Typography sx={{ fontWeight: 700 }}>{ciudadano.hcf ?? "—"}</Typography>
-            </Box>
-          </Box>
 
           <LegajoForm
             legajo={persona.legajo?.id_insert ?? null}

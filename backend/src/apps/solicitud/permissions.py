@@ -20,6 +20,9 @@ class SolicitudPermission(BasePermission):
         es_admision = usuario_tiene_rol(request.user, "admision")
         es_territorial = usuario_tiene_rol(request.user, "territorial")
 
+        if view.action in {"comentar", "editar_comentario"}:
+            return es_admision
+
         # Entrada puede leer, modificar, validar y rechazar
         if es_entrada:
             return view.action in [
@@ -27,7 +30,6 @@ class SolicitudPermission(BasePermission):
                 "retrieve",
                 "validar",
                 "rechazar",
-                "comentar",
                 "sin_validar",
                 "validados",
                 "rechazados",
@@ -40,7 +42,6 @@ class SolicitudPermission(BasePermission):
                 "list",
                 "retrieve",
                 "validados",
-                "comentar",
             ]
             if es_admision:
                 acciones.append("derivar")

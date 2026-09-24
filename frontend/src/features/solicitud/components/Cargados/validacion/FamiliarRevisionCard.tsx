@@ -8,7 +8,7 @@ import { VinculoForm } from "@/features/persona/componets/VinculoForm"
 import { getCiudadanoData } from "@/features/api_externa/api"
 import type { FamiliarResp } from "@/features/api_externa/types"
 import { ContactoFamiliar } from "./ContactoFamiliar"
-import { SaludValidacionForm } from "./SaludValidacionForm"
+import { DatosSalud } from "@/features/persona/componets/DatosSalud"
 import type { FamiliarRevision } from "./types"
 
 type Props = {
@@ -20,7 +20,7 @@ type Props = {
 }
 
 export function FamiliarRevisionCard({ revision, resultado, busquedaRealizada, onChange, onEliminar }: Props) {
-  const { original, persona, salud } = revision
+  const { original, persona } = revision
   const [dni, setDni] = useState(original?.dni ?? "")
   const [sexo, setSexo] = useState<"M" | "F" | "">(original?.sexo ?? "")
   const [respuesta, setRespuesta] = useState<FamiliarResp | null>(null)
@@ -29,6 +29,8 @@ export function FamiliarRevisionCard({ revision, resultado, busquedaRealizada, o
   const [error, setError] = useState("")
   const identidadIncompleta = original && (!original.dni || !original.sexo)
   const familiar = original ? { ...original, dni: dni || null, sexo: sexo || null } : null
+  const consulta = identidadIncompleta ? respuesta : resultado
+  const datosSalud = consulta?.persona ?? consulta?.ciudadano ?? persona
 
   async function buscar() {
     if (!original || !sexo || !/^\d{7,9}$/.test(dni)) return
@@ -66,7 +68,7 @@ export function FamiliarRevisionCard({ revision, resultado, busquedaRealizada, o
       {familiar ? (
         <ValidarFamiliarDatos familiar={familiar} estado={revision.estado}
           setEstado={(estado) => onChange({ estado })} setPersona={(nuevaPersona) => onChange({ persona: nuevaPersona })}
-          resultado={identidadIncompleta ? respuesta : resultado}
+          resultado={consulta}
           busquedaRealizada={identidadIncompleta ? consultado : busquedaRealizada} />
       ) : persona && (
         <Stack spacing={1}>
@@ -75,13 +77,13 @@ export function FamiliarRevisionCard({ revision, resultado, busquedaRealizada, o
           <Button color="error" onClick={onEliminar} sx={{ alignSelf: "flex-start" }}>Quitar familiar</Button>
         </Stack>
       )}
+      {datosSalud && <DatosSalud persona={datosSalud} />}
       {revision.estado === "confirmado" && persona && (
         <Stack spacing={2}>
           <VinculoForm vinculoSeleccionado={persona.vinculo}
             setVinculoSeleccionado={(vinculo) => onChange({ persona: { ...persona, vinculo, id_vinculo: vinculo?.id } })} />
           {!persona.vinculo && <Alert severity="warning">Elegí el vínculo con este adolescente para continuar.</Alert>}
           <ContactoFamiliar persona={persona} familiar={original} onChange={(datos) => onChange({ persona: datos })} />
-          <SaludValidacionForm salud={salud} onChange={(datos) => onChange({ salud: datos })} />
         </Stack>
       )}
     </Stack>

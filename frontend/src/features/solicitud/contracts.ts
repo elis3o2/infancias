@@ -1,5 +1,6 @@
 import type { DomicilioInput, InstitucionInput } from "../domicilio/types"
 import type { AdolescenteInput } from "../persona/types"
+import type { DatosSalud } from "../persona/salud"
 
 export type AdolescenteSolicitudInput = AdolescenteInput
 
@@ -10,13 +11,12 @@ export type InstitucionSolicitudInput = (
 
 
 
-export type SaludDatosInput = {
-  hcf?: number | null
-  discapacidades?: boolean
-  consumos_problematicos?: boolean
-  intentos_de_suicidio?: boolean
-  problemas_socioambientales?: boolean
-  violencias?: boolean
+export type PersonaValidacionInput = DatosSalud & {
+  nombre: string
+  apellido: string
+  dni: string
+  sexo: "M" | "F"
+  fecha_nacimiento: string
 }
 
 export type LegajoValidacionInput = {
@@ -27,17 +27,15 @@ export type LegajoValidacionInput = {
 
 export type FamiliarValidacionInput = {
   id?: number
-  dni: string
-  sexo: "M" | "F"
+  persona: PersonaValidacionInput
   id_vinculo: number
   telefono?: string | null
   domicilio?: DomicilioInput | null
-  salud?: SaludDatosInput
 }
 
 export type AdolescenteValidacionInput = {
   id: number
-  salud: SaludDatosInput
+  persona: PersonaValidacionInput
   familiares: FamiliarValidacionInput[]
   legajo?: LegajoValidacionInput | null
 }

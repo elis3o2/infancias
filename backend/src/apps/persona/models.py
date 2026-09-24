@@ -33,6 +33,7 @@ class Persona(models.Model):
     fecha_nacimiento = models.DateField()
     legajo = models.ForeignKey(
         Legajo, models.DO_NOTHING, db_column="id_legajo", null=True, blank=True)
+    hc = models.IntegerField(blank=True, null=True)
     hcf = models.IntegerField(blank=True, null=True)
     discapacidades = models.BooleanField()
     consumos_problematicos = models.BooleanField()
@@ -184,3 +185,9 @@ class AdolescenteInstitucion(models.Model):
     class Meta:
         managed = False
         db_table = "adolescente_institucion"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["adolescente", "institucion"],
+                name="adolescente_institucion_unica",
+            ),
+        ]
