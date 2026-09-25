@@ -55,15 +55,15 @@ export const SolicitudValidar = ({ solicitud }: { solicitud: SolicitudCrud }) =>
       <ArchivoVistaCard archivos={solicitud.archivos} />
 
       <Alert severity="info">
-        Todos los adolescentes deben compartir carpeta. Si ya tienen carpetas distintas, se detendrá
+        Todos los niños, niñas o adolescentes deben compartir carpeta. Si ya tienen carpetas distintas, se detendrá
         la validación y se informará el conflicto.
       </Alert>
       {validacion.familiaresSinAdolescente.length > 0 && <Alert severity="warning">
-        Esta solicitud tiene familiares anteriores sin adolescente asociado. Es necesario asociarlos
+        Esta solicitud tiene familiares anteriores sin niño, niña o adolescente asociado. Es necesario asociarlos
         antes de confirmar la solicitud: {validacion.familiaresSinAdolescente.map((familiar) => `${familiar.nombre} ${familiar.apellido}`).join(", ")}.
       </Alert>}
       {validacion.hayRechazados && <Alert severity="warning">
-        Para aceptar deben estar confirmados todos los adolescentes y sus familiares. Revisá los datos
+        Para aceptar deben estar confirmados todos los niños, niñas o adolescentes y sus familiares. Revisá los datos
         rechazados o rechazá la solicitud completa.
       </Alert>}
       <AceptarButtons disabledConfirmar={!validacion.puedeAceptar} disabledRechazar={buscando}

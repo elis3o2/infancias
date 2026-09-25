@@ -230,7 +230,7 @@ def rechazar_solicitud(solicitud, motivo: str):
 
 @transaction.atomic
 def derivar_solicitud(solicitud: Solicitud, equipo_id: str) -> Solicitud:
-    
+    solicitud = Solicitud.objects.select_for_update().get(pk=solicitud.pk)
     if not solicitud.validado:
         raise ValidationError({
             "error": "Una solicitud debe estar validadada para ser derivada."

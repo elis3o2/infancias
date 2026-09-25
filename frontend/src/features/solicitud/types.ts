@@ -115,6 +115,7 @@ export type Solicitud = SolicitudDetalleBase & {
   motivo_rechazo?: null
   comentarios: SolicitudComentario[]
   puede_comentar: boolean
+  puede_agregar_personas: boolean
 }
 
 export type SolicitudRechazada = SolicitudDetalleBase & {

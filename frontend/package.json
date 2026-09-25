@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:solicitud": "node solicitud.test.mjs",
+    "test:comentarios": "node comentarios.test.mjs",
+    "test:admision": "node admision.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

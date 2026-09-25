@@ -12,15 +12,18 @@ import EquipoSelect from "../EquipoForm"
 import { DescripcionCard } from "../SolicitudSection/DescripcionCard"
 import { SolicitudPersonasDetalle } from "./SolicitudPersonasDetalle"
 import { ComentariosSolicitud } from "./ComentariosSolicitud"
+import { PersonasAdmision } from "./PersonasAdmision"
 
 type Props = {
   solicitud: Solicitud
+  onActualizar: (solicitud: Solicitud) => void
 }
 
-export const SolicitudValidada = ({ solicitud }: Props) => {
+export const SolicitudValidada = ({ solicitud, onActualizar }: Props) => {
   const navigate = useNavigate()
   const [equipoId, setEquipoId] = useState<number | null>(null)
   const [derivando, setDerivando] = useState(false)
+  const [agregandoPersona, setAgregandoPersona] = useState(false)
   const [alertOpen, setAlertOpen] = useState(false)
   const [alertMessage, setAlertMessage] = useState("")
   const [alertSeverity, setAlertSeverity] = useState<AlertSeverity>("success")
@@ -32,7 +35,7 @@ export const SolicitudValidada = ({ solicitud }: Props) => {
   }
 
   const handleDerivar = async () => {
-    if (equipoId === null || derivando) return
+    if (equipoId === null || derivando || agregandoPersona) return
 
     try {
       setDerivando(true)
@@ -52,6 +55,8 @@ export const SolicitudValidada = ({ solicitud }: Props) => {
     <Stack spacing={{ xs: 2, sm: 3 }}>
       <ContactoCard telefono={solicitud.telefono} correo={solicitud.correo} />
       <SolicitudPersonasDetalle solicitud={solicitud} />
+      <PersonasAdmision solicitud={solicitud} bloqueado={derivando}
+        onActualizar={onActualizar} onGuardando={setAgregandoPersona} />
 
       <DescripcionCard nombre="Descripción" texto={solicitud.descripcion} />
 
@@ -70,7 +75,7 @@ export const SolicitudValidada = ({ solicitud }: Props) => {
           <Button
             variant="contained"
             onClick={handleDerivar}
-            disabled={equipoId === null || derivando}
+            disabled={equipoId === null || derivando || agregandoPersona}
           >
             {derivando ? "Derivando..." : "Derivar"}
           </Button>

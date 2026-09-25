@@ -32,7 +32,7 @@ export const Header = () => {
               lineHeight: 1.2,
             }}
           >
-            Secretaría de Salud Pública
+            Servicio Local de Promoción y Protección de Derechos de Niñas, Niños y Adolescentes
           </Typography>
 
           <Typography

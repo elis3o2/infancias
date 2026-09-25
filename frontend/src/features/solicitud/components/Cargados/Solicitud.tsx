@@ -185,7 +185,7 @@ const SolicitudDetalleVista = ({ id }: { id: number }) => {
           </>
         )}
 
-        {solicitud.validado && <SolicitudValidada solicitud={solicitud} />}
+        {solicitud.validado && <SolicitudValidada solicitud={solicitud} onActualizar={setSolicitud} />}
         {solicitud.rechazado && <SolicitudRechazadaComponent solicitud={solicitud} />}
       </Stack>
     </Container>

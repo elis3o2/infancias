@@ -13,6 +13,8 @@ from .serializers import (MotivoSolicitudSerializer, ArchivoSerializer,
                         SolicitudListSerializer, SolicitudCreateSerializer, SolicitudReadSerializer, SolicitudValReadSerializer, SolicitudValidateSerializer)
 from .serializers import SolicitudComentarioSerializer
 from .comentarios import crear_comentario, editar_comentario
+from .admision import agregar_adolescente, agregar_familiar
+from .admision_serializers import AdolescenteAdmisionSerializer, FamiliarAdmisionSerializer
 from .permissions import SolicitudPermission
 from .services import crear_solicitud, validar_solicitud, derivar_solicitud, rechazar_solicitud
 from src.permissions import IsOperationalUser, ReadOnly
@@ -288,6 +290,28 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         derivar_solicitud(solicitud=solicitud, equipo_id=equipo_id)
         return Response(status=status.HTTP_200_OK)
     
+    @action(detail=True, methods=["post"], url_path="familiares")
+    def agregar_familiar(self, request, pk=None):
+        solicitud = self.get_object()
+        serializer = FamiliarAdmisionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        solicitud = agregar_familiar(solicitud, request.user, serializer.validated_data)
+        return Response(
+            SolicitudValReadSerializer(solicitud, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(detail=True, methods=["post"], url_path="adolescentes")
+    def agregar_adolescente(self, request, pk=None):
+        solicitud = self.get_object()
+        serializer = AdolescenteAdmisionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        solicitud = agregar_adolescente(solicitud, request.user, serializer.validated_data)
+        return Response(
+            SolicitudValReadSerializer(solicitud, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
     @action(detail=True, methods=["post"])
     def comentar(self, request, pk=None):
         solicitud = self.get_object()

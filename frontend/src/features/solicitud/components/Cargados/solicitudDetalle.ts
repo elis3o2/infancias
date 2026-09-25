@@ -1,6 +1,11 @@
 import type { Familiar } from "@/features/persona/types"
 import type { AdolescenteSolicitud, SolicitudDetalle } from "../../types"
 
+export const nombreDelAdolescente = (adolescente: AdolescenteSolicitud): string => {
+  const identidad = adolescente.persona ?? adolescente
+  return `${identidad.nombre} ${identidad.apellido}`.trim()
+}
+
 export const familiaresDelAdolescente = (
   adolescente: AdolescenteSolicitud,
   familiaresSolicitud: Familiar[] = [],

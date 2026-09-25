@@ -1,6 +1,7 @@
 import { Chip, Stack, Typography } from "@mui/material"
 import { TitledCard } from "@/common/components/TitleCard"
 import type { SolicitudDetalle } from "../../types"
+import { nombreDelAdolescente } from "./solicitudDetalle"
 
 type Props = Pick<SolicitudDetalle, "adolescentes" | "relaciones_adolescentes">
 
@@ -9,7 +10,7 @@ export const RelacionesAdolescentesCard = ({ adolescentes, relaciones_adolescent
 
   const nombre = (id: number) => {
     const adolescente = (adolescentes ?? []).find((item) => item.id === id)
-    return adolescente ? `${adolescente.nombre} ${adolescente.apellido}` : `Adolescente #${id}`
+    return adolescente ? nombreDelAdolescente(adolescente) : `Adolescente #${id}`
   }
 
   return (

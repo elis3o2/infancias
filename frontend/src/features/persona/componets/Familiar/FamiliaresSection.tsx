@@ -29,7 +29,7 @@ export function FamiliaresSection({ adolescentes, setAdolescentes, editando, set
       return
     }
     if (familiar.dni === adolescente.datos.dni && familiar.sexo === adolescente.datos.sexo) {
-      setError("El adolescente no puede ser su propio familiar.")
+      setError("El niño, niña o adolescente no puede ser su propio familiar.")
       return
     }
     setAdolescentes((items) => items.map((item) => item.id_temp === seleccionado
@@ -60,10 +60,10 @@ export function FamiliaresSection({ adolescentes, setAdolescentes, editando, set
           </Stack>)}
         <Divider />
       </Stack>)}
-      {!adolescentes.length && <Alert severity="info">Agregá un adolescente antes de cargar sus familiares.</Alert>}
+      {!adolescentes.length && <Alert severity="info">Agregá un niña, niño o adolescente antes de cargar sus familiares.</Alert>}
         {error && <Alert severity="error">{error}</Alert>}
       {editando ? <>
-        <TextField select required fullWidth label="Adolescente con quien tiene vínculo" value={seleccionado}
+        <TextField select required fullWidth label="Niña, niño o adolescente con quien tiene vínculo" value={seleccionado}
           onChange={(event) => { setSeleccionado(event.target.value); setError("") }}>
         {adolescentes.map((item) => <MenuItem key={item.id_temp} value={item.id_temp}>{nombreAdolescente(item)}</MenuItem>)}
       </TextField>

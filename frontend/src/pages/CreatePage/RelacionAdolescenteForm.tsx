@@ -28,8 +28,8 @@ export function RelacionAdolescenteForm({ adolescentes, relacion, onChange }: Pr
 
   return (
     <Stack spacing={2}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Vínculo con otro adolescente</Typography>
-      <TextField select required fullWidth label="Adolescente ya agregado" value={seleccionado}
+      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Vínculo con otro niña, niño o adolescente</Typography>
+      <TextField select required fullWidth label="Niña, niño o adolescente ya agregado" value={seleccionado}
         onChange={(event) => {
           const id_temp = event.target.value
           setSeleccionado(id_temp)
@@ -37,7 +37,7 @@ export function RelacionAdolescenteForm({ adolescentes, relacion, onChange }: Pr
         }}>
         {adolescentes.map((item) => <MenuItem key={item.id_temp} value={item.id_temp}>{nombreAdolescente(item)}</MenuItem>)}
       </TextField>
-      <TextField select required fullWidth label="Vínculo del nuevo adolescente con el seleccionado"
+      <TextField select required fullWidth label="Vínculo del nuevo niña, niño o adolescente con el seleccionado"
         value={vinculo?.id ?? ""} disabled={!vinculos.length}
         onChange={(event) => {
           const elegido = vinculos.find((item) => item.id === Number(event.target.value)) ?? null
@@ -47,10 +47,10 @@ export function RelacionAdolescenteForm({ adolescentes, relacion, onChange }: Pr
         {vinculos.map((item) => <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>)}
       </TextField>
       {error && <Alert severity="error" action={<Button onClick={() => { setCargando(true); setIntento((valor) => valor + 1) }}>Reintentar</Button>}>
-        No se pudo cargar el catálogo de vínculos entre adolescentes.
+        No se pudo cargar el catálogo de vínculos entre niñas, niños o adolescentes.
       </Alert>}
       {!cargando && !error && !vinculos.length && <Alert severity="warning">
-        No hay vínculos habilitados para adolescentes. Es necesario completar el catálogo antes de agregar otro adolescente.
+        No hay vínculos habilitados para adolescentes. Es necesario completar el catálogo antes de agregar otro niña, niño o adolescente.
       </Alert>}
     </Stack>
   )

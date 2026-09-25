@@ -25,11 +25,11 @@ export function prepararAdolescentes(adolescentes: AdolescenteFormulario[]): {
     }
     if (adolescente.familiares.some((familiar) => familiar.dni?.trim() === adolescente.datos.dni.trim() &&
         familiar.sexo === adolescente.datos.sexo)) {
-      throw new Error("Un adolescente no puede ser su propio familiar.")
+      throw new Error("Un niño, niña o adolescente no puede ser su propio familiar.")
     }
     if (index > 0) {
       if (!adolescente.relacion || !ids.has(adolescente.relacion.id_temp)) {
-        throw new Error("Cada adolescente nuevo debe tener vínculo con uno agregado anteriormente.")
+        throw new Error("Cada niña, niño o adolescente nuevo debe tener vínculo con uno agregado anteriormente.")
       }
       relaciones.push({
         id_temp1: adolescente.id_temp,

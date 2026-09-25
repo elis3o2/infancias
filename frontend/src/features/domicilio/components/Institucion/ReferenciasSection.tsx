@@ -32,7 +32,7 @@ export function ReferenciasSection({ adolescentes, setAdolescentes, editor, setE
     {grupos.map((grupo) => <Paper key={grupo.clave} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
       <Stack spacing={1}>
         <InstitucionList institucion={grupo.institucion} />
-        <Typography variant="body2">Adolescentes: {adolescentes.filter((item) => grupo.adolescentes.includes(item.id_temp))
+        <Typography variant="body2">Niñas, niños o adolescentes: {adolescentes.filter((item) => grupo.adolescentes.includes(item.id_temp))
           .map(nombreAdolescente).join(", ")}</Typography>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
           <Button disabled={editor !== null} onClick={() => { setError(""); setEditor(grupo.clave) }}>Editar vínculos</Button>
@@ -41,7 +41,7 @@ export function ReferenciasSection({ adolescentes, setAdolescentes, editor, setE
         </Stack>
       </Stack>
     </Paper>)}
-    {!adolescentes.length && <Alert severity="info">Agregá un adolescente para vincular instituciones de referencia.</Alert>}
+    {!adolescentes.length && <Alert severity="info">Agregá una niña, niño o adolescente para vincular instituciones de referencia.</Alert>}
     {error && <Alert severity="error">{error}</Alert>}
     {editor !== null ? <ReferenciasEditor key={editor} adolescentes={adolescentes} actual={actual}
       onGuardar={guardar} onCancelar={cerrar} /> :

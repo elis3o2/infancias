@@ -13,15 +13,15 @@ export const DatosSinAsignarSolicitud = ({ solicitud }: { solicitud: SolicitudDe
   return (
     <Stack spacing={2}>
       <Alert severity="info">
-        Estos datos fueron cargados en la solicitud sin asociación a un adolescente.
+        Estos datos fueron cargados en la solicitud sin asociación a un niña, niño o adolescente.
       </Alert>
       <FamiliaresDetalle familiares={familiares} validada={solicitud.validado} />
       {personas.length > 0 && (
-        <PersonasCard personas={personas} titulo="Familiares validados sin adolescente asociado" />
+        <PersonasCard personas={personas} titulo="Familiares validados sin niña, niño o adolescente asociado" />
       )}
       {referencias.length > 0 && (
         <TitledCard
-          titulo="Instituciones de referencia sin adolescente asociado"
+          titulo="Instituciones de referencia sin niña, niño o adolescente asociado"
           componente={<InstitucionesList instituciones={referencias} />}
         />
       )}

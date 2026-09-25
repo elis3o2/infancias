@@ -1,6 +1,16 @@
 from rest_framework.permissions import BasePermission
 
 from src.permissions import usuario_tiene_rol
+from .constantes import ID_ADMISION
+
+
+def puede_gestionar_admision(solicitud, usuario) -> bool:
+    return bool(
+        usuario and usuario.is_authenticated
+        and usuario.equipo_id == ID_ADMISION
+        and solicitud.equipo_id == ID_ADMISION
+        and solicitud.validado and not solicitud.rechazado
+    )
 
 
 class SolicitudPermission(BasePermission):
@@ -20,7 +30,7 @@ class SolicitudPermission(BasePermission):
         es_admision = usuario_tiene_rol(request.user, "admision")
         es_territorial = usuario_tiene_rol(request.user, "territorial")
 
-        if view.action in {"comentar", "editar_comentario"}:
+        if view.action in {"comentar", "editar_comentario", "agregar_familiar", "agregar_adolescente"}:
             return es_admision
 
         # Entrada puede leer, modificar, validar y rechazar

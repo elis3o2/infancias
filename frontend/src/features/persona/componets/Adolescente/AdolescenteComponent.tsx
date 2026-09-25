@@ -29,7 +29,7 @@ export function AdolescenteComponent({ actual, anteriores, domicilios, setDomici
       setDomicilios={setDomicilios}
       onCancelar={onCancelar}
       puedeCargar={puedeCargar}
-      textoGuardar={actual ? "Guardar cambios del adolescente" : "Agregar adolescente"}
+      textoGuardar={actual ? "Guardar cambios del niña, niño o adolescente" : "Agregar niña, niño o adolescente"}
       onCargar={() => onGuardar({
         id_temp: actual?.id_temp ?? crearIdTemporal(), datos, referencias: actual?.referencias ?? [],
         familiares: actual?.familiares ?? [], relacion,

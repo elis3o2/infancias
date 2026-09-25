@@ -44,3 +44,12 @@ export type SolicitudValidacionInput = {
   descripcion_extra: string
   adolescentes: AdolescenteValidacionInput[]
 }
+
+export type FamiliarAdmisionInput = Omit<FamiliarValidacionInput, "id"> & {
+  id_adolescente: number
+}
+
+export type AdolescenteAdmisionInput = FamiliarAdmisionInput & {
+  domicilio: DomicilioInput
+  legajo?: LegajoValidacionInput | null
+}

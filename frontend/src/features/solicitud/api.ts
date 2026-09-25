@@ -8,7 +8,9 @@ import type {
   SolicitudSimple,
   SolicitudValidacionInput,
   SolicitudComentario,
+  Solicitud,
 } from "./types"
+import type { AdolescenteAdmisionInput, FamiliarAdmisionInput } from "./contracts"
 import type { Equipo } from "../persona/types"
 
 const SOLICITUDES_URL = "solicitud/solicitud/"
@@ -81,5 +83,11 @@ export const derivarSolicitud = (idSolicitud: number, idDerivacion: number): Pro
 
 export const getEquipos = (): Promise<Equipo[]> =>
   http.get<Equipo[]>("equipos/").then(({ data }) => data)
+
+export const agregarFamiliarSolicitud = (id: number, datos: FamiliarAdmisionInput): Promise<Solicitud> =>
+  http.post<Solicitud>(`${SOLICITUDES_URL}${id}/familiares/`, datos).then(({ data }) => data)
+
+export const agregarAdolescenteSolicitud = (id: number, datos: AdolescenteAdmisionInput): Promise<Solicitud> =>
+  http.post<Solicitud>(`${SOLICITUDES_URL}${id}/adolescentes/`, datos).then(({ data }) => data)
 
 export type { ArchivoSimple }

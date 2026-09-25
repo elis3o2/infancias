@@ -6,6 +6,7 @@ import { PersonaCard } from "@/features/persona/componets/Persona/PersonaCard"
 import type { Familiar } from "@/features/persona/types"
 import type { AdolescenteSolicitud } from "../../types"
 import { FamiliaresDetalle } from "./FamiliaresDetalle"
+import { nombreDelAdolescente } from "./solicitudDetalle"
 
 type Props = {
   adolescente: AdolescenteSolicitud
@@ -16,13 +17,13 @@ type Props = {
 export const AdolescenteDetalle = ({ adolescente, familiares, validada }: Props) => (
   <Stack
     component="section"
-    aria-label={`${adolescente.nombre} ${adolescente.apellido}`}
+    aria-label={nombreDelAdolescente(adolescente)}
     spacing={2}
     sx={{ p: { xs: 1.5, sm: 2.5 }, border: 1, borderColor: "divider", borderRadius: 3, minWidth: 0 }}
   >
     <Stack direction="row" sx={{ alignItems: "center", flexWrap: "wrap", gap: 1 }}>
       <Typography variant="h6" sx={{ fontWeight: 700, overflowWrap: "anywhere" }}>
-        {adolescente.nombre} {adolescente.apellido}
+        {nombreDelAdolescente(adolescente)}
       </Typography>
       {validada && (
         <Chip

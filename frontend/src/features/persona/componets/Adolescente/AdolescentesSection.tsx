@@ -25,12 +25,12 @@ export function AdolescentesSection({ adolescentes, setAdolescentes, editor, set
   function guardar(adolescente: AdolescenteFormulario) {
     if (adolescente.familiares.some((familiar) => familiar.dni === adolescente.datos.dni &&
         familiar.sexo === adolescente.datos.sexo)) {
-      setError("El adolescente no puede tener el mismo DNI y sexo que uno de sus familiares.")
+      setError("El niña, niño o adolescente no puede tener el mismo DNI y sexo que uno de sus familiares.")
       return
     }
     if (adolescentes.some((item) => item.id_temp !== adolescente.id_temp &&
         item.datos.dni === adolescente.datos.dni && item.datos.sexo === adolescente.datos.sexo)) {
-      setError("Ya cargaste un adolescente con ese DNI y sexo.")
+      setError("Ya cargaste un niña, niño o adolescente con ese DNI y sexo.")
       return
     }
     setAdolescentes((items) => actual
@@ -64,7 +64,7 @@ export function AdolescentesSection({ adolescentes, setAdolescentes, editor, set
                     <Button disabled={editor !== null} onClick={() => { setError(""); setEditor(item.id_temp) }}>Editar</Button>
                     <Button color="error" disabled={editor !== null} onClick={() => {
                       if (adolescentes.some((otro) => otro.relacion?.id_temp === item.id_temp)) {
-                        setError("Otro adolescente tiene vínculo con este. Cambiá esa relación o eliminá primero al adolescente relacionado.")
+                        setError("Otro niña, niño o adolescente tiene vínculo con este. Cambiá esa relación o eliminá primero al niña, niño o adolescente relacionado.")
                       } else { setError(""); setEliminar(item) }
                       }}>
                       Eliminar
@@ -87,10 +87,10 @@ export function AdolescentesSection({ adolescentes, setAdolescentes, editor, set
           <Button
             variant="outlined"
             onClick={() => setEditor("nuevo")}>
-            Agregar adolescente
+            Agregar niña, niño o adolescente
           </Button>}
         <Dialog open={eliminar !== null} onClose={() => setEliminar(null)}>
-          <DialogTitle>Eliminar adolescente del formulario</DialogTitle>
+          <DialogTitle>Eliminar niña, niño o adolescente del formulario</DialogTitle>
           <DialogContent>Se quitará {eliminar && nombreAdolescente(eliminar)} junto con sus familiares e instituciones de referencia.</DialogContent>
           <DialogActions>
             <Button 

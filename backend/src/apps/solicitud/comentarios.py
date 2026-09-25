@@ -3,19 +3,12 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
-from .constantes import ID_ADMISION
 from .models import Solicitud, SolicitudComentario
+from .permissions import puede_gestionar_admision
 
 
 def puede_comentar_solicitud(solicitud, usuario) -> bool:
-    return bool(
-        usuario
-        and usuario.is_authenticated
-        and usuario.equipo_id == ID_ADMISION
-        and solicitud.equipo_id == ID_ADMISION
-        and solicitud.validado
-        and not solicitud.rechazado
-    )
+    return puede_gestionar_admision(solicitud, usuario)
 
 
 def puede_editar_comentario(comentario, usuario) -> bool:
