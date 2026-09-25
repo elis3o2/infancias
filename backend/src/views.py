@@ -1,8 +1,13 @@
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import render
 
 from .models import Equipo
 from .serializers import EquipoSerializer
+
+
+def frontend(request):
+    return render(request, "index.html")
 
 
 class EquipoListView(generics.ListAPIView):
