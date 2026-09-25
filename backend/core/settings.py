@@ -7,14 +7,6 @@ pymysql.install_as_MySQLdb()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR.parent / 'staticfiles'               # ej: /home/deploy/notificaciones/staticfiles
-FRONTEND_DIST_DIR = BASE_DIR.parent / 'frontend' / 'dist'
-# During development the frontend build may not exist yet. Keeping the path
-# conditional avoids a Django warning without changing production collection:
-# as soon as Vite generates `dist`, it is included normally.
-STATICFILES_DIRS = [FRONTEND_DIST_DIR] if FRONTEND_DIST_DIR.is_dir() else []
-
 
 SECRET_KEY = config('DJANGO_SECRET_KEY')
 
@@ -29,29 +21,86 @@ ALLOWED_HOSTS = ["*"]
 CORS_ALLOW_ALL_ORIGINS = True
 #CORS_ALLOW_CREDENTIALS = True
 #CORS_ALLOWED_ORIGINS = config('CORS_ORIGIN', cast=Csv())
-INSTALLED_APPS = [
-    'src',
-    "django.contrib.admin",
-    "django.contrib.auth", 
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'corsheaders',
-    'rest_framework_simplejwt',
+
+
+# --------------------------------------------------
+# STATIC (VITE + WHITENOISE)
+# --------------------------------------------------
+
+STATIC_URL = "/infancias/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_DIRS = [
+    BASE_DIR.parent / "frontend" / "dist",
 ]
 
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+)
+
+# --------------------------------------------------
+# TEMPLATES (SPA)
+# --------------------------------------------------
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [
+            BASE_DIR / "templates",
+            BASE_DIR.parent / "frontend" / "dist", # <--- Añade esto
+        ],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
 ]
+
+# --------------------------------------------------
+# APPLICATIONS
+# --------------------------------------------------
+
+INSTALLED_APPS = [
+    "src",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "corsheaders",
+    "django_vite",
+]
+
+# --------------------------------------------------
+# MIDDLEWARE (ORDEN CORRECTO)
+# --------------------------------------------------
+
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # 🔥 obligatorio
+    "corsheaders.middleware.CorsMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+# --------------------------------------------------
+# URLS / WSGI
+# --------------------------------------------------
+
+ROOT_URLCONF = "core.urls"
+WSGI_APPLICATION = "core.wsgi.application"
 
 
 ROOT_URLCONF = 'core.urls'
