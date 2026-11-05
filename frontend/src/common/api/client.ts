@@ -11,7 +11,9 @@ interface QueueItem {
   rej: (error: unknown) => void;
 }
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const baseUrl = import.meta.env.PROD
+  ? `${import.meta.env.BASE_URL}api/`
+  : import.meta.env.VITE_API_BASE_URL;
 
 const axiosClient: AxiosInstance = axios.create({
   baseURL: baseUrl,
@@ -106,7 +108,7 @@ axiosClient.interceptors.response.use(
         return axiosClient(orig);
       } catch (refreshError) {
         localStorage.removeItem('tokens');
-        window.location.href = '/login/';
+        window.location.href = `${import.meta.env.BASE_URL}login/`;
         queue.forEach((p) => p.rej(refreshError));
         queue = [];
         return Promise.reject(refreshError);

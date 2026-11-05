@@ -4,7 +4,7 @@ import { InstitucionInicial, type DomicilioFormData, type InstitucionFormData } 
 import { postSolicitud } from "@/features/solicitud/api"
 import type { Archivo, MotivoSolicitud } from "@/features/solicitud/types"
 import { getSolicitudErrorMessage } from "@/features/solicitud/utils"
-import { prepararAdolescentes, prepararInstitucion } from "./formPayload"
+import { errorFamiliaresSolicitud, prepararAdolescentes, prepararInstitucion } from "./formPayload"
 import type { AdolescenteFormulario } from "./formTypes"
 
 export function useSolicitudCreate() {
@@ -25,14 +25,15 @@ export function useSolicitudCreate() {
   const [enviado, setEnviado] = useState(false)
   const [institucion, setInstitucion] = useState<InstitucionFormData>(InstitucionInicial)
   const [finishInstitucion, setFinishInstitucion] = useState(false)
+  const errorFamiliares = errorFamiliaresSolicitud(adolescentes)
   const completo = finishContacto && finishSolicitud && finishInstitucion && adolescentes.length > 0 &&
-    editorAdolescente === null && !editorFamiliar && editorReferencia === null
+    errorFamiliares === null && editorAdolescente === null && !editorFamiliar && editorReferencia === null
 
 
   async function enviar() {
     if (enviando || enviado) return
     if (!completo || !motivo) {
-      setAlerta({ mensaje: "Completá las secciones y guardá o cancelá los formularios abiertos.", severity: "warning" })
+      setAlerta({ mensaje: errorFamiliares ?? "Completá las secciones y guardá o cancelá los formularios abiertos.", severity: "warning" })
       return
     }
     try {

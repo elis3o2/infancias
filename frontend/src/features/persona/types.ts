@@ -106,7 +106,7 @@ export type FamiliarCreate = {
     sexo: "M" | "F" | ""
     vinculo: Vinculo | null
     telefono: string | null 
-    dni: string | null 
+    dni: string
     domicilio: DomicilioFormData | null
 }
 
@@ -117,7 +117,7 @@ export type FamiliarInput = {
     sexo: "M" | "F" | null
     id_vinculo: number
     telefono: string | null 
-    dni: string | null 
+    dni: string
     domicilio: DomicilioInput | null
 }
 

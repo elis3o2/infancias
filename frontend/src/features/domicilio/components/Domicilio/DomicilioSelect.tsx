@@ -6,14 +6,14 @@ import type { Setter } from "@/common/types";
 
 type Props = {
     domicilios: DomicilioFormData[]
-    nombreElegido: string
-    setNombreElegido: Setter<string>
+    indiceElegido: string
+    setIndiceElegido: Setter<string>
     onConfirmar: () => void
     onCargarOtro: () => void
 }
 
 
-export const DomicilioSelect = ({ domicilios, nombreElegido, setNombreElegido, onConfirmar, onCargarOtro }: Props) => {
+export const DomicilioSelect = ({ domicilios, indiceElegido, setIndiceElegido, onConfirmar, onCargarOtro }: Props) => {
     
 
     return (
@@ -23,16 +23,18 @@ export const DomicilioSelect = ({ domicilios, nombreElegido, setNombreElegido, o
                 Domicilio
             </InputLabel>
             <Select
-                value={nombreElegido}
+                value={indiceElegido}
                 label="Domicilio"
-                onChange={(event) => setNombreElegido(event.target.value)}
+                onChange={(event) => setIndiceElegido(event.target.value)}
             >
-                {domicilios.map((domicilio) => (
+                {domicilios.map((domicilio, indice) => (
                     <MenuItem
-                        key={domicilio.nombre}
-                        value={domicilio.nombre}
+                        key={indice}
+                        value={String(indice)}
                     >
                         {domicilio.nombre}
+                        {domicilios.filter((item) => item.nombre === domicilio.nombre).length > 1
+                            ? ` · Departamento ${domicilio.id_departamento ?? "sin indicar"}${domicilio.observaciones ? ` · ${domicilio.observaciones}` : ""}` : ""}
                     </MenuItem>
                 ))}
             </Select>
@@ -52,7 +54,7 @@ export const DomicilioSelect = ({ domicilios, nombreElegido, setNombreElegido, o
                 color="success"
                 startIcon={<CheckIcon fontSize="small" />}
                 onClick={onConfirmar}
-                disabled={!nombreElegido}
+                disabled={indiceElegido === "" || !domicilios[Number(indiceElegido)]}
                 sx={{
                     textTransform: "none",
                     borderRadius: 2,

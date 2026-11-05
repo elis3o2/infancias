@@ -114,6 +114,45 @@ class SolicitudAdmisionTests(TestCase):
         self.assertEqual(recargada.data["familiares_validados"][0]["id"], familiar.persona_id)
         self.red.assert_not_called()
 
+    def test_listado_cambia_problematica_por_nombre_de_persona_al_derivar(self):
+        self.adolescente.nombre = "Nombre declarado"
+        self.adolescente.apellido = "Original"
+        self.adolescente.save(update_fields=["nombre", "apellido"])
+        self.persona.nombre = "Nombre validado"
+        self.persona.apellido = "Correcto"
+        self.persona.save(update_fields=["nombre", "apellido"])
+        listado = self.client.get("/solicitud/")
+        self.assertEqual(listado.status_code, 200, listado.data)
+        self.assertEqual(listado.data[0]["titulo"], "Consulta")
+        derivacion = self.client.put(f"{self.url}derivar/", {"equipo_id": self.territorial.pk}, format="json")
+        self.assertEqual(derivacion.status_code, 200, derivacion.data)
+        territorial = Usuario.objects.create(username="territorial-listado", equipo=self.territorial)
+        self.client.force_authenticate(territorial)
+        listado = self.client.get("/solicitud/")
+        self.assertEqual(listado.status_code, 200, listado.data)
+        self.assertEqual(listado.data[0]["titulo"], "Nombre validado Correcto")
+        self.assertNotIn("Nombre declarado", listado.data[0]["titulo"])
+        self.assertNotIn("Consulta", listado.data[0]["titulo"])
+
+    def test_titulo_derivado_incluye_todos_los_ninos_y_tolera_registros_sin_persona(self):
+        from src.apps.solicitud.serializers import SolicitudListSerializer
+
+        Adolescente.objects.create(solicitud=self.solicitud, nombre="Otra niña", apellido="Apellido", sexo="F",
+            dni="50000009", fecha_nacimiento=date(2012, 1, 1))
+        self.solicitud.fecha_hora_admision = timezone.now()
+        self.solicitud.save(update_fields=["fecha_hora_admision"])
+        datos = SolicitudListSerializer(self.solicitud).data
+        self.assertIn("Nombre Prueba", datos["titulo"])
+        self.assertIn("Otra niña Apellido", datos["titulo"])
+
+    def test_derivada_sin_ninos_no_vuelve_a_mostrar_la_problematica(self):
+        from src.apps.solicitud.serializers import SolicitudListSerializer
+
+        solicitud = Solicitud.objects.create(motivo=self.solicitud.motivo, equipo=self.territorial,
+            correo="", telefono="", validado=True, rechazado=False,
+            fecha_hora_creacion=timezone.now(), fecha_hora_admision=timezone.now())
+        self.assertEqual(SolicitudListSerializer(solicitud).data["titulo"], f"Solicitud #{solicitud.pk}")
+
     def test_reutiliza_persona_y_relacion_sin_quitar_legajo(self):
         persona = self._persona("50000002", legajo=Legajo.objects.create(carpeta=self.carpeta, letra="B"))
         Relacion.objects.create(persona_1=persona, persona_2=self.persona, vinculo=self.familiar_vinculo)

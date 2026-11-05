@@ -98,6 +98,16 @@ class FamiliarSerializer(serializers.ModelSerializer):
 
 
 class FamiliarCreateSerializer(FamiliarSerializer):
+    dni = serializers.RegexField(
+        regex=r"^[0-9]{7,8}$",
+        error_messages={
+            "required": "El DNI del familiar es obligatorio.",
+            "null": "El DNI del familiar es obligatorio.",
+            "blank": "El DNI del familiar es obligatorio.",
+            "invalid": "El DNI del familiar debe tener entre 7 y 8 dígitos.",
+        },
+    )
+
     class Meta(FamiliarSerializer.Meta):
         exclude = None
         fields = ["nombre", "apellido", "sexo", "dni", "telefono", "domicilio",

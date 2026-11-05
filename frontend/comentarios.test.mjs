@@ -29,17 +29,22 @@ const comentario = {
   fecha_hora_creacion: "2026-09-25T10:30:00", fecha_hora_ultmod: "2026-09-25T10:30:00", puede_editar: true,
 }
 
-test("formulario limita a 256 y no permite guardar texto vacío o solo espacios", () => {
-  for (const inicial of ["", "  \n ", "x".repeat(257)]) {
+test("formulario no limita caracteres y no permite guardar texto vacío o solo espacios", () => {
+  for (const inicial of ["", "  \n "]) {
     const html = render(ComentarioFormulario, { inicial, onGuardar: async () => {} })
-    assert.match(html, /maxlength="256"/i)
+    assert.doesNotMatch(html, /maxlength=/i)
     const guardar = html.match(/<button\b[^>]*type="submit"[^>]*>/)?.[0]
     assert.ok(guardar)
     assert.match(guardar, /\bdisabled=""/)
   }
-  const html = render(ComentarioFormulario, { inicial: "x".repeat(256), onGuardar: async () => {} })
-  assert.match(html, /256\/256 caracteres/)
-  assert.doesNotMatch(html, /<button[^>]*disabled=""/)
+  for (const inicial of ['x'.repeat(257), 'Seguimiento del niño\n'.repeat(5000)]) {
+    const html = render(ComentarioFormulario, { inicial, onGuardar: async () => {} })
+    assert.doesNotMatch(html, /maxlength=|\/256 caracteres/i)
+    assert.doesNotMatch(html, /<button[^>]*disabled=""/)
+    const edicion = render(ComentarioFormulario, { inicial, onGuardar: async () => {}, onCancelar: () => {} })
+    assert.doesNotMatch(edicion, /maxlength=/i)
+    assert.match(edicion, /Editar comentario/)
+  }
 })
 
 test("muestra autor, fecha y texto escapado, manteniendo saltos de línea", () => {

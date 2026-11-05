@@ -21,13 +21,15 @@ after(async () => {
   await server.close()
   await rm(cacheDir, { recursive: true, force: true })
 })
-const { prepararAdolescentes, prepararInstitucion } = await server.ssrLoadModule("/src/pages/CreatePage/formPayload.ts")
+const { prepararAdolescentes, prepararInstitucion, errorFamiliaresSolicitud } = await server.ssrLoadModule("/src/pages/CreatePage/formPayload.ts")
 const { agruparReferencias, guardarReferencia, quitarReferencia } = await server.ssrLoadModule("/src/pages/CreatePage/referencias.ts")
 const { crearIdTemporal } = await server.ssrLoadModule("/src/pages/CreatePage/formTypes.ts")
 const { crearPayloadValidacion } = await server.ssrLoadModule("/src/features/solicitud/components/Cargados/validacion/payload.ts")
 const { ciudadanoToPersona, personaRegistradaAFormulario } = await server.ssrLoadModule("/src/features/persona/utils.ts")
 const { DatosSalud } = await server.ssrLoadModule("/src/features/persona/componets/DatosSalud.tsx")
 const { HistoriaClinicaCard } = await server.ssrLoadModule("/src/features/solicitud/components/Cargados/validacion/HistoriaClinicaCard.tsx")
+const { FamiliarForm } = await server.ssrLoadModule("/src/features/persona/componets/Familiar/FamiliarForm.tsx")
+const { FamiliaresSection } = await server.ssrLoadModule("/src/features/persona/componets/Familiar/FamiliaresSection.tsx")
 
 const domicilio = { nombre: "Domicilio de prueba", id_departamento: 1, observaciones: null, domicilio_validado: null }
 const institucion = {
@@ -80,6 +82,46 @@ test("separa institución solicitante de las referencias de cada adolescente", (
   assert.equal(solicitante.institucion.id_tipo, 1)
   assert.equal(solicitante.institucion.domicilio.id_departamento, 1)
   assert.equal("id_temp" in solicitante.institucion, false)
+})
+
+test("requiere un familiar por solicitud y vuelve a bloquear si se elimina el último", () => {
+  const entrada = grupo()
+  assert.equal(errorFamiliaresSolicitud(entrada), null)
+  entrada[1].familiares = entrada[0].familiares
+  entrada[0].familiares = []
+  assert.equal(prepararAdolescentes(entrada).adolescentes[1].familiares.length, 1)
+  entrada[1].familiares = []
+  assert.match(errorFamiliaresSolicitud(entrada), /al menos un familiar/)
+  assert.throws(() => prepararAdolescentes(entrada), /al menos un familiar/)
+})
+
+test("todos los familiares requieren DNI válido aunque otro familiar ya lo tenga", () => {
+  for (const dni of [undefined, null, "", "  ", "123456", "123456789", "3000000A", "30.000.001", "٣٠٠٠٠٠٠١"]) {
+    const entrada = grupo()
+    entrada[1].familiares = [{ ...familiar, dni }]
+    assert.match(errorFamiliaresSolicitud(entrada), /Todos los familiares.*DNI/)
+    assert.throws(() => prepararAdolescentes(entrada), /Todos los familiares.*DNI/)
+  }
+  for (const dni of ["1234567", " 30000001 "]) {
+    const entrada = grupo()
+    entrada[0].familiares = [{ ...familiar, dni }]
+    assert.equal(prepararAdolescentes(entrada).adolescentes[0].familiares[0].dni, dni.trim())
+  }
+})
+
+test("el formulario muestra DNI obligatorio y avisa cuando faltan familiares", () => {
+  const html = renderToStaticMarkup(createElement(FamiliarForm, {
+    setFamiliar: () => {}, setFinishFamiliar: () => {}, domicilios: [],
+  }))
+  assert.match(html, /Número de Documento/)
+  assert.match(html, /<input[^>]*required=""/)
+  assert.doesNotMatch(html, /CARGAR DNI/)
+  assert.match(html.match(/<button[^>]*>Cargar familiar \/ referente<\/button>/)?.[0] ?? "", /disabled=""/)
+  const seccion = renderToStaticMarkup(createElement(FamiliaresSection, {
+    adolescentes: grupo().map((item) => ({ ...item, familiares: [] })),
+    setAdolescentes: () => {}, editando: false, setEditando: () => {}, domicilios: [],
+  }))
+  assert.match(seccion, /Agregá al menos un familiar/)
 })
 
 test("rechaza listas vacías, duplicados, vínculos faltantes y vínculos huérfanos", () => {

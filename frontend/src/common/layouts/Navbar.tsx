@@ -1,15 +1,18 @@
 import React, { useContext, useState } from 'react';
 import { AppBar, Toolbar, IconButton, MenuItem, Button, Typography, Menu, Box } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRightFromBracket, faUser, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRightFromBracket, faUser, faArrowLeft, faBars } from '@fortawesome/free-solid-svg-icons';
 import { AuthContext } from '../contex';
 import { useNavigate } from 'react-router-dom';
+import { NAVBAR_HEIGHT } from './layoutConfig';
 
 interface NavbarProps {
   backTo?: string;  // Ruta opcional para mostrar la flecha
+  sidebarOpen: boolean;
+  onToggleSidebar: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ backTo }) => {
+const Navbar: React.FC<NavbarProps> = ({ backTo, sidebarOpen, onToggleSidebar }) => {
   const { username, logout } = useContext(AuthContext);
   const [menu, setMenu] = useState<HTMLElement | null>(null);
   const navigate = useNavigate();
@@ -28,10 +31,16 @@ const Navbar: React.FC<NavbarProps> = ({ backTo }) => {
         borderBottom: (theme) => `1px solid ${theme.palette.divider}`
       }}
     >
-      <Toolbar>
+      <Toolbar sx={{ minHeight: `${NAVBAR_HEIGHT}px !important`, gap: 1 }}>
+        <IconButton color="inherit" onClick={onToggleSidebar}
+          aria-label={sidebarOpen ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={sidebarOpen} aria-controls={sidebarOpen ? 'navegacion-principal' : undefined}>
+          <FontAwesomeIcon icon={faBars} />
+        </IconButton>
         {/* Flecha de volver si la prop está definida */}
         {backTo && (
           <IconButton
+            aria-label="Volver a solicitudes"
             onClick={() => navigate(backTo)}
             sx={{ color: 'inherit', marginRight: 2 }}
           >
@@ -44,6 +53,7 @@ const Navbar: React.FC<NavbarProps> = ({ backTo }) => {
         <Button
           onClick={handleMenuOpen}
           sx={{
+            minWidth: 0, maxWidth: { xs: '45%', sm: 'none' },
             textTransform: 'none',
             color: 'inherit',
             display: 'flex',
@@ -53,7 +63,7 @@ const Navbar: React.FC<NavbarProps> = ({ backTo }) => {
           }}
         >
           <FontAwesomeIcon icon={faUser} size='1x' />
-          <Typography variant='body1'>{username}</Typography>
+          <Typography variant='body1' noWrap>{username}</Typography>
         </Button>
 
         <Menu

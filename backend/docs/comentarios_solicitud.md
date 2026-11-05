@@ -1,9 +1,14 @@
 # Comentarios de admisión
 
 Las solicitudes validadas y no rechazadas que están en el equipo de admisión
-permiten agregar comentarios de texto libre, con un máximo de 256 caracteres.
-Se conserva el modelo y la tabla `solicitud_comentario`; no requiere cambios
-de esquema ni migraciones.
+permiten agregar comentarios de texto libre, sin límite de caracteres en la aplicación.
+Los comentarios vacíos o formados solo por espacios no se aceptan.
+
+El modelo usa `TextField`. La tabla `solicitud_comentario` es administrada
+externamente (`managed = False`): antes de usar comentarios largos, cambiar
+la columna `comentario` de MySQL a `LONGTEXT NOT NULL`. El script
+`scripts/comentarios_texto_largo.sql` está preparado para ese cambio manual;
+no fue ejecutado. No se crean ni modifican archivos `.db`.
 
 - Crear: `POST /api/solicitud/solicitud/<id>/comentar/`.
 - Editar: `PATCH /api/solicitud/solicitud/<id>/comentarios/<comentario_id>/`.

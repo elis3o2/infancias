@@ -297,7 +297,7 @@ CREATE TABLE IF NOT EXISTS adolescente_institucion (
 CREATE TABLE IF NOT EXISTS solicitud_comentario (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_solicitud INT NOT NULL,
-    comentario VARCHAR(256) NOT NULL,
+    comentario LONGTEXT NOT NULL,
     fecha_hora_creacion DATETIME NOT NULL,
     fecha_hora_ultmod DATETIME NOT NULL,
     id_usuario INT NOT NULL,

@@ -20,31 +20,29 @@ INSERT INTO tipo_institucion (nombre) VALUES
 
 
 INSERT INTO motivo_solicitud (nombre) VALUES
-("Abuso Sexual hacia las Infancias"),
-("Adulto Responsable detenido"),
-("Ausencia de Adulto Responsable"),
-("Conductas sexuales inapropiadas entre niñxs"),
-("Consumo Problemático del niñe"),
-("Desvinculo (Protocolo de desvinculo provincial - hospitales)"),
 ("Educación"),
 ("Grooming"),
 ("Identidad"),
-("Negligencia"),
-("Negligencia por Consumo Problematico de adulto"),
-("Negligencia por sit. de violencia de genero"),
-("Negligencia por salud mental adulto"),
-("Niños en situación de calle"),
+("Sustitución de la identidad"),
+("Cuidadores adultos sin marco legal"),
+("Ausencia de Adulto Responsable"),
+("Ausencia de cuidados parentales por Consumo Problemático de adulto"),
+("Ausencia de cuidados parentales por Salud Mental de adulto"),
+("Niño/a o Adolescente víctima de violencia de género y/o violencia intrafamiliar"),
+("Niño/a o Adolescente víctima de Violencia Sexual"),
+("Niño/a o Adolescente víctima de Pornografía Infantil"),
+("Niño/a o Adolescente víctima de Prostitución Infantil"),
+("Niño/a o Adolescente víctima de Maltrato Infantil"),
+("Maltrato físico"),
+("Niño/a o Adolescente víctima de Maltrato Infantil"),
+("Maltrato psicológico"),
 ("Niñxs o adolescentes en situación penal"),
-("Pornografia Infantil"),
-("Prostitucion Infantil"),
-("Salud"),
-("Salud Mental del niñe"),
-("Trabajo Infantil"),
-("Violencia"),
-("Trata de Personas"),
-("Violencia de Género"),
-("Maltrato Infantil");
-
+("Bebé con tóxicos positivos"),
+("Ausencia o falta de adherencia a tratamientos de salud de niños/as o adolescentes"),
+("Conviviente con enfermedades infecto-contagiosas sin tratamientos"),
+("Ausencia y/o dificultades en el abordaje de Salud Mental del niño/a  o adolescente"),
+("Consumo Problemático de sustancias del niño/a o adolescente"),
+("Explotación Infantil");
 
 
 INSERT INTO equipo(nombre) VALUES

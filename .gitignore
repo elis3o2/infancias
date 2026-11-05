@@ -9,3 +9,4 @@ backend/src/migrations
 backend/core/__pycache__
 frontend/.env
 env
+backend/staticfiles/

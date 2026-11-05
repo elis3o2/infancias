@@ -3,8 +3,10 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (AdolescenteViewSet, ConsultaPersonasAPIView, FamiliarViewSet,
                     VinculoViewSer, RelacionAdolescenteViewSet)
+from .historial_views import HistorialNinoViewSet
 
 router = DefaultRouter()
+router.register("historial", HistorialNinoViewSet, basename="historial-nino")
 router.register("adolescente", AdolescenteViewSet, basename="adolescente")
 router.register("familiar", FamiliarViewSet, basename="familiar")
 router.register("vinculo", VinculoViewSer, basename="vinculo")

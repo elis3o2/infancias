@@ -1,0 +1,21 @@
+[Unit]
+Description=Infancias - Gunicorn
+After=network.target
+
+[Service]
+Type=simple
+User=rmdelfa
+WorkingDirectory=/home/rmdelfa/infancias/infancias/backend
+Environment=DJANGO_SETTINGS_MODULE=core.settings_production
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/rmdelfa/infancias/infancias/env/bin/gunicorn --config gunicorn.conf.py
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=40
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

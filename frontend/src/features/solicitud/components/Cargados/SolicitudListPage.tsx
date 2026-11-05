@@ -217,10 +217,10 @@ export const SolicitudListPage = () => {
                         color: "#0F172A",
                         flex: "1 1 200px",
                         minWidth: 0,
+                        overflowWrap: "anywhere",
                       }}
-                      noWrap
                     >
-                      {solicitud.motivo?.nombre ?? "Motivo sin especificar"}
+                      {solicitud.titulo}
                     </Typography>
 
                     {solicitud.equipo && (

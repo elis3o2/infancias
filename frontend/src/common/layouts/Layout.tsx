@@ -1,64 +1,41 @@
-import Navbar from './Navbar';
-import { Box } from '@mui/material';
+import { Suspense, useState } from 'react';
+import { Box, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import { Outlet, useLocation } from 'react-router-dom';
-import type { Theme } from '@mui/material/styles';
-
-const NAVBAR_HEIGHT = 64;
+import Navbar from './Navbar';
+import Sidebar from './Sidebar';
+import { Footer } from './Footer';
+import { NAVBAR_HEIGHT, SIDEBAR_WIDTH } from './layoutConfig';
 
 const Layout = () => {
-  const location = useLocation();
-
-  // Definís acá las rutas donde querés la flecha y su destino
-  let backTo: string | undefined;
-  if (location.pathname.startsWith("/list")) {
-    backTo = "/home";
-  }
-if (location.pathname.startsWith("/plantillas")) {
-    backTo = "/list";
-  }
-  if (location.pathname.startsWith("/turnos")) {
-    backTo = "/home";
-  }
-if (location.pathname.startsWith("/historico")) {
-    backTo = "/turnos";
-  }
-if (location.pathname.startsWith("/add-espera")) {
-    backTo = "/espera";
-  }
-  if (location.pathname.startsWith("/espera-paciente")) {
-    backTo = "/espera";
-  }
-else if (location.pathname.startsWith("/espera")) {
-    backTo = "/home";
-  }
+  const theme = useTheme();
+  const escritorio = useMediaQuery(theme.breakpoints.up('md'), { defaultMatches: true, noSsr: true });
+  const [desktopOpen, setDesktopOpen] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { pathname } = useLocation();
+  const open = escritorio ? desktopOpen : mobileOpen;
+  const setOpen = escritorio ? setDesktopOpen : setMobileOpen;
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <Navbar backTo={backTo} /> {/* 👈 se pasa la prop */}
-      <Box 
-        sx={(theme: Theme) => ({
-          flexGrow: 1, 
-          pt: 2,
-          pr: 1,
-          pb: 2,
-          pl: 1,
-          mt: `${NAVBAR_HEIGHT}px`,
-          transition: (theme) => theme.transitions.create('margin', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          marginLeft: 0,
-          width:  '100%',
-          [theme.breakpoints.down('sm')]: {
-            marginLeft: 0,
-            width: '100%'
-          },
-        })}
-      >
-        <Outlet />
+    <Box sx={{ minHeight: '100dvh', pt: `${NAVBAR_HEIGHT}px` }}>
+      <Navbar backTo={pathname.startsWith('/validar/') ? '/solicitud' : undefined}
+        sidebarOpen={open} onToggleSidebar={() => setOpen(!open)} />
+      <Sidebar open={open} toggleSidebar={setOpen} mobile={!escritorio} />
+      <Box sx={{
+        ml: escritorio && open ? `${SIDEBAR_WIDTH}px` : 0,
+        minWidth: 0, minHeight: `calc(100dvh - ${NAVBAR_HEIGHT}px)`,
+        display: 'flex', flexDirection: 'column',
+        transition: theme.transitions.create('margin-left'),
+      }}>
+        <Box component="main" id="contenido-principal" sx={{ flex: 1, minWidth: 0 }}>
+          <Suspense fallback={<Box role="status" aria-label="Cargando pantalla"
+            sx={{ minHeight: '60vh', display: 'grid', placeItems: 'center' }}><CircularProgress /></Box>}>
+            <Outlet />
+          </Suspense>
+        </Box>
+        <Footer />
       </Box>
     </Box>
   );
-}
+};
 
 export default Layout;

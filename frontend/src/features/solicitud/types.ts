@@ -134,6 +134,7 @@ export type SolicitudDetalle =
 
 export type SolicitudSimple = {
   id: number
+  titulo: string
   motivo: MotivoSolicitud
   fecha_hora_creacion: string
   fecha_hora_modificacion?: string | null

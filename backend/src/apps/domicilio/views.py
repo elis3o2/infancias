@@ -22,7 +22,7 @@ class DepartamentoViewSet(viewsets.ModelViewSet):
     permission_classes = [ReadOnly]
 
     def get_queryset(self):
-        queryset = Departamento.objects.all()
+        queryset = Departamento.objects.select_related("provincia")
 
         id_provincia = self.request.query_params.get("id_provincia")
 

@@ -10,6 +10,10 @@
     "test:solicitud": "node solicitud.test.mjs",
     "test:comentarios": "node comentarios.test.mjs",
     "test:admision": "node admision.test.mjs",
+    "test:sidebar": "node sidebar.test.mjs",
+    "test:historial": "node historial.test.mjs",
+    "test:reportes": "node reportes.test.mjs",
+    "test:domicilio": "node domicilio.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

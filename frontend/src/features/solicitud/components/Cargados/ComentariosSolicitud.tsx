@@ -30,7 +30,7 @@ export function ComentariosSolicitud({ solicitudId, iniciales, puedeComentar }: 
         <Stack spacing={0.5}>
           <Typography variant="h6">Comentarios</Typography>
           <Typography variant="body2" color="text.secondary">
-            {puedeComentar ? "Podés agregar comentarios de hasta 256 caracteres. Solo podés editar los que escribiste vos."
+            {puedeComentar ? "Podés agregar comentarios sin límite de caracteres. Solo podés editar los que escribiste vos."
               : "Historial de comentarios registrados durante admisión. Solo lectura."}
           </Typography>
         </Stack>

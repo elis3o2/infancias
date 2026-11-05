@@ -23,7 +23,14 @@ function sexoFormToSexoInput(sexo: "M" | "F" | ""): "M" | "F" {
 }
 
 
+export function dniFamiliarEsValido(dni: string | null | undefined): boolean {
+  return /^[0-9]{7,8}$/.test(dni?.trim() ?? "")
+}
+
 export function familiarCreateToFamiliarInput(familiar: FamiliarCreate): FamiliarInput {
+  if (!dniFamiliarEsValido(familiar.dni)) {
+    throw new Error("Todos los familiares deben tener un DNI de 7 u 8 dígitos.");
+  }
   if (familiar.vinculo == null) {
     throw new Error("El vínculo es obligatorio");
   }
@@ -34,7 +41,7 @@ export function familiarCreateToFamiliarInput(familiar: FamiliarCreate): Familia
     sexo: familiar.sexo === "" ? null : familiar.sexo,
     id_vinculo: familiar.vinculo.id,
     telefono: familiar.telefono,
-    dni: familiar.dni,
+    dni: familiar.dni.trim(),
     domicilio: familiar.domicilio
       ? domicilioFormToDomicilioInput(familiar.domicilio)
       : null,

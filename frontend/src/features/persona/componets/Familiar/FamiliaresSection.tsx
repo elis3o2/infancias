@@ -6,6 +6,7 @@ import type { DomicilioFormData } from "@/features/domicilio/types"
 import type { FamiliarCreate } from "@/features/persona/types"
 import { FamiliarForm } from "@/features/persona/componets/Familiar/FamiliarForm"
 import { nombreAdolescente, type AdolescenteFormulario } from "@/pages/CreatePage/formTypes"
+import { errorFamiliaresSolicitud } from "@/pages/CreatePage/formPayload"
 
 type Props = {
   adolescentes: AdolescenteFormulario[]
@@ -18,6 +19,7 @@ type Props = {
 export function FamiliaresSection({ adolescentes, setAdolescentes, editando, setEditando, domicilios }: Props) {
   const [seleccionado, setSeleccionado] = useState("")
   const [error, setError] = useState("")
+  const errorFamiliares = errorFamiliaresSolicitud(adolescentes)
   const cerrar = () => { setEditando(false); setSeleccionado(""); setError("") }
 
   function agregar(familiar: FamiliarCreate | null) {
@@ -41,6 +43,8 @@ export function FamiliaresSection({ adolescentes, setAdolescentes, editando, set
     <TitledCard titulo="Familiares / referentes"
     componente= { 
       <Stack spacing={2}>
+        <Typography variant="body2" color="text.secondary">Debe haber al menos un familiar en la solicitud. El DNI es obligatorio para todos.</Typography>
+        {adolescentes.length > 0 && errorFamiliares && <Alert severity="warning">{errorFamiliares}</Alert>}
         {adolescentes.map((adolescente) =>
         <Stack key={adolescente.id_temp} spacing={1}>
           <Typography sx={{ fontWeight: 700 }}>{nombreAdolescente(adolescente)}</Typography>
@@ -48,7 +52,7 @@ export function FamiliaresSection({ adolescentes, setAdolescentes, editando, set
           {adolescente.familiares.map((familiar, index) => 
           <Stack key={index} direction={{ xs: "column", sm: "row" }}
             sx={{ justifyContent: "space-between", alignItems: { sm: "center" } }}>
-            <Typography>{familiar.nombre} {familiar.apellido} — {familiar.vinculo?.nombre}</Typography>
+            <Typography>{familiar.nombre} {familiar.apellido} — DNI {familiar.dni} — {familiar.vinculo?.nombre}</Typography>
             <Button 
               color="error"
               disabled={editando}

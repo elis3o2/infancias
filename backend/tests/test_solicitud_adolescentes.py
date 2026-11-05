@@ -144,7 +144,7 @@ class SolicitudAdolescentesTests(TestCase):
             "nombre": "Nombre", "apellido": "Apellido", "dni": "50000001",
             "sexo": "M", "fecha_nacimiento": "2008-02-18",
             "domicilio": self._domicilio_input(),
-            "familiares": [{"nombre": "Referente", "apellido": "Uno"}],
+            "familiares": [{"nombre": "Referente", "apellido": "Uno", "dni": "30000001"}],
             "referencias_instituciones_data": [
                 {"id": self.referencia.pk},
                 {
@@ -204,7 +204,7 @@ class SolicitudAdolescentesTests(TestCase):
         )
         familiar = Familiar.objects.get(solicitud=solicitud)
         self.assertEqual(familiar.adolescente_id, primero.pk)
-        self.assertIsNone(familiar.dni)
+        self.assertEqual(familiar.dni, "30000001")
         self.assertEqual(segundo.familiares.count(), 0)
 
         relacion = RelacionAdolescente.objects.get()
@@ -212,6 +212,48 @@ class SolicitudAdolescentesTests(TestCase):
         self.assertEqual(relacion.vinculo_id, self.vinculo_adolescente.pk)
         self.correo.assert_called_once()
         self.red.assert_not_called()
+
+    def test_creacion_exige_al_menos_un_familiar_en_toda_la_solicitud(self):
+        for omitir in (False, True):
+            datos = self._datos_creacion()
+            for adolescente in datos["adolescentes"]:
+                if omitir:
+                    adolescente.pop("familiares")
+                else:
+                    adolescente["familiares"] = []
+            with self.subTest(omitir=omitir):
+                request = APIRequestFactory().post("/solicitud/", datos, format="json")
+                respuesta = SolicitudViewSet.as_view({"post": "create"})(request)
+                self.assertEqual(respuesta.status_code, 400)
+                self.assertIn("al menos un familiar", str(respuesta.data["adolescentes"]))
+        self.assertEqual(Solicitud.objects.count(), 0)
+        self.assertEqual(Familiar.objects.count(), 0)
+
+    def test_creacion_exige_dni_valido_en_cada_familiar(self):
+        for dni in (None, "", "   ", "123456", "123456789", "3000000A", "30.000.001", "٣٠٠٠٠٠٠١"):
+            datos = self._datos_creacion()
+            # Un familiar válido en el primero no habilita otro sin DNI en el segundo.
+            datos["adolescentes"][1]["familiares"] = [{"nombre": "Otro", "apellido": "Familiar", "dni": dni}]
+            with self.subTest(dni=dni):
+                serializer = SolicitudCreateSerializer(data=datos)
+                self.assertFalse(serializer.is_valid())
+                self.assertIn("dni", serializer.errors["adolescentes"][1]["familiares"][0])
+        datos = self._datos_creacion()
+        del datos["adolescentes"][0]["familiares"][0]["dni"]
+        request = APIRequestFactory().post("/solicitud/", datos, format="json")
+        respuesta = SolicitudViewSet.as_view({"post": "create"})(request)
+        self.assertEqual(respuesta.status_code, 400)
+        self.assertIn("dni", respuesta.data["adolescentes"][0]["familiares"][0])
+        self.assertEqual(Solicitud.objects.count(), 0)
+
+    def test_creacion_acepta_un_familiar_en_cualquier_adolescente_y_normaliza_dni(self):
+        for dni in ("1234567", " 30000001 "):
+            datos = self._datos_creacion()
+            datos["adolescentes"][0]["familiares"] = []
+            datos["adolescentes"][1]["familiares"] = [{"nombre": "Referente", "apellido": "Uno", "dni": dni}]
+            serializer = SolicitudCreateSerializer(data=datos)
+            serializer.is_valid(raise_exception=True)
+            self.assertEqual(serializer.validated_data["adolescentes"][1]["familiares"][0]["dni"], dni.strip())
 
     def test_creacion_rechaza_referencias_temporales_invalidas_y_campos_globales(self):
         base = self._datos_creacion()

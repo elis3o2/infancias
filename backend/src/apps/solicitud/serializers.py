@@ -69,15 +69,28 @@ class SolicitudComentarioSerializer(serializers.ModelSerializer):
 
 
 class SolicitudListSerializer(serializers.ModelSerializer):
+    titulo = serializers.SerializerMethodField()
     motivo = MotivoSolicitudSerializer(read_only=True)
     equipo = EquipoSerializer(read_only=True)
     validado = serializers.BooleanField(read_only=True)
     rechazado = serializers.BooleanField(read_only=True)
 
+    def get_titulo(self, solicitud):
+        if solicitud.fecha_hora_admision is None:
+            return solicitud.motivo.nombre
+        nombres = []
+        for adolescente in solicitud.adolescentes.all():
+            persona = adolescente.persona or adolescente
+            nombre = f"{persona.nombre} {persona.apellido}".strip()
+            if nombre:
+                nombres.append(nombre)
+        return " · ".join(nombres) or f"Solicitud #{solicitud.pk}"
+
     class Meta:
         model = Solicitud
         fields = [
             'id',
+            'titulo',
             'motivo',
             'fecha_hora_creacion',
             'fecha_hora_entrada',
@@ -122,6 +135,10 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError(
                 "Debe existir al menos un adolescente."
+            )
+        if not any(adolescente.get("familiares") for adolescente in value):
+            raise serializers.ValidationError(
+                "Debe cargar al menos un familiar en la solicitud."
             )
         return value
 

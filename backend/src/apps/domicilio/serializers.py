@@ -11,6 +11,7 @@ class ProvinciaSerializer(serializers.ModelSerializer):
 
 
 class DepartamentoSerializer(serializers.ModelSerializer):
+    provincia = ProvinciaSerializer(read_only=True)
 
     class Meta:
         model = Departamento

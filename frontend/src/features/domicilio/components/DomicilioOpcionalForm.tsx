@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Stack, Box, Button, IconButton, TextField } from "@mui/material";
+import { Alert, Stack, Box, Button, IconButton, TextField } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { ProvinciaComponent } from "./ProvinciaComponent";
 import { DepartamentoComponent } from "./DepartamentoComponet";
 import { DomicilioSelect } from "./Domicilio/DomicilioSelect";
 
 import type { Departamento, DomicilioFormData, Provincia } from "../types";
+import { editarDomicilioManual } from "../utils";
+import { useUbicacionDomicilio } from "./useUbicacionDomicilio";
 
 type Props = {
   condicion: boolean;
@@ -44,13 +46,14 @@ export const DomicilioOpcionalForm = ({
   const [mostrarFormulario, setMostrarFormulario] = useState(
     domicilio !== null || domicilios.length === 0,
   );
-  const [nombreElegido, setNombreElegido] = useState(domicilio?.nombre ?? "");
+  const [indiceElegido, setIndiceElegido] = useState("");
+  const ubicacion = useUbicacionDomicilio({
+    id: condicion ? domicilio?.id_departamento ?? null : null,
+    provincia, departamento, setProvincia, setDepartamento,
+  });
 
   const actualizarDomicilio = (cambios: Partial<DomicilioFormData>) => {
-    setDomicilio({
-      ...(domicilio ?? nuevoDomicilio()),
-      ...cambios,
-    });
+    setDomicilio(editarDomicilioManual(domicilio, cambios));
   };
 
   if (!condicion) {
@@ -70,7 +73,7 @@ export const DomicilioOpcionalForm = ({
   }
 
   const confirmarSeleccion = () => {
-    const encontrado = domicilios.find((d) => d.nombre === nombreElegido);
+    const encontrado = indiceElegido === "" ? undefined : domicilios[Number(indiceElegido)];
     if (encontrado) {
       setDomicilio(encontrado);
       setMostrarFormulario(true);
@@ -81,7 +84,7 @@ export const DomicilioOpcionalForm = ({
     setDomicilio(nuevoDomicilio());
     setProvincia(null);
     setDepartamento(null);
-    setNombreElegido("");
+    setIndiceElegido("");
     setMostrarFormulario(true);
   };
 
@@ -89,7 +92,7 @@ export const DomicilioOpcionalForm = ({
     setDomicilio(null);
     setProvincia(null);
     setDepartamento(null);
-    setNombreElegido("");
+    setIndiceElegido("");
     setMostrarFormulario(true);
     mostrar(false);
   };
@@ -97,9 +100,12 @@ export const DomicilioOpcionalForm = ({
   if (mostrarFormulario) {
       return (
         <Stack spacing={1}>
+          {ubicacion.cargando && <Alert severity="info">Cargando provincia y departamento del domicilio…</Alert>}
+          {ubicacion.error && <Alert severity="warning" action={<Button onClick={ubicacion.reintentar}>Reintentar</Button>}>{ubicacion.error}</Alert>}
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
             <Box sx={{ flex: 1 }}>
                 <ProvinciaComponent
+                  disabled={ubicacion.cargando}
                   provincia={provincia}
                   setProvincia={(siguienteProvincia) => {
                     setProvincia(siguienteProvincia);
@@ -110,6 +116,8 @@ export const DomicilioOpcionalForm = ({
             </Box>
             <Box sx={{ flex: 1 }}>
                 <DepartamentoComponent
+                    key={provincia?.id ?? "sin-provincia"}
+                    disabled={ubicacion.cargando || provincia === null}
                     departamento={departamento}
                     setDepartamento={(siguienteDepartamento) => {
                       setDepartamento(siguienteDepartamento);
@@ -137,6 +145,7 @@ export const DomicilioOpcionalForm = ({
             onChange={(e) => actualizarDomicilio({ nombre: e.target.value })}
           />
           <IconButton
+            aria-label="Quitar domicilio"
             size="small"
             onClick={ocultarDomicilio}
             sx={{ alignSelf: { xs: "flex-end", sm: "center" } }}
@@ -168,8 +177,8 @@ export const DomicilioOpcionalForm = ({
   return (
     <DomicilioSelect
       domicilios={domicilios}
-      nombreElegido={nombreElegido}
-      setNombreElegido={setNombreElegido}
+      indiceElegido={indiceElegido}
+      setIndiceElegido={setIndiceElegido}
       onCargarOtro={cargarOtroDomicilio}
       onConfirmar={confirmarSeleccion}
     />

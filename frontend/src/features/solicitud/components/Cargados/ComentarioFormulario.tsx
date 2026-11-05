@@ -13,7 +13,7 @@ export function ComentarioFormulario({ inicial = "", onGuardar, onCancelar }: Pr
   const [texto, setTexto] = useState(inicial)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const valido = texto.trim().length > 0 && texto.length <= 256
+  const valido = texto.trim().length > 0
 
   async function guardar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -35,8 +35,8 @@ export function ComentarioFormulario({ inicial = "", onGuardar, onCancelar }: Pr
       <Stack spacing={1.5}>
         <TextField label={onCancelar ? "Editar comentario" : "Nuevo comentario"}
           value={texto} onChange={(event) => setTexto(event.target.value)} disabled={guardando}
-          multiline minRows={3} fullWidth slotProps={{ htmlInput: { maxLength: 256 } }}
-          helperText={`${texto.length}/256 caracteres`} />
+          multiline minRows={3} maxRows={12} fullWidth
+          helperText={`${texto.length} caracteres`} />
         {error && <Alert severity="error">{error}</Alert>}
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ alignSelf: { sm: "flex-end" } }}>
           {onCancelar && <Button onClick={onCancelar} disabled={guardando}>Cancelar</Button>}

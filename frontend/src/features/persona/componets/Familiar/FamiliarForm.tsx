@@ -5,7 +5,8 @@ import { NombreForm } from "../NombreForm"
 import { VinculoForm } from "../VinculoForm"
 import type { Departamento, DomicilioFormData, Provincia } from "@/features/domicilio/types";
 import { SexoForm } from "../SexoForm";
-import { DniOpcionalForm } from "../DniOpcionalForm";
+import { DniForm } from "../DniForm";
+import { dniFamiliarEsValido } from "../../utils";
 import { TelefonoOpcionalForm } from "../TelefonoOpcionalForm";
 import { DomicilioOpcionalForm } from "@/features/domicilio/components/DomicilioOpcionalForm";
 
@@ -28,7 +29,6 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar, domicilios }: Pro
 
 
   const [camposVisibles, setCamposVisibles] = useState({
-    dni: false,
     telefono: false,
     domicilio: false,
   });
@@ -41,14 +41,14 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar, domicilios }: Pro
   const formCompleto =
     nombre.trim() !== "" &&
     apellido.trim() !== "" &&
+    dniFamiliarEsValido(dni) &&
     vinculoSeleccionado !== null &&
     (!camposVisibles.telefono || telefono.length === 10) &&
     (!camposVisibles.domicilio || (
       domicilio !== null &&
       domicilio.nombre.trim() !== "" &&
       domicilio.id_departamento !== null
-    )) &&
-    (!camposVisibles.dni || /^\d{7,8}$/.test(dni))
+    ))
 
   const handleCargar = () => {
     if (!formCompleto) return
@@ -59,7 +59,7 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar, domicilios }: Pro
       telefono: camposVisibles.telefono ? telefono : null,
       vinculo: vinculoSeleccionado,
       domicilio: camposVisibles.domicilio ? domicilio : null,
-      dni: camposVisibles.dni ? dni : null,
+      dni: dni.trim(),
       sexo,
     })
 
@@ -85,11 +85,10 @@ export const FamiliarForm = ({ setFamiliar, setFinishFamiliar, domicilios }: Pro
 
         <SexoForm sexo={sexo} setSexo={setSexo}/>
         {/* DNI */}
-        <DniOpcionalForm
-          condicion={camposVisibles.dni}
+        <DniForm
+          required
           dni={dni}
           setDni={setDni}
-          mostrar={(v) => cambiarCampo("dni", v)}
         />
         {/* Teléfono */}
 

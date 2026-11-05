@@ -64,3 +64,14 @@ export function domicilioToFormData ( domicilio: Domicilio | null): DomicilioFor
         domicilio_validado: null,
     }
 }
+
+export function editarDomicilioManual(domicilio: DomicilioFormData | null, cambios: Partial<DomicilioFormData>): DomicilioFormData {
+    const anterior: DomicilioFormData = domicilio ?? {
+        nombre: "", observaciones: null, id_departamento: null, domicilio_validado: null,
+    }
+    const siguiente = { ...anterior, ...cambios }
+    if (siguiente.nombre !== anterior.nombre || siguiente.id_departamento !== anterior.id_departamento) {
+        siguiente.domicilio_validado = null
+    }
+    return siguiente
+}

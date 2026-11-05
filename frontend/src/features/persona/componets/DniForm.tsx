@@ -3,14 +3,16 @@ import {TextField} from '@mui/material'
 type Props = {
     dni: string
     setDni: (dni: string) => void
+    required?: boolean
 }
 
-export const DniForm = ({dni, setDni}: Props) => {
+export const DniForm = ({dni, setDni, required = false}: Props) => {
     
     const dniInvalid = dni !== "" && dni !== null && !/^\d{7,8}$/.test(dni);
     
 return (
     <TextField
+        required={required}
         label="Número de Documento"
         placeholder="Ej: 12345678"
         value={dni ?? ""}

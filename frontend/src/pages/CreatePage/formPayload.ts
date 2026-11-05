@@ -1,5 +1,5 @@
 import { esInstitucionExistente, institucionFormToInstitucionInput } from "@/features/domicilio/utils"
-import { adolescenteCreateToAdolescenteInput, familiarCreateToFamiliarInput } from "@/features/persona/utils"
+import { adolescenteCreateToAdolescenteInput, dniFamiliarEsValido, familiarCreateToFamiliarInput } from "@/features/persona/utils"
 import type { AdolescenteSolicitudInput, RelacionAdolescenteInput } from "@/features/solicitud/types"
 import type { AdolescenteFormulario } from "./formTypes"
 import type { InstitucionFormData } from "@/features/domicilio/types"
@@ -10,11 +10,22 @@ export function prepararInstitucion(institucion: InstitucionFormData): Instituci
   return esInstitucionExistente(input) ? input : { institucion: input }
 }
 
+export function errorFamiliaresSolicitud(adolescentes: AdolescenteFormulario[]): string | null {
+  const familiares = adolescentes.flatMap((adolescente) => adolescente.familiares)
+  if (!familiares.length) return "Agregá al menos un familiar a la solicitud."
+  if (familiares.some((familiar) => !dniFamiliarEsValido(familiar.dni))) {
+    return "Todos los familiares deben tener un DNI de 7 u 8 dígitos."
+  }
+  return null
+}
+
 export function prepararAdolescentes(adolescentes: AdolescenteFormulario[]): {
   adolescentes: AdolescenteSolicitudInput[]
   relaciones_adolescentes: RelacionAdolescenteInput[]
 } {
   if (!adolescentes.length) throw new Error("Agregá al menos un adolescente.")
+  const errorFamiliares = errorFamiliaresSolicitud(adolescentes)
+  if (errorFamiliares) throw new Error(errorFamiliares)
   const ids = new Set<string>()
   const identidades = new Set<string>()
   const relaciones: RelacionAdolescenteInput[] = []

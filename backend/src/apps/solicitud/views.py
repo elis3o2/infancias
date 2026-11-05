@@ -18,6 +18,7 @@ from .admision_serializers import AdolescenteAdmisionSerializer, FamiliarAdmisio
 from .permissions import SolicitudPermission
 from .services import crear_solicitud, validar_solicitud, derivar_solicitud, rechazar_solicitud
 from src.permissions import IsOperationalUser, ReadOnly
+from src.apps.persona.models import Adolescente
 from rest_framework.exceptions import ValidationError
 
 MAX_ARCHIVOS = 5
@@ -147,6 +148,10 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             return qs.none()
 
         qs = qs.filter(equipo=user.equipo)
+        if self.action in {"list", "validados", "sin_validar", "rechazados"}:
+            qs = qs.select_related("motivo", "equipo").prefetch_related(Prefetch(
+                "adolescentes", queryset=Adolescente.objects.select_related("persona").order_by("id"),
+            ))
         if self.action == "retrieve":
             qs = qs.prefetch_related(Prefetch(
                 "comentarios",
@@ -336,6 +341,56 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         return Response(
             SolicitudComentarioSerializer(comentario, context={"request": request}).data,
         )
+    
+    @action(detail=False, methods=["get"], url_path="stats")
+    def get_stats(self, request):
+        ahora = timezone.now()
+
+        inicio_semana = (ahora - timedelta(days=ahora.weekday())).replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+
+        inicio_mes = ahora.replace(
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+
+        def contar_por_equipo(queryset):
+            resultados = (
+                queryset
+                .values("equipo__nombre")
+                .annotate(cantidad=Count("id"))
+                .order_by()
+            )
+
+            return {
+                item["equipo__nombre"]: item["cantidad"]
+                for item in resultados
+            }
+
+        queryset = self.get_queryset()
+
+        creada_semana = contar_por_equipo(
+            queryset.filter(fecha_hora_creacion__gte=inicio_semana)
+        )
+
+        creada_mes = contar_por_equipo(
+            queryset.filter(fecha_hora_creacion__gte=inicio_mes)
+        )
+
+        total = contar_por_equipo(queryset)
+
+        return Response({
+            "creada_semana": creada_semana,
+            "creada_mes": creada_mes,
+            "total": total,
+        })
 
 class ArchivoViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ArchivoSerializer

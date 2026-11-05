@@ -16,7 +16,7 @@ export const ContactoComponent = ({correo, setCorreo, telefono, setTelefono, fin
   
     return (
       <ConditionalCard
-        titulo="Datos de contacto"
+        titulo="Datos de contacto de la institución"
         condicion={finishContacto}
         componenteTrue={
           <ContactoList

@@ -18,11 +18,11 @@ export const DomicilioComponent = ({ domicilios, domicilio, onGuardar, onLimpiar
     const [mostrarFormulario, setMostrarFormulario] = useState(
         domicilio === null && domicilios.length === 0
     );
-    const [nombreElegido, setNombreElegido] = useState(domicilio?.nombre ?? "");
+    const [indiceElegido, setIndiceElegido] = useState("");
     const [confirmado, setConfirmado] = useState(domicilio != null);
 
     const confirmarSeleccion = () => {
-        const encontrado = domicilios.find((d) => d.nombre === nombreElegido)
+        const encontrado = indiceElegido === "" ? undefined : domicilios[Number(indiceElegido)]
         if (encontrado) {
             onGuardar(encontrado)
             setConfirmado(true)
@@ -36,7 +36,7 @@ export const DomicilioComponent = ({ domicilios, domicilio, onGuardar, onLimpiar
 
     const cargarOtroDomicilio = () => {
         onLimpiar()
-        setNombreElegido("")
+        setIndiceElegido("")
         setConfirmado(false)
         setMostrarFormulario(true);
     };
@@ -88,8 +88,8 @@ export const DomicilioComponent = ({ domicilios, domicilio, onGuardar, onLimpiar
     return (
         <DomicilioSelect
             domicilios={domicilios}
-            nombreElegido={nombreElegido}
-            setNombreElegido={setNombreElegido}
+            indiceElegido={indiceElegido}
+            setIndiceElegido={setIndiceElegido}
             onCargarOtro={cargarOtroDomicilio}
             onConfirmar={confirmarSeleccion}
         />

@@ -58,13 +58,23 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
         setLoading(true)
         setError("")
         setPersona(null)
+        setVinculo(null)
+        setTelefono("")
+        setDomicilio(null)
+        setProvincia(null)
+        setDepartamento(null)
+        setCamposVisibles({ telefono: false, domicilio: false })
         try {
             const data = await getCiudadanoData([], [{ id: 0, dni, sexo }])
             const resultado = data.familiares[0]
-            if (resultado?.persona) {
-                setPersona({ ...personaRegistradaAFormulario(resultado.persona), legajo: null })
-            } else if (resultado?.ciudadano) {
-                setPersona(ciudadanoToPersona(resultado.ciudadano))
+            const encontrada = resultado?.persona
+                ? { ...personaRegistradaAFormulario(resultado.persona), legajo: null }
+                : resultado?.ciudadano ? ciudadanoToPersona(resultado.ciudadano) : null
+            if (encontrada) {
+                setPersona(encontrada)
+                setTelefono(encontrada.telefono ?? "")
+                setDomicilio(encontrada.domicilio)
+                setCamposVisibles({ telefono: Boolean(encontrada.telefono), domicilio: Boolean(encontrada.domicilio) })
             } else {
                 setError("No se encontró una persona con ese DNI y sexo.")
             }
@@ -76,7 +86,7 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
     }
 
     const handleAgregar = () => {
-        if (!persona) return
+        if (!persona || !formCompleto) return
 
         const personaActualizada: PersonaCreate = {
             ...persona,

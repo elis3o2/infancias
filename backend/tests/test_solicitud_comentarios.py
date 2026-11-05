@@ -113,9 +113,9 @@ class SolicitudComentariosTests(TestCase):
         self.assertEqual(comentario.comentario, "Texto original")
         self.assertEqual(comentario.fecha_hora_ultmod, comentario.fecha_hora_creacion)
 
-    def test_rechaza_comentarios_vacios_ausentes_y_mayores_a_256(self):
+    def test_rechaza_comentarios_vacios_o_ausentes(self):
         comentario = self._comentario()
-        for datos in ({}, {"comentario": ""}, {"comentario": " \n "}, {"comentario": "a" * 257}):
+        for datos in ({}, {"comentario": ""}, {"comentario": " \n "}):
             for accion in ("comentar", "editar_comentario"):
                 with self.subTest(datos=datos, accion=accion):
                     response = self._request(accion, self.autor, datos,
@@ -126,6 +126,22 @@ class SolicitudComentariosTests(TestCase):
         self.assertEqual(comentario.comentario, "Texto original")
         response = self._request("comentar", self.autor, {"comentario": "a" * 256})
         self.assertEqual(response.status_code, 201, response.data)
+
+    def test_crea_edita_y_recupera_comentarios_largos_sin_truncar(self):
+        texto = "Seguimiento del niño\n" * 5000
+        response = self._request("comentar", self.autor, {"comentario": texto})
+        self.assertEqual(response.status_code, 201, response.data)
+        comentario = SolicitudComentario.objects.get(pk=response.data["id"])
+        self.assertEqual(comentario.comentario, texto.strip())
+        fecha_original = comentario.fecha_hora_creacion
+        nuevo = "Actualización\n" + texto + "Fin del comentario."
+        response = self._request("editar_comentario", self.autor, {"comentario": nuevo}, comentario_id=comentario.pk)
+        self.assertEqual(response.status_code, 200, response.data)
+        comentario.refresh_from_db()
+        self.assertEqual(comentario.comentario, nuevo)
+        self.assertEqual(comentario.fecha_hora_creacion, fecha_original)
+        detalle = self._request("retrieve", self.autor)
+        self.assertEqual(detalle.data["comentarios"][0]["comentario"], nuevo)
 
     def test_no_permite_comentar_fuera_de_admision_ni_solicitudes_no_validadas(self):
         for equipo, usuario in ((self.entrada, self.usuario_entrada), (self.territorial, self.usuario_territorial)):

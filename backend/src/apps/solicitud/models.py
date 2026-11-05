@@ -59,7 +59,7 @@ class SolicitudComentario(models.Model):
     id = models.AutoField(primary_key=True)
     solicitud = models.ForeignKey(
         Solicitud, models.DO_NOTHING, db_column="id_solicitud", related_name="comentarios")
-    comentario = models.CharField(max_length=256)
+    comentario = models.TextField()
     fecha_hora_creacion = models.DateTimeField()
     fecha_hora_ultmod = models.DateTimeField()
     usuario = models.ForeignKey(
@@ -68,4 +68,3 @@ class SolicitudComentario(models.Model):
     class Meta:
         managed = False
         db_table = 'solicitud_comentario'
-

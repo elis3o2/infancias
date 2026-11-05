@@ -14,7 +14,7 @@ export const Header = () => {
       <Toolbar sx={{ minHeight: 80 }}>
       <Box
         component="img"
-        src="/azul.png"
+        src={`${import.meta.env.BASE_URL}azul.png`}
         alt="Municipalidad de Rosario"
         onClick={() => navigate("/solicitud/")}
         sx={{
