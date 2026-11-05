@@ -31,6 +31,7 @@ export const AppRoutes = () => {
   return (
     <Suspense fallback={<PantallaDeCarga />}>
       <Routes>
+        <Route path="/" element={<Navigate to="/buscar" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/buscar" element={<BuscarCiudadano />} />
 

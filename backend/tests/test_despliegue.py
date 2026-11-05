@@ -17,17 +17,19 @@ from django.urls import resolve
     }],
 )
 class DespliegueTests(SimpleTestCase):
-    def test_raiz_y_prefijo_sin_barra_redirigen(self):
+    def test_raiz_y_prefijo_redirigen_a_buscar(self):
         for host in ("salud1.dyndns.org", "192.168.64.49:7451"):
-            for ruta in ("/", "/infancias"):
+            for ruta in ("/", "/infancias", "/infancias/"):
                 with self.subTest(host=host, ruta=ruta):
                     respuesta = self.client.get(ruta, HTTP_HOST=host)
                     self.assertEqual(respuesta.status_code, 302)
-                    self.assertEqual(respuesta["Location"], "/infancias/")
+                    self.assertEqual(respuesta["Location"], "/infancias/buscar")
+                    destino = self.client.get(respuesta["Location"], HTTP_HOST=host)
+                    self.assertContains(destino, '<div id="root"></div>')
 
     def test_paginas_pueden_recargarse_en_ambos_origenes(self):
         for host, https in (("salud1.dyndns.org", True), ("192.168.64.49:7451", False)):
-            for ruta in ("", "buscar", "login/", "solicitud", "validar/7", "historial/7", "reportes"):
+            for ruta in ("buscar", "login/", "solicitud", "validar/7", "historial/7", "reportes"):
                 with self.subTest(host=host, ruta=ruta):
                     respuesta = self.client.get(f"/infancias/{ruta}", HTTP_HOST=host, secure=https)
                     self.assertContains(respuesta, '<div id="root"></div>')

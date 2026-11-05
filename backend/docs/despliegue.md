@@ -4,7 +4,8 @@
 
 - Público: `https://salud1.dyndns.org/infancias/`.
 - Interno: `http://192.168.64.49:7451/infancias/`.
-- En el puerto interno, `/` redirige a `/infancias/`.
+- La página de inicio siempre es `/infancias/buscar`: `/`, `/infancias` y
+  `/infancias/` redirigen allí sin exigir inicio de sesión.
 - La API publicada está en `/infancias/api/`; `/api/` se conserva para desarrollo.
 - Gunicorn escucha solo en `127.0.0.1:8001`. Nginx recibe las conexiones externas.
 - El frontend compilado usa el origen de la página, no la URL de desarrollo
@@ -140,7 +141,7 @@ curl -I http://192.168.64.49:7451/infancias/login
 curl -I https://salud1.dyndns.org/infancias/login
 ```
 
-La primera respuesta debe redirigir a `/infancias/`; las otras deben devolver HTML
+La primera respuesta debe redirigir a `/infancias/buscar`; las otras deben devolver HTML
 con estado 200. En un navegador, probar ambos accesos, recargar una ruta interna,
 comprobar logo/estilos y verificar que las consultas van a `/infancias/api/` en el
 mismo origen. Probar autenticación y servicios con cuentas/datos de prueba autorizados.
