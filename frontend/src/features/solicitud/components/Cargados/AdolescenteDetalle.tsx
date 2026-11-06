@@ -7,6 +7,7 @@ import type { Familiar } from "@/features/persona/types"
 import type { AdolescenteSolicitud } from "../../types"
 import { FamiliaresDetalle } from "./FamiliaresDetalle"
 import { nombreDelAdolescente } from "./solicitudDetalle"
+import { LegajoCarpetaVista } from "@/features/persona/componets/LegajoCarpetaVista"
 
 type Props = {
   adolescente: AdolescenteSolicitud
@@ -34,6 +35,10 @@ export const AdolescenteDetalle = ({ adolescente, familiares, validada }: Props)
         />
       )}
     </Stack>
+
+    {validada && adolescente.persona && <LegajoCarpetaVista
+      legajo={adolescente.persona.legajo?.id_insert ?? adolescente.persona.legajo?.id}
+      carpeta={adolescente.persona.legajo?.carpeta?.id_insert ?? adolescente.persona.legajo?.carpeta?.id} />}
 
     <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(2, minmax(0, 1fr))" }, gap: 2 }}>
       <Stack spacing={2} sx={{ minWidth: 0 }}>

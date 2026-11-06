@@ -14,7 +14,7 @@ export function ResultadosHistorial({ datos, pagina, consulta, onPagina }: Props
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}>
             <Stack spacing={0.75} sx={{ minWidth: 0 }}>
               <Typography variant="h6" sx={{ overflowWrap: 'anywhere' }}>{nino.nombre} {nino.apellido}</Typography>
-              <Typography variant="body2">DNI {nino.dni} · Sexo {nino.sexo} · Legajo {nino.legajo ?? 'Sin asignar'}</Typography>
+              <Typography variant="body2">DNI {nino.dni} · Sexo {nino.sexo} · Legajo {nino.legajo ?? 'Sin asignar'} · Carpeta {nino.carpeta ?? 'Sin asignar'}</Typography>
               {!nino.validado && <Chip label="Datos declarados · Sin validar" size="small" sx={{ alignSelf: 'flex-start' }} />}
             </Stack>
             <Button component={Link} to={`/historial/${nino.id}?${consulta}`} variant="outlined"

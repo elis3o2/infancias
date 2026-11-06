@@ -657,9 +657,9 @@ def _serializar_persona_consulta(persona: Persona | None) -> dict | None:
         "sexo": persona.sexo,
         "fecha_nacimiento": persona.fecha_nacimiento,
         "dni": persona.dni,
-        "legajo": persona.legajo.id_insert if persona.legajo_id else None,
+        "legajo": persona.legajo.numero if persona.legajo_id else None,
         "carpeta": (
-            persona.legajo.carpeta.id_insert
+            persona.legajo.carpeta.numero
             if persona.legajo_id and persona.legajo.carpeta_id
             else None
         ),

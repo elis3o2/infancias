@@ -18,6 +18,7 @@ from src.apps.domicilio.models import Institucion
 from src.apps.domicilio.serializers import InstitucionSerializer
 from .comentarios import puede_comentar_solicitud, puede_editar_comentario
 from .permissions import puede_agregar_familiares, puede_gestionar_admision
+from .legajos import legajos_solicitud
 
 
 def _valor_comparable(valor):
@@ -70,10 +71,14 @@ class SolicitudComentarioSerializer(serializers.ModelSerializer):
 
 class SolicitudListSerializer(serializers.ModelSerializer):
     titulo = serializers.SerializerMethodField()
+    legajos = serializers.SerializerMethodField()
     motivo = MotivoSolicitudSerializer(read_only=True)
     equipo = EquipoSerializer(read_only=True)
     validado = serializers.BooleanField(read_only=True)
     rechazado = serializers.BooleanField(read_only=True)
+
+    def get_legajos(self, solicitud):
+        return legajos_solicitud(solicitud)
 
     def get_titulo(self, solicitud):
         if solicitud.fecha_hora_admision is None:
@@ -82,8 +87,9 @@ class SolicitudListSerializer(serializers.ModelSerializer):
         for adolescente in solicitud.adolescentes.all():
             persona = adolescente.persona or adolescente
             nombre = f"{persona.nombre} {persona.apellido}".strip()
-            if nombre:
-                nombres.append(nombre)
+            dni = str(persona.dni).strip() if persona.dni else ""
+            if nombre or dni:
+                nombres.append(f"{nombre} (DNI: {dni})" if nombre and dni else nombre or f"DNI: {dni}")
         return " · ".join(nombres) or f"Solicitud #{solicitud.pk}"
 
     class Meta:
@@ -91,6 +97,7 @@ class SolicitudListSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'titulo',
+            'legajos',
             'motivo',
             'fecha_hora_creacion',
             'fecha_hora_entrada',

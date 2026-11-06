@@ -157,7 +157,7 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             qs = qs.filter(equipo=user.equipo)
         if self.action in {"list", "validados", "sin_validar", "rechazados"}:
             qs = qs.select_related("motivo", "equipo").prefetch_related(Prefetch(
-                "adolescentes", queryset=Adolescente.objects.select_related("persona").order_by("id"),
+                "adolescentes", queryset=Adolescente.objects.select_related("persona__legajo__carpeta").order_by("id"),
             ))
         if self.action == "retrieve":
             qs = qs.prefetch_related(Prefetch(

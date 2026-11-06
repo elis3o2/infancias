@@ -31,7 +31,9 @@ export function DatosPersonaAdmision({ tipo, persona, legajoRegistrado, onChange
       <Stack spacing={2} sx={{ minWidth: 0 }}>
         <VinculoForm adolescente={adolescente} vinculoSeleccionado={persona.vinculo}
           setVinculoSeleccionado={(vinculo) => onChange({ ...persona, vinculo })} />
-        {adolescente && <Alert severity="info">El domicilio es obligatorio. El legajo debe compartir la carpeta de la solicitud.</Alert>}
+        {adolescente && <Alert severity="info">El domicilio es obligatorio. El legajo debe compartir la carpeta de la solicitud.
+          Podés ingresar números manuales solo al agregarlo; si los omitís, se asignarán automáticamente.
+          Una vez guardados, no se podrán modificar.</Alert>}
         <ContactoFamiliar persona={persona} familiar={null} onChange={onChange} />
         {adolescente && (legajoRegistrado ? (
           <Alert severity="info">Legajo registrado: {persona.legajo?.id_insert ?? "—"}. Carpeta: {persona.legajo?.carpeta_id ?? "—"}.

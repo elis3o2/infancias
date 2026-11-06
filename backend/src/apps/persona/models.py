@@ -7,6 +7,10 @@ class Carpeta(models.Model):
     id_insert = models.IntegerField(null=True, blank=True)
     letra = models.CharField(max_length=1)
 
+    @property
+    def numero(self):
+        return self.id_insert if self.id_insert is not None else self.pk
+
     class Meta:
         managed = False
         db_table = "carpeta"
@@ -18,6 +22,10 @@ class Legajo(models.Model):
     carpeta = models.ForeignKey(
         Carpeta, models.DO_NOTHING, db_column="id_carpeta")
     letra = models.CharField(max_length=1)
+
+    @property
+    def numero(self):
+        return self.id_insert if self.id_insert is not None else self.pk
 
     class Meta:
         managed = False

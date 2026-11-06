@@ -29,7 +29,7 @@ const { IntervencionesHistorial } = await server.ssrLoadModule('/src/features/pe
 const render = (componente, props) => renderToStaticMarkup(createElement(MemoryRouter, null, createElement(componente, props)))
 const vacios = { nombre: '', apellido: '', dni: '', legajo: '' }
 const nino = { id: 7, nombre: 'Clara', apellido: 'Diaz', dni: '50000001', sexo: 'F',
-  fecha_nacimiento: '2012-02-18', legajo: 1234, validado: true }
+  fecha_nacimiento: '2012-02-18', legajo: 1234, carpeta: 900, validado: true }
 const comentario = { id: 10, comentario: 'Primera línea\n<b>Texto libre</b>', usuario_nombre: 'Autora',
   fecha_hora_creacion: '2026-09-25T10:30:00', fecha_hora_ultmod: '2026-09-25T10:30:00' }
 const solicitud = { id: 1, motivo: 'Consulta', equipo: 'Admisión', validado: true, rechazado: false,
@@ -76,7 +76,7 @@ test('detalle muestra identidad validada, solicitudes de todos los estados y con
     { ...solicitud, id: 3, validado: false, rechazado: true, motivo_rechazo: 'Datos incorrectos', comentarios: [] }]
   assert.deepEqual(solicitudes.map((item) => estadoSolicitudHistorial(item).texto), ['Validada', 'Pendiente', 'Rechazada'])
   const html = render(HistorialNinoDetalle, { historial: { nino, solicitudes } })
-  for (const texto of [/Clara Diaz/, /1234/, /Identidad validada/, /Solicitudes \(3\)/, /Intervenciones \(1\)/,
+  for (const texto of [/Clara Diaz/, /1234/, /Carpeta/, />900</, /Identidad validada/, /Solicitudes \(3\)/, /Intervenciones \(1\)/,
     /Validada/, /Pendiente/, /Rechazada/, /Datos incorrectos/, /Solo lectura/]) assert.match(html, texto)
   assert.doesNotMatch(html, /<textarea|>Editar<|href="\/validar/)
 })
@@ -86,6 +86,7 @@ test('resultados conservan búsqueda, identifican pendientes y muestran paginaci
   const html = render(ResultadosHistorial, { datos, pagina: 1, consulta: 'dni=50000001&page=1', onPagina: () => {} })
   assert.match(html, /href="\/historial\/7\?dni=50000001&amp;page=1"/)
   assert.match(html, /21 resultados/)
+  assert.match(html, /Carpeta 900/)
   assert.match(html, /Sin asignar/)
   assert.match(html, /Sin validar/)
   assert.match(html, /<button[^>]*disabled=""[^>]*>Anterior</)

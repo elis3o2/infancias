@@ -114,6 +114,48 @@ class SolicitudAdmisionTests(TestCase):
         self.assertEqual(recargada.data["familiares_validados"][0]["id"], familiar.persona_id)
         self.red.assert_not_called()
 
+    def test_lista_y_reporte_muestran_legajos_automaticos_o_manuales_sin_modificarlos(self):
+        from src.apps.solicitud.reportes_serializers import SolicitudReporteSerializer
+        from src.apps.persona.services import _serializar_persona_consulta
+
+        for numero in (None, 900):
+            self.legajo.id_insert = numero
+            self.legajo.save(update_fields=["id_insert"])
+            self.carpeta.id_insert = numero
+            self.carpeta.save(update_fields=["id_insert"])
+            for equipo in (self.admision, self.territorial):
+                self.solicitud.equipo = equipo
+                self.solicitud.save(update_fields=["equipo"])
+                self.usuario.equipo = equipo
+                self.usuario.save(update_fields=["equipo"])
+                antes = self._cantidades()
+                registro = {"id_adolescente": self.adolescente.pk, "nombre": "Nombre Prueba",
+                            "legajo": numero or self.legajo.pk, "carpeta": numero or self.carpeta.pk}
+                listado = self.client.get("/solicitud/")
+                self.assertEqual(listado.status_code, 200, listado.data)
+                self.assertEqual(listado.data[0]["legajos"], [registro])
+                detalle = self.client.get(self.url)
+                self.assertEqual(detalle.status_code, 200, detalle.data)
+                self.assertEqual(detalle.data["adolescentes"][0]["persona"]["legajo"]["id"], self.legajo.pk)
+                self.assertEqual(SolicitudReporteSerializer(self.solicitud).data["legajos"], [registro])
+                consulta = _serializar_persona_consulta(Persona.objects.select_related("legajo__carpeta").get(pk=self.persona.pk))
+                self.assertEqual(consulta["legajo"], registro["legajo"])
+                self.assertEqual(consulta["carpeta"], registro["carpeta"])
+                self.assertEqual(self._cantidades(), antes)
+
+    def test_no_se_pueden_editar_legajo_o_carpeta_despues_de_entrada(self):
+        for equipo in (self.admision, self.territorial):
+            self.usuario.equipo = equipo
+            self.usuario.save(update_fields=["equipo"])
+            self.solicitud.equipo = equipo
+            self.solicitud.save(update_fields=["equipo"])
+            for metodo in (self.client.patch, self.client.put):
+                respuesta = metodo(self.url, {"legajo": {"id_insert": 999, "carpeta_id": 999}}, format="json")
+                self.assertIn(respuesta.status_code, (403, 405))
+        self.legajo.refresh_from_db()
+        self.assertIsNone(self.legajo.id_insert)
+        self.assertEqual(self.legajo.carpeta_id, self.carpeta.pk)
+
     def test_listado_cambia_problematica_por_nombre_de_persona_al_derivar(self):
         self.adolescente.nombre = "Nombre declarado"
         self.adolescente.apellido = "Original"
@@ -130,7 +172,7 @@ class SolicitudAdmisionTests(TestCase):
         self.client.force_authenticate(territorial)
         listado = self.client.get("/solicitud/")
         self.assertEqual(listado.status_code, 200, listado.data)
-        self.assertEqual(listado.data[0]["titulo"], "Nombre validado Correcto")
+        self.assertEqual(listado.data[0]["titulo"], "Nombre validado Correcto (DNI: 50000001)")
         self.assertNotIn("Nombre declarado", listado.data[0]["titulo"])
         self.assertNotIn("Consulta", listado.data[0]["titulo"])
 
@@ -142,8 +184,26 @@ class SolicitudAdmisionTests(TestCase):
         self.solicitud.fecha_hora_admision = timezone.now()
         self.solicitud.save(update_fields=["fecha_hora_admision"])
         datos = SolicitudListSerializer(self.solicitud).data
-        self.assertIn("Nombre Prueba", datos["titulo"])
-        self.assertIn("Otra niña Apellido", datos["titulo"])
+        self.assertIn("Nombre Prueba (DNI: 50000001)", datos["titulo"])
+        self.assertIn("Otra niña Apellido (DNI: 50000009)", datos["titulo"])
+
+    def test_titulo_usa_dni_validado_y_no_el_declarado(self):
+        from src.apps.solicitud.serializers import SolicitudListSerializer
+
+        self.adolescente.dni = "50000099"
+        self.adolescente.save(update_fields=["dni"])
+        self.solicitud.fecha_hora_admision = timezone.now()
+        titulo = SolicitudListSerializer(self.solicitud).data["titulo"]
+        self.assertIn("DNI: 50000001", titulo)
+        self.assertNotIn("50000099", titulo)
+
+    def test_titulo_sin_dni_conserva_nombre_sin_valores_vacios(self):
+        from src.apps.solicitud.serializers import SolicitudListSerializer
+
+        self.persona.dni = ""
+        self.persona.save(update_fields=["dni"])
+        self.solicitud.fecha_hora_admision = timezone.now()
+        self.assertEqual(SolicitudListSerializer(self.solicitud).data["titulo"], "Nombre Prueba")
 
     def test_derivada_sin_ninos_no_vuelve_a_mostrar_la_problematica(self):
         from src.apps.solicitud.serializers import SolicitudListSerializer

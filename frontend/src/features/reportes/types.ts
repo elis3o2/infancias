@@ -1,3 +1,5 @@
+import type { LegajoSolicitud } from '@/features/solicitud/types'
+
 export type PeriodoReporte = 'semana' | 'mes' | 'todo' | 'personalizado'
 export type FiltrosReporte = {
   periodo: PeriodoReporte
@@ -17,6 +19,7 @@ export type SolicitudReporte = {
   rechazado: boolean
   cantidad_adolescentes: number
   cantidad_comentarios: number
+  legajos: LegajoSolicitud[]
 }
 export type ReporteSolicitudes = {
   general: { total: number; pendientes: number; ingresadas_semana: number; semana_desde: string; semana_hasta: string; equipos: EquipoReporte[] }

@@ -76,6 +76,17 @@ test('listado de solo lectura muestra ubicación, estado, cantidades y paginaci�
   assert.equal(estadoReporte({ validado: false, rechazado: false }).texto, 'Pendiente de validación')
 })
 
+test('reportes muestran legajos y carpetas de solo lectura en móvil y escritorio', () => {
+  const registro = { ...solicitud, validado: true, rechazado: false, equipo: 'Territorial', legajos: [
+    { id_adolescente: 1, nombre: 'Nombre Verificado', legajo: 701, carpeta: 801 },
+  ] }
+  const html = render(ListadoReporte, { solicitudes: { count: 1, previous: null, next: null, results: [registro] },
+    pagina: 1, onPagina: () => {} })
+  assert.equal((html.match(/aria-label="Legajo y carpeta de solo lectura"/g) ?? []).length, 2)
+  for (const texto of [/Nombre Verificado/, />701</, />801</]) assert.match(html, texto)
+  assert.doesNotMatch(html, /<input|<textarea|>Editar</)
+})
+
 test('resumen aclara que intervenciones son comentarios y formulario permite filtrar por el grupo virtual', () => {
   const html = render(ResumenReporte, { resumen: { total: 3, pendientes: 1, validadas: 1, rechazadas: 1, intervenciones: 7,
     motivos: [{ motivo__nombre: 'Consulta', total: 3 }] } })

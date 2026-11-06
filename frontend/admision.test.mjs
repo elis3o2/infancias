@@ -24,6 +24,7 @@ const { familiarAdmisionInput, adolescenteAdmisionInput, consultarPersonaAdmisio
 const { PersonasAdmision, AltaPersonaAdmision } = await server.ssrLoadModule("/src/features/solicitud/components/Cargados/PersonasAdmision.tsx")
 const { DatosPersonaAdmision } = await server.ssrLoadModule("/src/features/solicitud/components/Cargados/DatosPersonaAdmision.tsx")
 const { AdolescenteDetalle } = await server.ssrLoadModule("/src/features/solicitud/components/Cargados/AdolescenteDetalle.tsx")
+const { LegajosSolicitud } = await server.ssrLoadModule("/src/features/solicitud/components/Cargados/LegajosSolicitud.tsx")
 const { RelacionesAdolescentesCard } = await server.ssrLoadModule("/src/features/solicitud/components/Cargados/RelacionesAdolescentesCard.tsx")
 const { nombreDelAdolescente } = await server.ssrLoadModule("/src/features/solicitud/components/Cargados/solicitudDetalle.ts")
 const { default: http } = await server.ssrLoadModule("/src/common/api/client.ts")
@@ -77,6 +78,29 @@ async function simularHTTP(respuesta, accion) {
     else globalThis.localStorage = anteriorStorage
   }
 }
+
+test("legajos y carpetas guardados se muestran sin edición, manuales o automáticos", () => {
+  for (const manual of [false, true]) {
+    const legajo = { id: 20, id_insert: manual ? 701 : null,
+      carpeta: { id: 30, id_insert: manual ? 801 : null } }
+    const adolescente = { ...persona, id: 10, domicilio: null,
+      persona: { ...persona, domicilio: null, legajo }, familiares: [], referencias_instituciones: [], relaciones: [] }
+    const html = render(AdolescenteDetalle, { adolescente, familiares: [], validada: true })
+    const bloque = html.match(/<dl[^>]*aria-label="Legajo y carpeta de solo lectura"[^>]*>([\s\S]*?)<\/dl>/)?.[1]
+    assert.ok(bloque)
+    assert.match(bloque, new RegExp(`>${manual ? 701 : 20}<`))
+    assert.match(bloque, new RegExp(`>${manual ? 801 : 30}<`))
+    assert.doesNotMatch(bloque, /<input|<select|<textarea|<button/)
+    assert.doesNotMatch(render(AdolescenteDetalle, { adolescente, familiares: [], validada: false }), /Legajo y carpeta de solo lectura/)
+  }
+  const listado = render(LegajosSolicitud, { legajos: [
+    { id_adolescente: 10, nombre: "Nombre Verificado", legajo: 701, carpeta: 801 },
+    { id_adolescente: 11, nombre: "Otro Adolescente", legajo: 702, carpeta: 801 },
+  ] })
+  for (const texto of [/Nombre Verificado/, /Otro Adolescente/, />701</, />702</, />801</]) assert.match(listado, texto)
+  assert.doesNotMatch(listado, /<input|<select|<textarea|<button/)
+  assert.equal(render(LegajosSolicitud, {}), "")
+})
 
 test("el alta envía persona completa y contacto, sin id, letras ni salud duplicada", () => {
   const datos = familiarAdmisionInput(10, persona)

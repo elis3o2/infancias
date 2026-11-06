@@ -151,7 +151,17 @@ class HistorialNinosTests(TestCase):
         self.assertEqual(resultado["count"], 1)
         self.assertEqual(resultado["results"][0]["dni"], persona.dni)
         self.assertEqual(resultado["results"][0]["legajo"], legajo.pk)
+        self.assertEqual(resultado["results"][0]["carpeta"], self.legajo.carpeta.id_insert)
         self.assertNotIn("letra", resultado["results"][0])
+
+    def test_carpeta_automatica_se_muestra_sin_crear_ni_cambiar_registros(self):
+        self.legajo.carpeta.id_insert = None
+        self.legajo.carpeta.save(update_fields=["id_insert"])
+        antes = (Legajo.objects.count(), Carpeta.objects.count())
+        resultado = self._buscar(dni=self.persona.dni)["results"][0]
+        self.assertEqual(resultado["carpeta"], self.legajo.carpeta.pk)
+        self.assertEqual(resultado["legajo"], self.legajo.id_insert)
+        self.assertEqual((Legajo.objects.count(), Carpeta.objects.count()), antes)
 
     def test_consulta_paginada_y_sin_criterios_no_enumera_personas(self):
         for numero in range(21):

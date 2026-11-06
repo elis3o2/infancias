@@ -2,6 +2,7 @@ import { Alert, Box, Button, Chip, Paper, Stack, Table, TableBody, TableCell, Ta
 import { formatFecha } from '@/common/utils'
 import type { ReporteSolicitudes } from './types'
 import { estadoReporte } from './utils'
+import { LegajosSolicitud } from '@/features/solicitud/components/Cargados/LegajosSolicitud'
 
 type Props = { solicitudes: ReporteSolicitudes['solicitudes']; pagina: number; onPagina: (pagina: number) => void }
 
@@ -12,13 +13,13 @@ export function ListadoReporte({ solicitudes, pagina, onPagina }: Props) {
     <Typography role="status" variant="body2">{solicitudes.count} solicitudes · Página {pagina} de {Math.ceil(solicitudes.count / 20)}</Typography>
     <TableContainer component={Paper} variant="outlined" sx={{ display: { xs: 'none', md: 'block' }, borderRadius: 3 }}>
       <Table size="small" aria-label="Ubicación actual de las solicitudes">
-        <TableHead><TableRow>{['Solicitud', 'Creada', 'Equipo / grupo', 'Estado', 'Motivo', 'Adolescentes', 'Intervenciones'].map((titulo) => <TableCell key={titulo}>{titulo}</TableCell>)}</TableRow></TableHead>
+        <TableHead><TableRow>{['Solicitud', 'Creada', 'Equipo / grupo', 'Estado', 'Motivo', 'Adolescentes / Legajos y carpetas', 'Intervenciones'].map((titulo) => <TableCell key={titulo}>{titulo}</TableCell>)}</TableRow></TableHead>
         <TableBody>{solicitudes.results.map((solicitud) => {
           const estado = estadoReporte(solicitud)
           return <TableRow key={solicitud.id}>
             <TableCell component="th" scope="row">#{solicitud.id}</TableCell><TableCell>{formatFecha(solicitud.fecha_hora_creacion)}</TableCell>
             <TableCell>{solicitud.equipo}</TableCell><TableCell><Chip size="small" label={estado.texto} color={estado.color} /></TableCell>
-            <TableCell>{solicitud.motivo}</TableCell><TableCell>{solicitud.cantidad_adolescentes}</TableCell><TableCell>{solicitud.cantidad_comentarios}</TableCell>
+            <TableCell>{solicitud.motivo}</TableCell><TableCell>{solicitud.cantidad_adolescentes}<LegajosSolicitud legajos={solicitud.legajos} /></TableCell><TableCell>{solicitud.cantidad_comentarios}</TableCell>
           </TableRow>
         })}</TableBody>
       </Table>
@@ -33,6 +34,7 @@ export function ListadoReporte({ solicitudes, pagina, onPagina }: Props) {
             <Chip size="small" label={estado.texto} color={estado.color} sx={{ alignSelf: 'flex-start' }} />
             <Typography variant="body2">Creada: {formatFecha(solicitud.fecha_hora_creacion)} · {solicitud.motivo}</Typography>
             <Typography variant="body2">Adolescentes: {solicitud.cantidad_adolescentes} · Intervenciones: {solicitud.cantidad_comentarios}</Typography>
+            <LegajosSolicitud legajos={solicitud.legajos} />
           </Stack>
         </Paper>
       })}

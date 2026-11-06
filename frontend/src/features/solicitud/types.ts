@@ -135,9 +135,17 @@ export type SolicitudDetalle =
   | Solicitud
   | SolicitudRechazada
 
+export type LegajoSolicitud = {
+  id_adolescente: number
+  nombre: string
+  legajo: number | null
+  carpeta: number | null
+}
+
 export type SolicitudSimple = {
   id: number
   titulo: string
+  legajos: LegajoSolicitud[]
   motivo: MotivoSolicitud
   fecha_hora_creacion: string
   fecha_hora_modificacion?: string | null

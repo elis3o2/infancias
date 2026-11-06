@@ -33,6 +33,9 @@ def ninos_historial():
         numero_legajo=Subquery(Legajo.objects.filter(pk=OuterRef("legajo_actual_id")).annotate(
             numero=Coalesce("id_insert", "id", output_field=IntegerField()),
         ).values("numero")[:1]),
+        numero_carpeta=Subquery(Legajo.objects.filter(pk=OuterRef("legajo_actual_id")).annotate(
+            numero=Coalesce("carpeta__id_insert", "carpeta_id", output_field=IntegerField()),
+        ).values("numero")[:1]),
     )
 
 
@@ -57,6 +60,7 @@ def datos_nino(adolescente) -> dict:
         "sexo": adolescente.sexo_identidad,
         "fecha_nacimiento": adolescente.nacimiento_actual,
         "legajo": adolescente.numero_legajo,
+        "carpeta": adolescente.numero_carpeta,
         "validado": adolescente.persona_actual_id is not None,
     }
 

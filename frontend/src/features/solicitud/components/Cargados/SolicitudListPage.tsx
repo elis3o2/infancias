@@ -4,6 +4,7 @@ import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material"
 import { getSolicitudSimple } from "@/features/solicitud/api"
 import type { SolicitudSimple } from "@/features/solicitud/types"
 import { formatFechaHora } from "@/common/utils"
+import { LegajosSolicitud } from "./LegajosSolicitud"
 
 type EstadoSolicitud = {
   label: string
@@ -198,18 +199,12 @@ export const SolicitudListPage = () => {
 
                     <Box sx={{ width: "1px", alignSelf: "stretch", bgcolor: "#F1F5F9" }} />
 
-                    <Typography
-                      sx={{
-                        fontSize: 14.5,
-                        fontWeight: 600,
-                        color: "#0F172A",
-                        flex: "1 1 200px",
-                        minWidth: 0,
-                        overflowWrap: "anywhere",
-                      }}
-                    >
-                      {solicitud.titulo}
-                    </Typography>
+                    <Stack spacing={1} sx={{ flex: "1 1 200px", minWidth: 0 }}>
+                      <Typography sx={{ fontSize: 14.5, fontWeight: 600, color: "#0F172A", minWidth: 0, overflowWrap: "anywhere" }}>
+                        {solicitud.titulo}
+                      </Typography>
+                      <LegajosSolicitud legajos={solicitud.legajos} />
+                    </Stack>
 
                     {solicitud.equipo && (
                       <Box

@@ -8,6 +8,7 @@ export type NinoHistorial = {
   sexo: string
   fecha_nacimiento: string
   legajo: number | null
+  carpeta: number | null
   validado: boolean
 }
 

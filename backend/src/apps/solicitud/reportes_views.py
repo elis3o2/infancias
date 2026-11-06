@@ -1,4 +1,5 @@
-from django.db.models import Count
+from django.db.models import Count, Prefetch
+from src.apps.persona.models import Adolescente
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -23,7 +24,9 @@ class ReportesSolicitudAPIView(APIView):
         pagina = paginador.paginate_queryset(consulta.select_related("equipo", "motivo").annotate(
             cantidad_adolescentes=Count("adolescentes", distinct=True),
             cantidad_comentarios=Count("comentarios", distinct=True),
-        ).order_by("-fecha_hora_creacion", "-id"), request)
+        ).prefetch_related(Prefetch("adolescentes", queryset=Adolescente.objects.select_related(
+            "persona__legajo__carpeta",
+        ).order_by("id"))).order_by("-fecha_hora_creacion", "-id"), request)
         return Response({
             "general": resumen_general(hoy),
             "periodo": {"desde": desde, "hasta": hasta},

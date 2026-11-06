@@ -384,6 +384,14 @@ class SolicitudAdolescentesTests(TestCase):
         self.assertEqual(Carpeta.objects.get().letra, "B")
         self.assertEqual(Legajo.objects.count(), 2)
         self.assertEqual(set(Legajo.objects.values_list("letra", flat=True)), {"B"})
+        carpeta = Carpeta.objects.get()
+        self.assertEqual(carpeta.numero, carpeta.pk)
+        for adolescente in (primero, segundo):
+            adolescente.refresh_from_db()
+            legajo = adolescente.persona.legajo
+            self.assertEqual(legajo.numero, legajo.pk)
+            self.assertIsNone(legajo.id_insert)
+            self.assertEqual(legajo.carpeta_id, carpeta.pk)
 
     def test_persona_existente_conserva_salud_no_enviada_y_guarda_cambios(self):
         solicitud = self._solicitud()

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import Solicitud
+from .legajos import legajos_solicitud
 
 
 class FiltrosReporteSerializer(serializers.Serializer):
@@ -30,10 +31,14 @@ class FiltrosReporteSerializer(serializers.Serializer):
 
 
 class SolicitudReporteSerializer(serializers.ModelSerializer):
+    legajos = serializers.SerializerMethodField()
     equipo = serializers.SerializerMethodField()
     motivo = serializers.CharField(source="motivo.nombre", read_only=True)
     cantidad_adolescentes = serializers.IntegerField(read_only=True)
     cantidad_comentarios = serializers.IntegerField(read_only=True)
+
+    def get_legajos(self, solicitud):
+        return legajos_solicitud(solicitud)
 
     def get_equipo(self, solicitud):
         return "Rechazadas" if solicitud.rechazado else solicitud.equipo.nombre
@@ -42,5 +47,5 @@ class SolicitudReporteSerializer(serializers.ModelSerializer):
         model = Solicitud
         fields = [
             "id", "equipo", "motivo", "fecha_hora_creacion", "validado", "rechazado",
-            "cantidad_adolescentes", "cantidad_comentarios",
+            "cantidad_adolescentes", "cantidad_comentarios", "legajos",
         ]

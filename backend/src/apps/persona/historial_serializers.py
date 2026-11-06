@@ -26,6 +26,7 @@ class NinoHistorialSerializer(serializers.Serializer):
     sexo = serializers.CharField()
     fecha_nacimiento = serializers.DateField()
     legajo = serializers.IntegerField(allow_null=True)
+    carpeta = serializers.IntegerField(allow_null=True)
     validado = serializers.BooleanField()
 
 

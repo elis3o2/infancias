@@ -5,6 +5,7 @@ import type { HistorialNino } from '../historialTypes'
 import { intervencionesDelHistorial } from '../historialUtils'
 import { SolicitudesHistorial } from './SolicitudesHistorial'
 import { IntervencionesHistorial } from './IntervencionesHistorial'
+import { LegajoCarpetaVista } from './LegajoCarpetaVista'
 
 export function HistorialNinoDetalle({ historial }: { historial: HistorialNino }) {
   const [seccion, setSeccion] = useState(0)
@@ -15,7 +16,8 @@ export function HistorialNinoDetalle({ historial }: { historial: HistorialNino }
       <Stack spacing={1.5}>
         <Typography variant="h5" component="h1" sx={{ overflowWrap: 'anywhere' }}>{nino.nombre} {nino.apellido}</Typography>
         <Typography>DNI {nino.dni} · Sexo {nino.sexo}</Typography>
-        <Typography variant="body2">Fecha de nacimiento: {formatFecha(nino.fecha_nacimiento)} · Legajo: {nino.legajo ?? 'Sin asignar'}</Typography>
+        <Typography variant="body2">Fecha de nacimiento: {formatFecha(nino.fecha_nacimiento)}</Typography>
+        <LegajoCarpetaVista legajo={nino.legajo} carpeta={nino.carpeta} />
         <Chip label={nino.validado ? 'Identidad validada' : 'Datos declarados · Sin validar'} size="small"
           color={nino.validado ? 'success' : 'default'} sx={{ alignSelf: 'flex-start' }} />
       </Stack>
