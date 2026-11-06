@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from django.http import HttpResponse
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.utils.http import content_disposition_header
 from django.db.models.functions import Coalesce
 from .models import MotivoSolicitud, Solicitud, Archivo, SolicitudComentario
@@ -15,7 +15,7 @@ from .serializers import SolicitudComentarioSerializer
 from .comentarios import crear_comentario, editar_comentario
 from .admision import agregar_adolescente, agregar_familiar
 from .admision_serializers import AdolescenteAdmisionSerializer, FamiliarAdmisionSerializer
-from .permissions import SolicitudPermission
+from .permissions import SolicitudPermission, puede_registrar_situaciones
 from .services import crear_solicitud, validar_solicitud, derivar_solicitud, rechazar_solicitud
 from src.permissions import IsOperationalUser, ReadOnly
 from src.apps.persona.models import Adolescente
@@ -147,7 +147,13 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         if not user.equipo:
             return qs.none()
 
-        qs = qs.filter(equipo=user.equipo)
+        # Entrada y Admisión conservan seguimiento de todas las validadas no rechazadas.
+        # Las acciones de validar, derivar y agregar personas siguen limitadas al equipo actual.
+        acciones_seguimiento = {"list", "validados", "retrieve", "comentar", "editar_comentario"}
+        if self.action in acciones_seguimiento and puede_registrar_situaciones(user):
+            qs = qs.filter(Q(equipo=user.equipo) | Q(validado=True, rechazado=False))
+        else:
+            qs = qs.filter(equipo=user.equipo)
         if self.action in {"list", "validados", "sin_validar", "rechazados"}:
             qs = qs.select_related("motivo", "equipo").prefetch_related(Prefetch(
                 "adolescentes", queryset=Adolescente.objects.select_related("persona").order_by("id"),

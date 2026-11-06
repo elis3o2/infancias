@@ -93,7 +93,7 @@ class FormularioPdfTests(TestCase):
         contenido = adjunto.read()
         self.assertTrue(contenido.startswith(b"%PDF-"))
         texto = self._texto(contenido)
-        for campo in ("María Niñez", "José Niñez", "50000001", "30000001", "18/02/2012", "Escolarizado: Sí", "Ana Referencia",
+        for campo in ("María Niñez", "José Niñez", "50000001", "30000001", "18-02-2012", "Escolarizado: Sí", "Ana Referencia",
                       "Madre", "Hermano", "Otra dirección 200", "Piso 2", "Rosario, Santa Fe", "Escuela de prueba", "Instituciones de referencia",
                       "destino@example.test", "3411234567", "3417654321", "Descripción <literal> & líneas", "Segunda línea.", "documento.txt"):
             with self.subTest(campo=campo):
@@ -138,7 +138,7 @@ class FormularioPdfTests(TestCase):
         self.assertTrue(Solicitud.objects.filter(pk=otra.pk).exists())
 
     def test_pdf_largo_pagina_sin_truncar_y_escapa_texto(self):
-        datos = CopiaFormulario(123, "06/10/2026 10:00", tuple(
+        datos = CopiaFormulario(123, "06-10-2026 10:00", tuple(
             SeccionFormulario(f"Apartado {i}", (("Texto", "Línea <literal> & caracteres españoles: á é í ó ú ñ. " * 25),))
             for i in range(12)
         ) + (SeccionFormulario("Final", (("Marcador", "FIN DEL FORMULARIO"),)),))
@@ -152,6 +152,7 @@ class FormularioPdfTests(TestCase):
     def test_instantanea_no_contiene_informacion_de_validacion(self):
         solicitud = self._crear()
         copia = capturar_formulario(solicitud)
+        self.assertRegex(copia.fecha, r"^\d{2}-\d{2}-\d{4} \d{2}:\d{2}$")
         texto = str(copia)
         self.assertNotIn("discapacidades", texto)
         self.assertNotIn("historia_clinica", texto)
@@ -159,7 +160,7 @@ class FormularioPdfTests(TestCase):
     def test_api_correo_envia_pdf_como_archivo_multipart(self):
         from src.apps.api_externa import services as api
 
-        contenido = generar_formulario_pdf(CopiaFormulario(123, "06/10/2026", ()))
+        contenido = generar_formulario_pdf(CopiaFormulario(123, "06-10-2026", ()))
         adjunto = SimpleUploadedFile("solicitud-123.pdf", contenido, content_type="application/pdf")
         with patch.object(api.requests, "Session") as session_class, \
                 patch.object(api, "_url_configurada", return_value="https://correo.example.test/"), \

@@ -52,6 +52,7 @@ test("muestra autor, fecha y texto escapado, manteniendo saltos de línea", () =
   assert.match(html, /Autora de prueba/)
   assert.match(html, /Creado:/)
   assert.match(html, /10:30/)
+  assert.match(html, /25-09-2026 10:30/)
   assert.doesNotMatch(html, /Editado:/)
   assert.match(html, /&lt;b&gt;Texto, no HTML&lt;\/b&gt;/)
   assert.match(html, /Primer párrafo\n/)
@@ -59,7 +60,7 @@ test("muestra autor, fecha y texto escapado, manteniendo saltos de línea", () =
   assert.match(html, />Editar</)
 })
 
-test("solo ofrece editar comentarios propios mientras esté habilitada admisión", () => {
+test("solo ofrece editar comentarios propios cuando el backend lo permite", () => {
   for (const [habilitado, puede_editar] of [[true, false], [false, true], [false, false]]) {
     const html = render(ComentarioItem, { comentario: { ...comentario, puede_editar }, habilitado, onEditar: async () => {} })
     assert.doesNotMatch(html, />Editar<|<textarea/)
@@ -71,14 +72,17 @@ test("solo ofrece editar comentarios propios mientras esté habilitada admisión
   assert.match(html, /11:30/)
 })
 
-test("historial fuera de admisión es de solo lectura; en admisión ofrece agregar", () => {
+test("registro permite agregar y editar después de derivar según los permisos del backend", () => {
   const props = { solicitudId: 1, iniciales: [comentario] }
   const lectura = render(ComentariosSolicitud, { ...props, puedeComentar: false })
   assert.match(lectura, /Solo lectura/)
   assert.match(lectura, /Primer párrafo/)
   assert.doesNotMatch(lectura, /<textarea|>Editar<|Agregar comentario/)
   const admision = render(ComentariosSolicitud, { ...props, puedeComentar: true })
+  assert.match(admision, /Registro de situaciones/)
+  assert.match(admision, /después de derivar la solicitud/)
   assert.match(admision, /Agregar comentario/)
+  assert.match(admision, />Editar</)
   assert.match(admision, /<textarea/)
   const vacio = render(ComentariosSolicitud, { ...props, iniciales: [], puedeComentar: true })
   assert.match(vacio, /Todavía no hay comentarios/)

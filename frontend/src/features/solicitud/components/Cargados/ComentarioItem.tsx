@@ -2,18 +2,12 @@ import { useState } from "react"
 import { Button, Paper, Stack, Typography } from "@mui/material"
 import type { SolicitudComentario } from "../../types"
 import { ComentarioFormulario } from "./ComentarioFormulario"
+import { formatFechaHora } from "@/common/utils"
 
 type Props = {
   comentario: SolicitudComentario
   habilitado: boolean
   onEditar: (id: number, texto: string) => Promise<void>
-}
-
-function fechaComentario(valor: string): string {
-  const fecha = new Date(valor)
-  return Number.isNaN(fecha.getTime()) ? valor : new Intl.DateTimeFormat("es-AR", {
-    dateStyle: "short", timeStyle: "short",
-  }).format(fecha)
 }
 
 export function ComentarioItem({ comentario, habilitado, onEditar }: Props) {
@@ -25,9 +19,9 @@ export function ComentarioItem({ comentario, habilitado, onEditar }: Props) {
         <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
           <Stack spacing={0.25} sx={{ minWidth: 0 }}>
             <Typography variant="subtitle2" sx={{ overflowWrap: "anywhere" }}>{comentario.usuario_nombre}</Typography>
-            <Typography variant="caption" color="text.secondary">Creado: {fechaComentario(comentario.fecha_hora_creacion)}</Typography>
+            <Typography variant="caption" color="text.secondary">Creado: {formatFechaHora(comentario.fecha_hora_creacion)}</Typography>
             {comentario.fecha_hora_ultmod !== comentario.fecha_hora_creacion && (
-              <Typography variant="caption" color="text.secondary">Editado: {fechaComentario(comentario.fecha_hora_ultmod)}</Typography>
+              <Typography variant="caption" color="text.secondary">Editado: {formatFechaHora(comentario.fecha_hora_ultmod)}</Typography>
             )}
           </Stack>
           {puedeEditar && !editando && <Button size="small" onClick={() => setEditando(true)}>Editar</Button>}

@@ -1,4 +1,5 @@
 import type { FiltrosHistorial, IntervencionHistorial, SolicitudHistorial } from './historialTypes'
+import { formatFechaHora } from '@/common/utils'
 
 export function leerFiltrosHistorial(params: URLSearchParams): FiltrosHistorial {
   return { nombre: params.get('nombre') ?? '', apellido: params.get('apellido') ?? '',
@@ -36,8 +37,5 @@ export function estadoSolicitudHistorial(solicitud: SolicitudHistorial) {
 }
 
 export function fechaHistorial(valor: string): string {
-  const fecha = new Date(valor)
-  return Number.isNaN(fecha.getTime()) ? valor : new Intl.DateTimeFormat('es-AR', {
-    dateStyle: 'short', timeStyle: 'short',
-  }).format(fecha)
+  return formatFechaHora(valor)
 }

@@ -11,7 +11,6 @@ import { ContactoCard } from "../Contacto/ContactoCard"
 import EquipoSelect from "../EquipoForm"
 import { DescripcionCard } from "../SolicitudSection/DescripcionCard"
 import { SolicitudPersonasDetalle } from "./SolicitudPersonasDetalle"
-import { ComentariosSolicitud } from "./ComentariosSolicitud"
 import { PersonasAdmision } from "./PersonasAdmision"
 
 type Props = {
@@ -66,10 +65,7 @@ export const SolicitudValidada = ({ solicitud, onActualizar }: Props) => {
 
       <ArchivoVistaCard archivos={solicitud.archivos ?? []} />
 
-      <ComentariosSolicitud key={solicitud.id} solicitudId={solicitud.id}
-        iniciales={solicitud.comentarios ?? []} puedeComentar={solicitud.puede_comentar} />
-
-      {solicitud.equipo?.id === 2 && (
+      {solicitud.equipo?.id === 2 && solicitud.puede_agregar_personas && (
         <Stack spacing={2} sx={{ mt: 2 }}>
           <EquipoSelect equipoId={equipoId} onChange={setEquipoId} />
           <Button

@@ -51,7 +51,7 @@ def capturar_formulario(solicitud: Solicitud) -> CopiaFormulario:
         nombre = f"{adolescente.nombre} {adolescente.apellido}"
         secciones.append(SeccionFormulario(f"{indice}. Niña, niño o adolescente: {nombre}", (
             ("Nombre y apellido", nombre), ("Documento", adolescente.dni),
-            ("Sexo", adolescente.sexo), ("Fecha de nacimiento", adolescente.fecha_nacimiento.strftime("%d/%m/%Y")),
+            ("Sexo", adolescente.sexo), ("Fecha de nacimiento", adolescente.fecha_nacimiento.strftime("%d-%m-%Y")),
             ("Escolarizado", "No informado" if adolescente.escolarizado is None else "Sí" if adolescente.escolarizado else "No"),
             ("Domicilio", _domicilio(adolescente.domicilio)),
         )))
@@ -84,4 +84,4 @@ def capturar_formulario(solicitud: Solicitud) -> CopiaFormulario:
     secciones.append(SeccionFormulario("Archivos adjuntados al formulario", tuple(
         ("Archivo", nombre) for nombre in archivos
     ) or (("Archivos", "No se adjuntaron archivos"),)))
-    return CopiaFormulario(solicitud.pk, fecha.strftime("%d/%m/%Y %H:%M"), tuple(secciones))
+    return CopiaFormulario(solicitud.pk, fecha.strftime("%d-%m-%Y %H:%M"), tuple(secciones))

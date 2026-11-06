@@ -14,6 +14,7 @@
     "test:historial": "node historial.test.mjs",
     "test:reportes": "node reportes.test.mjs",
     "test:domicilio": "node domicilio.test.mjs",
+    "test:fechas": "node fechas.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

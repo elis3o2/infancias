@@ -288,7 +288,8 @@ test("salud se muestra completa como texto, sin controles editables", () => {
   assert.match(html, />Sí</)
   assert.match(html, />No</)
   const vacio = renderToStaticMarkup(createElement(DatosSalud, { persona: {} }))
-  assert.equal(vacio.match(/Sin informar/g).length, 7)
+  assert.equal(vacio.match(/Sin informar/g).length, 6)
+  assert.match(vacio, /Sin historia clínica/)
 })
 
 test("no inventa indicadores de salud ausentes y rechaza identidad incompleta", () => {
@@ -299,6 +300,9 @@ test("no inventa indicadores de salud ausentes y rechaza identidad incompleta", 
   assert.equal(persona.hc, null)
   assert.equal(persona.hcf, null)
   assert.equal("discapacidades" in persona, false)
+  const html = renderToStaticMarkup(createElement(DatosSalud, { persona: revisiones[1].persona }))
+  assert.match(html, /Sin historia clínica/)
+  assert.doesNotMatch(html, />(Sí|No)</)
   revisiones[1].persona.fecha_nacimiento = "inválida"
   assert.throws(() => crearPayloadValidacion(solicitud, revisiones, ""), /fecha de nacimiento/)
 })

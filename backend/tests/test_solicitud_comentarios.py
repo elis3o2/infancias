@@ -143,12 +143,10 @@ class SolicitudComentariosTests(TestCase):
         detalle = self._request("retrieve", self.autor)
         self.assertEqual(detalle.data["comentarios"][0]["comentario"], nuevo)
 
-    def test_no_permite_comentar_fuera_de_admision_ni_solicitudes_no_validadas(self):
-        for equipo, usuario in ((self.entrada, self.usuario_entrada), (self.territorial, self.usuario_territorial)):
-            with self.subTest(equipo=equipo):
-                solicitud = self._solicitud(equipo=equipo)
-                response = self._request("comentar", usuario, {"comentario": "Texto"}, solicitud=solicitud)
-                self.assertEqual(response.status_code, 403, response.data)
+    def test_territorial_no_comenta_y_admision_no_comenta_pendientes_o_rechazadas(self):
+        solicitud = self._solicitud(equipo=self.territorial)
+        response = self._request("comentar", self.usuario_territorial, {"comentario": "Texto"}, solicitud=solicitud)
+        self.assertEqual(response.status_code, 403, response.data)
         for cambios in ({"validado": False}, {"rechazado": True}):
             with self.subTest(cambios=cambios):
                 solicitud = self._solicitud(**cambios)
@@ -156,11 +154,11 @@ class SolicitudComentariosTests(TestCase):
                 self.assertEqual(response.status_code, 403, response.data)
         self.assertFalse(SolicitudComentario.objects.exists())
 
-    def test_no_permite_comentario_ajeno_a_la_solicitud_ni_solicitud_de_otro_equipo(self):
+    def test_no_permite_comentario_de_otra_solicitud_ni_pendientes_de_otro_equipo(self):
         ajeno = self._comentario(solicitud=self._solicitud())
         response = self._request("editar_comentario", self.autor, {"comentario": "Texto"}, comentario_id=ajeno.pk)
         self.assertEqual(response.status_code, 404, response.data)
-        otra = self._solicitud(equipo=self.territorial)
+        otra = self._solicitud(equipo=self.territorial, validado=False)
         response = self._request("comentar", self.autor, {"comentario": "Texto"}, solicitud=otra)
         self.assertEqual(response.status_code, 404, response.data)
 
@@ -174,7 +172,7 @@ class SolicitudComentariosTests(TestCase):
         self.assertEqual([item["puede_editar"] for item in response.data["comentarios"]], [True, False])
         self.assertEqual([item["usuario_nombre"] for item in response.data["comentarios"]], ["autor", "otro"])
 
-    def test_al_derivar_conserva_historial_pero_queda_solo_lectura(self):
+    def test_equipo_receptor_conserva_historial_en_solo_lectura(self):
         comentario = self._comentario()
         self.solicitud.equipo = self.territorial
         self.solicitud.save(update_fields=["equipo"])
@@ -186,6 +184,87 @@ class SolicitudComentariosTests(TestCase):
         self.autor.equipo = self.territorial
         response = self._request("editar_comentario", self.autor, {"comentario": "Cambio"}, comentario_id=comentario.pk)
         self.assertEqual(response.status_code, 403, response.data)
+
+    def test_entrada_registra_y_edita_situaciones_antes_de_validar(self):
+        solicitud = self._solicitud(equipo=self.entrada, validado=False)
+        response = self._request("comentar", self.usuario_entrada, {"comentario": "Situación inicial"}, solicitud=solicitud)
+        self.assertEqual(response.status_code, 201, response.data)
+        comentario_id = response.data["id"]
+        response = self._request("editar_comentario", self.usuario_entrada, {"comentario": "Texto corregido"},
+                                 solicitud=solicitud, comentario_id=comentario_id)
+        self.assertEqual(response.status_code, 200, response.data)
+        detalle = self._request("retrieve", self.usuario_entrada, solicitud=solicitud)
+        self.assertTrue(detalle.data["puede_comentar"])
+        self.assertEqual(detalle.data["comentarios"][0]["comentario"], "Texto corregido")
+        self.assertTrue(detalle.data["comentarios"][0]["puede_editar"])
+        self.assertEqual(self._request("retrieve", self.autor, solicitud=solicitud).status_code, 404)
+
+    def test_ambas_areas_comentan_derivadas_sin_exigir_paso_previo(self):
+        self.solicitud.equipo = self.territorial
+        self.solicitud.save(update_fields=["equipo"])
+        self.assertIsNone(self.solicitud.fecha_hora_entrada)
+        self.assertIsNone(self.solicitud.fecha_hora_admision)
+        for usuario in (self.autor, self.usuario_entrada):
+            with self.subTest(usuario=usuario.username):
+                detalle = self._request("retrieve", usuario)
+                self.assertEqual(detalle.status_code, 200, detalle.data)
+                self.assertTrue(detalle.data["puede_comentar"])
+                self.assertFalse(detalle.data["puede_agregar_personas"])
+                respuesta = self._request("comentar", usuario, {"comentario": "Seguimiento posterior"})
+                self.assertEqual(respuesta.status_code, 201, respuesta.data)
+                comentario_id = respuesta.data["id"]
+                respuesta = self._request("editar_comentario", usuario, {"comentario": "Seguimiento corregido"}, comentario_id=comentario_id)
+                self.assertEqual(respuesta.status_code, 200, respuesta.data)
+                otro = self.usuario_entrada if usuario == self.autor else self.autor
+                respuesta = self._request("editar_comentario", otro, {"comentario": "No autorizado"}, comentario_id=comentario_id)
+                self.assertEqual(respuesta.status_code, 403, respuesta.data)
+        self.solicitud.refresh_from_db()
+        self.assertEqual(self.solicitud.equipo_id, self.territorial.pk)
+        self.assertIsNone(self.solicitud.fecha_hora_entrada)
+        self.assertIsNone(self.solicitud.fecha_hora_admision)
+
+    def test_el_autor_de_admision_puede_editar_lo_escrito_antes_de_derivar(self):
+        comentario = self._comentario()
+        fecha = comentario.fecha_hora_creacion
+        self.solicitud.equipo = self.territorial
+        self.solicitud.save(update_fields=["equipo"])
+        response = self._request("editar_comentario", self.autor, {"comentario": "Actualizado después de derivar"}, comentario_id=comentario.pk)
+        self.assertEqual(response.status_code, 200, response.data)
+        comentario.refresh_from_db()
+        self.assertEqual(comentario.fecha_hora_creacion, fecha)
+        self.assertEqual(comentario.usuario_id, self.autor.pk)
+
+    @override_settings(ROOT_URLCONF="src.apps.solicitud.urls")
+    def test_listados_incluyen_derivadas_pero_no_otorgan_otras_acciones(self):
+        derivada = self._solicitud(equipo=self.territorial)
+        pendiente_ajena = self._solicitud(equipo=self.territorial, validado=False)
+        rechazada_ajena = self._solicitud(equipo=self.territorial, validado=False, rechazado=True)
+        for usuario in (self.autor, self.usuario_entrada):
+            cliente = APIClient()
+            cliente.force_authenticate(user=usuario)
+            for ruta in ("/solicitud/", "/solicitud/validados/"):
+                respuesta = cliente.get(ruta)
+                self.assertEqual(respuesta.status_code, 200, respuesta.data)
+                ids = {item["id"] for item in respuesta.data}
+                self.assertIn(derivada.pk, ids)
+                self.assertNotIn(pendiente_ajena.pk, ids)
+                self.assertNotIn(rechazada_ajena.pk, ids)
+            for accion, metodo in (("derivar", "put"), ("validar", "put"), ("rechazar", "put"),
+                                   ("familiares", "post"), ("adolescentes", "post")):
+                respuesta = getattr(cliente, metodo)(f"/solicitud/{derivada.pk}/{accion}/", {}, format="json")
+                self.assertIn(respuesta.status_code, (403, 404), (accion, respuesta.data))
+            self.assertEqual(cliente.post(f"/solicitud/{rechazada_ajena.pk}/comentar/", {"comentario": "Texto"}).status_code, 404)
+        derivada.refresh_from_db()
+        self.assertEqual(derivada.equipo_id, self.territorial.pk)
+
+    @override_settings(ROOT_URLCONF="src.apps.solicitud.urls")
+    def test_otros_equipos_no_ganan_acceso_cruzado(self):
+        cliente = APIClient()
+        cliente.force_authenticate(user=self.usuario_territorial)
+        respuesta = cliente.get("/solicitud/")
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertNotIn(self.solicitud.pk, {item["id"] for item in respuesta.data})
+        self.assertEqual(cliente.get(f"/solicitud/{self.solicitud.pk}/").status_code, 404)
 
     def test_sin_autenticacion_no_crea_ni_edita(self):
         comentario = self._comentario()

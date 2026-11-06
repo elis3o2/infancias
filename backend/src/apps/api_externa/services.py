@@ -5,11 +5,19 @@ de URLs, credenciales ni de la forma de las respuestas de cada proveedor.
 """
 
 import logging
+import time
 from typing import cast
 from urllib.parse import quote
 
 import requests
 from decouple import config
+
+from .identidad import consultar_identidad as consultar_identidad
+from .identidad_normalizacion import normalizar_identidad
+from .identidad_types import (
+    IdentidadLimiteExcedido, ResultadoIdentidad,
+    SeccionIdentidad, SexoIdentidad,
+)
 
 from .types import (
     ArchivosAdjuntos,
@@ -63,7 +71,7 @@ def _consultar_api_digitalizacion(dni: str, sexo: str) -> RespuestaDigitalizacio
 
 
 def consultar_digitalizacion(dni: str, sexo: str) -> DatosDigitalizacion | None:
-    """Identidad de sisa_data.ciudadano y HC de results_query1[0].hc."""
+    """Digitalización primero; Identidad como respaldo ante fallas, no ante 404."""
     if not sexo:
         return None
 
@@ -72,18 +80,40 @@ def consultar_digitalizacion(dni: str, sexo: str) -> DatosDigitalizacion | None:
     except RecursoExternoNoEncontrado:
         logger.info("No se encontraron datos de digitalización para la consulta.")
         return None
-    except ServicioExternoNoConfigurado:
-        logger.warning("La consulta de digitalización no está configurada.")
-        return None
     except ServicioExternoError as exc:
-        logger.warning("No fue posible consultar el servicio de digitalización: %s", exc)
-        return None
+        logger.warning("Digitalización falló; se consultará Identidad: %s", exc)
+    else:
+        datos = _normalizar_digitalizacion(data)
+        if datos is not None:
+            return datos
+        logger.warning("Digitalización devolvió datos incompletos; se consultará Identidad.")
 
+    respaldo = _consultar_identidad_respaldo(dni, sexo)
+    return normalizar_identidad(respaldo, dni, sexo)
+
+
+def _consultar_identidad_respaldo(dni: str, sexo: str) -> ResultadoIdentidad:
+    try:
+        secciones: list[SeccionIdentidad] = ["renaper", "sisros"] if sexo == "X" else ["renaper", "puco", "sisros"]
+        try:
+            return consultar_identidad(dni, cast(SexoIdentidad, sexo), secciones=secciones)
+        except IdentidadLimiteExcedido as exc:
+            if exc.remoto or exc.reintentar_en > 3:
+                raise
+            # Consultas consecutivas del mismo formulario: esperar el intervalo
+            # local una sola vez. No reintentar una petición HTTP ya enviada.
+            time.sleep(exc.reintentar_en)
+            return consultar_identidad(dni, cast(SexoIdentidad, sexo), secciones=secciones)
+    except ValueError as exc:
+        raise ServicioExternoError("Los datos de consulta no son válidos para Identidad.") from exc
+
+
+def _normalizar_digitalizacion(data: RespuestaDigitalizacion) -> DatosDigitalizacion | None:
+    """Contrato de Digitalización: identidad en sisa_data, HC en results_query1[0]."""
     sisa_data = data.get("sisa_data")
     datos_ciudadano = sisa_data.get("ciudadano") if isinstance(sisa_data, dict) else None
     resultados = data.get("results_query1")
     if not isinstance(datos_ciudadano, dict):
-        logger.warning("Digitalización no informó las secciones requeridas.")
         return None
 
     ciudadano = _crear_ciudadano(cast(DatosCiudadano, datos_ciudadano))
@@ -91,7 +121,6 @@ def consultar_digitalizacion(dni: str, sexo: str) -> DatosDigitalizacion | None:
     if isinstance(resultados, list) and resultados and isinstance(resultados[0], dict):
         hc = _como_texto(resultados[0].get("hc"))
     if ciudadano is None:
-        logger.warning("Digitalización no informó todos los datos requeridos.")
         return None
     return {**ciudadano.como_dict(), "hc": hc}
 

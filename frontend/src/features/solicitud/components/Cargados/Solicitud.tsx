@@ -12,6 +12,7 @@ import type { SolicitudDetalle } from "../../types"
 import { SolicitudValidar } from "./SolicitudValidar"
 import { SolicitudValidada } from "./SolicitudValidada"
 import { SolicitudRechazadaComponent } from "./SolicitudRechazadaComponent"
+import { ComentariosSolicitud } from "./ComentariosSolicitud"
 import { formatFecha } from "@/common/utils"
 import { getSolicitudErrorMessage } from "../../utils"
 
@@ -187,6 +188,8 @@ const SolicitudDetalleVista = ({ id }: { id: number }) => {
 
         {solicitud.validado && <SolicitudValidada solicitud={solicitud} onActualizar={setSolicitud} />}
         {solicitud.rechazado && <SolicitudRechazadaComponent solicitud={solicitud} />}
+        <ComentariosSolicitud key={solicitud.id} solicitudId={solicitud.id}
+          iniciales={solicitud.comentarios ?? []} puedeComentar={Boolean(solicitud.puede_comentar)} />
       </Stack>
     </Container>
   )

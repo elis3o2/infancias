@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Alert, Box, Button, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material'
 import type { EquipoReporte, FiltrosReporte, PeriodoReporte } from './types'
 import { prepararFiltrosReporte } from './utils'
+import { FechaInput } from '@/common/components/FechaInput'
 
 type Props = { inicial: FiltrosReporte; equipos: EquipoReporte[]; onAplicar: (params: URLSearchParams) => void }
 
@@ -31,9 +32,9 @@ export function FiltrosReporteForm({ inicial, equipos, onAplicar }: Props) {
         </TextField>
         <TextField label="Número de solicitud" value={filtros.solicitud} onChange={(e) => setFiltros({ ...filtros, solicitud: e.target.value })}
           slotProps={{ htmlInput: { inputMode: 'numeric', maxLength: 10 } }} />
-        {filtros.periodo === 'personalizado' && (['desde', 'hasta'] as const).map((campo) => <TextField key={campo} type="date" required
-          label={campo === 'desde' ? 'Desde' : 'Hasta'} value={filtros[campo]} onChange={(e) => setFiltros({ ...filtros, [campo]: e.target.value })}
-          slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: '9998-12-31' } }} />)}
+        {filtros.periodo === 'personalizado' && (['desde', 'hasta'] as const).map((campo) => <FechaInput key={campo} required
+          label={campo === 'desde' ? 'Desde' : 'Hasta'} value={filtros[campo]} onChange={(valor) => setFiltros({ ...filtros, [campo]: valor })}
+          max="9998-12-31" />)}
       </Box>
       {error && <Alert severity="warning">{error}</Alert>}
       <Stack direction="row" spacing={1}>

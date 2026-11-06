@@ -6,6 +6,7 @@ import { PersonaList } from "@/features/persona/componets/Persona/PersonaList"
 import { ValidarFamiliarDatos } from "@/features/persona/componets/Validar/ValidarFamiliarDatos"
 import { VinculoForm } from "@/features/persona/componets/VinculoForm"
 import { getCiudadanoData } from "@/features/api_externa/api"
+import { getSolicitudErrorMessage } from "../../../utils"
 import type { FamiliarResp } from "@/features/api_externa/types"
 import { ContactoFamiliar } from "./ContactoFamiliar"
 import { DatosSalud } from "@/features/persona/componets/DatosSalud"
@@ -41,8 +42,8 @@ export function FamiliarRevisionCard({ revision, resultado, busquedaRealizada, o
       setRespuesta(datos.familiares.find((item) => item.id === original.id) ?? null)
       setConsultado(true)
       onChange({ estado: null, persona: null })
-    } catch {
-      setError("No se pudo consultar la identidad. Volvé a intentar.")
+    } catch (error) {
+      setError(getSolicitudErrorMessage(error, "No se pudo consultar la identidad. Volvé a intentar."))
     } finally {
       setBuscando(false)
     }

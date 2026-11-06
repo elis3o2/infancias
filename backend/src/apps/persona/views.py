@@ -13,6 +13,8 @@ from .serializers import (
     RelacionAdolescenteSerializer,
 )
 from .services import consultar_personas
+from src.apps.api_externa.errores import respuesta_error_servicio
+from src.apps.api_externa.types import ServicioExternoError
 from src.permissions import IsOperationalUser, ReadOnly
 import json
 
@@ -97,6 +99,7 @@ class ConsultaPersonasAPIView(APIView):
             return Response({"detail": "El formato JSON es inválido."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = ConsultaPersonasSerializer(data=data)
         serializer.is_valid(raise_exception=True)
-        return Response(consultar_personas(
-            **serializer.validated_data,
-        ))
+        try:
+            return Response(consultar_personas(**serializer.validated_data))
+        except ServicioExternoError as exc:
+            return respuesta_error_servicio(exc)

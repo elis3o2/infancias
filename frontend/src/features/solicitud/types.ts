@@ -92,6 +92,8 @@ type SolicitudDetalleBase = {
 }
 
 export type SolicitudCrud = SolicitudDetalleBase & {
+  comentarios?: SolicitudComentario[]
+  puede_comentar?: boolean
   validado: false
   rechazado: false
   descripcion_extra?: string | null

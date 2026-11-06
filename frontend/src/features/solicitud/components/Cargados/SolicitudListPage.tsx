@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material"
 import { getSolicitudSimple } from "@/features/solicitud/api"
 import type { SolicitudSimple } from "@/features/solicitud/types"
+import { formatFechaHora } from "@/common/utils"
 
 type EstadoSolicitud = {
   label: string
@@ -26,19 +27,6 @@ function getFechaRelevante(solicitud: SolicitudSimple): string {
     return solicitud.fecha_hora_modificacion
   }
   return solicitud.fecha_hora_creacion
-}
-
-function formatFecha(fecha: string | null | undefined): string {
-  if (!fecha) return "—"
-  const date = new Date(fecha)
-  if (Number.isNaN(date.getTime())) return fecha
-
-  const dia = String(date.getUTCDate()).padStart(2, "0")
-  const mes = String(date.getUTCMonth() + 1).padStart(2, "0")
-  const anio = date.getUTCFullYear()
-  const hora = String(date.getUTCHours()).padStart(2, "0")
-  const minutos = String(date.getUTCMinutes()).padStart(2, "0")
-  return `${dia}-${mes}-${anio} ${hora}:${minutos}`
 }
 
 function formatRelativo(fecha: string): string {
@@ -250,7 +238,7 @@ export const SolicitudListPage = () => {
                         {formatRelativo(fechaRelevante)}
                       </Typography>
                       <Typography sx={{ fontSize: 11, color: "#94A3B8", whiteSpace: "nowrap" }}>
-                        {formatFecha(fechaRelevante)}
+                        {formatFechaHora(fechaRelevante)}
                       </Typography>
                     </Stack>
                   </Box>

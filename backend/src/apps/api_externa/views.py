@@ -1,5 +1,3 @@
-import logging
-
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.request import Request
@@ -9,6 +7,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 
 from src.permissions import IsOperationalUser
+from .errores import respuesta_error_servicio as _respuesta_error_servicio
 from .serializers import (
     ConsultaPersonaExternaSerializer,
     GeoCoordenadasQuerySerializer,
@@ -25,24 +24,7 @@ from .services import (
 from .types import (
     RecursoExternoNoEncontrado,
     ServicioExternoError,
-    ServicioExternoNoConfigurado,
 )
-
-
-logger = logging.getLogger(__name__)
-
-
-def _respuesta_error_servicio(exc: ServicioExternoError) -> Response:
-    if isinstance(exc, ServicioExternoNoConfigurado):
-        return Response(
-            {"detail": "El servicio externo no está configurado."},
-            status=status.HTTP_503_SERVICE_UNAVAILABLE,
-        )
-    logger.warning("Falló una consulta a servicio externo: %s", exc)
-    return Response(
-        {"detail": "No fue posible consultar el servicio externo."},
-        status=status.HTTP_502_BAD_GATEWAY,
-    )
 
 
 class CiudadanoAPIView(APIView):

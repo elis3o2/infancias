@@ -10,3 +10,5 @@ backend/core/__pycache__
 frontend/.env
 env
 backend/staticfiles/
+backend/var/
+backend/certs/

@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import type { Setter } from "@/common/types";
 import { DniForm } from "../DniForm";
 import { SexoForm } from "../SexoForm";
-import { Stack, TextField, Button, IconButton, Box } from "@mui/material";
+import { Stack, Button, IconButton, Box } from "@mui/material";
+import { FechaInput } from "@/common/components/FechaInput";
 import { NombreForm } from "../NombreForm";
 import type { DomicilioFormData } from "@/features/domicilio/types";
 import { EscolarizadoForm } from "../EscolarizadoForm";
@@ -125,21 +126,12 @@ return (
         setSexo={setSexo}
       />
 
-      <TextField
+      <FechaInput
         label="Fecha de nacimiento"
-        type="date"
         value={adolescente.fecha_nacimiento}
-        onChange={(e) =>
-            setFechaNacimiento(e.target.value)
-        }
-        slotProps={{
-            inputLabel: {
-                shrink: true,
-            },
-            htmlInput: {
-                max: new Date().toISOString().split("T")[0],
-            },
-        }}
+        onChange={setFechaNacimiento}
+        max={new Date().toISOString().slice(0, 10)}
+        required
         fullWidth
       />
 

@@ -195,6 +195,8 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
 
 
 class SolicitudReadSerializer(serializers.ModelSerializer):
+    comentarios = SolicitudComentarioSerializer(many=True, read_only=True)
+    puede_comentar = serializers.SerializerMethodField()
     adolescentes = AdolescenteReadSerializer(many=True, read_only=True)
     familiares = FamiliarSerializer(many=True, read_only=True)
     familiares_validados = serializers.SerializerMethodField()
@@ -229,7 +231,13 @@ class SolicitudReadSerializer(serializers.ModelSerializer):
             "rechazado",
             "motivo_rechazo",
             "equipo",
+            "comentarios",
+            "puede_comentar",
         ]
+
+    def get_puede_comentar(self, obj):
+        request = self.context.get("request")
+        return puede_comentar_solicitud(obj, request.user if request else None)
 
     def get_relaciones_adolescentes(self, obj):
         relaciones = RelacionAdolescente.objects.filter(
@@ -258,19 +266,10 @@ class SolicitudValReadSerializer(SolicitudReadSerializer):
     """Detalle de solicitudes procesadas con su historial de comentarios."""
 
     adolescentes = AdolescenteValReadSerializer(many=True, read_only=True)
-    comentarios = SolicitudComentarioSerializer(
-        many=True,
-        read_only=True,
-    )
-    puede_comentar = serializers.SerializerMethodField()
     puede_agregar_personas = serializers.SerializerMethodField()
 
     class Meta(SolicitudReadSerializer.Meta):
-        fields = [*SolicitudReadSerializer.Meta.fields, "comentarios", "puede_comentar", "puede_agregar_personas"]
-
-    def get_puede_comentar(self, obj):
-        request = self.context.get("request")
-        return puede_comentar_solicitud(obj, request.user if request else None)
+        fields = [*SolicitudReadSerializer.Meta.fields, "puede_agregar_personas"]
 
     def get_puede_agregar_personas(self, obj):
         request = self.context.get("request")

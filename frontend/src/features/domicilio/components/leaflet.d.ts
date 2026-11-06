@@ -22,6 +22,7 @@ declare module "leaflet" {
   export interface MarkerOptions extends InteractiveLayerOptions { [key: string]: unknown }
   export interface TileLayerOptions extends LayerOptions {
     attribution?: string;
+    referrerPolicy?: ReferrerPolicy | boolean;
     [key: string]: unknown;
   }
   export interface WMSOptions extends TileLayerOptions { [key: string]: unknown }

@@ -84,7 +84,8 @@ test('resumen aclara que intervenciones son comentarios y formulario permite fil
   const form = render(FiltrosReporteForm, { inicial: { ...vacios, equipo: 'rechazadas', periodo: 'personalizado' }, equipos, onAplicar: () => {} })
   assert.match(form, /Rechazadas/)
   assert.match(form, /Equipo \/ grupo/)
-  assert.match(form, /type="date"/)
+  assert.doesNotMatch(form, /type="date"/)
+  assert.match(form, /DD-MM-AAAA/)
   assert.match(form, /Las fechas filtran por creación/)
 })
 

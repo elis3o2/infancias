@@ -2,7 +2,8 @@ import type { HermanoCreate } from "./types"
 import { DniForm } from "../DniForm"
 import { SexoForm } from "../SexoForm"
 import { useState } from "react"
-import { Stack, Button, TextField } from "@mui/material"
+import { Stack, Button } from "@mui/material"
+import { FechaInput } from "@/common/components/FechaInput"
 import { NombreForm } from "../NombreForm"
 
 type Props = {
@@ -16,12 +17,13 @@ export const HermanoForm = ({ setHermano, setFinishHermano }: Props) => {
   const [dni, setDni] = useState("")
   const [sexo, setSexo] = useState<"M" | "F" | "">("")
   const [fechaNacimiento, setFechaNacimiento] = useState("")
+  const [fechaValida, setFechaValida] = useState(true)
 
   const formCompleto =
     nombre.trim() !== "" &&
     apellido.trim() !== "" &&
     dni.trim() !== "" &&
-    sexo !== "" 
+    sexo !== "" && fechaValida
 
   const handleCargar = () => {
     if (!formCompleto) return
@@ -51,12 +53,11 @@ export const HermanoForm = ({ setHermano, setFinishHermano }: Props) => {
           />
           <DniForm dni={dni} setDni={setDni} />
           <SexoForm sexo={sexo} setSexo={setSexo} />
-          <TextField
+          <FechaInput
             label="Fecha de nacimiento"
-            type="date"
             value={fechaNacimiento}
-            onChange={(e) => setFechaNacimiento(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
+            onChange={setFechaNacimiento}
+            onValidityChange={setFechaValida}
             fullWidth
           />
         </Stack>

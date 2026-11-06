@@ -52,8 +52,10 @@ export const Mapa = ({ latitud, longitud, nombre } : Props) => {
             style={{ height: "100%", width: "100%" }}
         >
             <TileLayer
-                attribution="&copy; OpenStreetMap contributors"
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                // Identifica el sitio ante OSM sin compartir rutas ni parámetros.
+                referrerPolicy="strict-origin"
             />
             <RecenterMap
                 latitud={latitud}

@@ -5,7 +5,8 @@ from unittest.mock import Mock, patch
 import requests
 
 from src.apps.api_externa import services, utils
-from src.apps.api_externa.types import Ciudadano
+from src.apps.api_externa.types import Ciudadano, ServicioExternoError
+from src.apps.api_externa.identidad_types import ResultadoIdentidad
 
 
 class ApiExternaPersonasTests(TestCase):
@@ -65,10 +66,19 @@ class ApiExternaPersonasTests(TestCase):
                 data = deepcopy(self.digitalizacion)
                 ciudadano = data["sisa_data"]["ciudadano"]
                 ciudadano[alias] = ciudadano.pop(campo)
-                with patch.object(services, "_obtener_json", return_value=data):
-                    self.assertIsNone(services.consultar_digitalizacion("50000001", "M"))
-        with patch.object(services, "_obtener_json", return_value={"ciudadano": self.identidad}):
-            self.assertIsNone(services.consultar_digitalizacion("50000001", "M"))
+                with (
+                    patch.object(services, "_obtener_json", return_value=data),
+                    patch.object(services, "consultar_identidad", return_value=ResultadoIdentidad(200, data)),
+                    self.assertRaises(ServicioExternoError),
+                ):
+                    services.consultar_digitalizacion("50000001", "M")
+        datos = {"ciudadano": self.identidad}
+        with (
+            patch.object(services, "_obtener_json", return_value=datos),
+            patch.object(services, "consultar_identidad", return_value=ResultadoIdentidad(200, datos)),
+            self.assertRaises(ServicioExternoError),
+        ):
+            services.consultar_digitalizacion("50000001", "M")
 
     def test_hcf_devuelve_el_contrato_completo_y_consulta_sin_proxy(self):
         respuesta = {"hcf": "50", "resultados": []}

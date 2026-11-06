@@ -5,7 +5,7 @@ import type { SaludConsulta } from "../salud"
 export function DatosSalud({ persona }: { persona: SaludConsulta }) {
   const salud = obtenerDatosSalud(persona)
   const campos = [
-    ["Historia clínica individual (HC)", salud.hc ?? "Sin informar"],
+    ["Historia clínica individual (HC)", salud.hc ?? "Sin historia clínica"],
     ["Historia clínica familiar (HCF)", salud.hcf ?? "Sin informar"],
     ...indicadoresSalud.map(([campo, etiqueta]) => [
       etiqueta, salud[campo] === undefined ? "Sin informar" : salud[campo] ? "Sí" : "No",
