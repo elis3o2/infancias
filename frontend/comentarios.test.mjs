@@ -81,6 +81,8 @@ test("registro permite agregar y editar después de derivar según los permisos 
   const admision = render(ComentariosSolicitud, { ...props, puedeComentar: true })
   assert.match(admision, /Registro de situaciones/)
   assert.match(admision, /después de derivar la solicitud/)
+  assert.match(admision, /Admisión puede registrar situaciones/)
+  assert.doesNotMatch(admision, /Entrada y Admisión/)
   assert.match(admision, /Agregar comentario/)
   assert.match(admision, />Editar</)
   assert.match(admision, /<textarea/)

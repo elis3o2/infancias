@@ -19,15 +19,18 @@ type Props = {
 export function PersonasAdmision({ solicitud, bloqueado, onActualizar, onGuardando }: Props) {
   const [tipo, setTipo] = useState<TipoAltaAdmision | null>(null)
   const [mensaje, setMensaje] = useState("")
-  if (!solicitud.puede_agregar_personas) return null
+  const puedeAgregarFamiliar = solicitud.puede_agregar_familiares
+  const puedeAgregarAdolescente = solicitud.puede_agregar_personas
+  const tipoHabilitado = tipo === "familiar" ? puedeAgregarFamiliar : tipo === "adolescente" && puedeAgregarAdolescente
+  if (!puedeAgregarFamiliar && !puedeAgregarAdolescente) return null
   return (
-    <TitledCard titulo="Agregar personas en admisión" componente={
+    <TitledCard titulo={puedeAgregarAdolescente ? "Agregar personas" : "Agregar familiares"} componente={
       <Stack spacing={2}>
         <Typography variant="body2" color="text.secondary">
           Consultá los datos y elegí con qué adolescente de la solicitud se vincula la persona.
         </Typography>
         {mensaje && <Alert severity="success">{mensaje}</Alert>}
-        {tipo ? (
+        {tipo && tipoHabilitado ? (
           <AltaPersonaAdmision key={tipo} solicitud={solicitud} tipo={tipo} bloqueado={bloqueado}
             onGuardando={onGuardando} onCancelar={() => setTipo(null)}
             onActualizar={(actualizada) => {
@@ -37,8 +40,8 @@ export function PersonasAdmision({ solicitud, bloqueado, onActualizar, onGuardan
             }} />
         ) : (
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <Button variant="outlined" disabled={bloqueado} onClick={() => { setMensaje(""); setTipo("familiar") }}>Agregar familiar</Button>
-            <Button variant="outlined" disabled={bloqueado} onClick={() => { setMensaje(""); setTipo("adolescente") }}>Agregar adolescente</Button>
+            {puedeAgregarFamiliar && <Button variant="outlined" disabled={bloqueado} onClick={() => { setMensaje(""); setTipo("familiar") }}>Agregar familiar</Button>}
+            {puedeAgregarAdolescente && <Button variant="outlined" disabled={bloqueado} onClick={() => { setMensaje(""); setTipo("adolescente") }}>Agregar adolescente</Button>}
           </Stack>
         )}
       </Stack>
@@ -53,8 +56,9 @@ export function AltaPersonaAdmision({ solicitud, tipo, bloqueado, onActualizar, 
   const [consulta, setConsulta] = useState<PersonaConsultada | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState("")
+  const permitido = tipo === "familiar" ? solicitud.puede_agregar_familiares : solicitud.puede_agregar_personas
   const guardar = async () => {
-    if (!consulta || destino === "" || guardando || bloqueado) return
+    if (!permitido || !consulta || destino === "" || guardando || bloqueado) return
     setGuardando(true)
     onGuardando(true)
     setError("")
@@ -70,6 +74,7 @@ export function AltaPersonaAdmision({ solicitud, tipo, bloqueado, onActualizar, 
       onGuardando(false)
     }
   }
+  if (!permitido) return null
   return (
     <Stack spacing={2}>
       <Typography variant="h6">Nuevo {tipo}</Typography>

@@ -8,7 +8,7 @@ from src.apps.persona.services import (
     validar_adolescente, validar_familiar,
 )
 from .models import Solicitud
-from .permissions import puede_gestionar_admision
+from .permissions import puede_agregar_familiares, puede_gestionar_admision
 
 
 def _solicitud_en_admision(solicitud: Solicitud, usuario) -> Solicitud:
@@ -33,7 +33,9 @@ def _identidad(datos: dict) -> Q:
 
 @transaction.atomic
 def agregar_familiar(solicitud: Solicitud, usuario, datos: dict) -> Solicitud:
-    solicitud = _solicitud_en_admision(solicitud, usuario)
+    solicitud = Solicitud.objects.select_for_update().get(pk=solicitud.pk)
+    if not puede_agregar_familiares(solicitud, usuario):
+        raise PermissionDenied("Solo Entrada y Admisión pueden agregar familiares a solicitudes validadas y no rechazadas.")
     adolescente = _adolescente_vinculado(solicitud, datos["id_adolescente"])
     if adolescente.familiares.filter(_identidad(datos["persona"])).exists():
         raise ValidationError({"persona": "El familiar ya está vinculado a este adolescente."})

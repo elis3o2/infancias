@@ -17,7 +17,7 @@ from src.apps.persona.models import RelacionAdolescente
 from src.apps.domicilio.models import Institucion
 from src.apps.domicilio.serializers import InstitucionSerializer
 from .comentarios import puede_comentar_solicitud, puede_editar_comentario
-from .permissions import puede_gestionar_admision
+from .permissions import puede_agregar_familiares, puede_gestionar_admision
 
 
 def _valor_comparable(valor):
@@ -267,13 +267,18 @@ class SolicitudValReadSerializer(SolicitudReadSerializer):
 
     adolescentes = AdolescenteValReadSerializer(many=True, read_only=True)
     puede_agregar_personas = serializers.SerializerMethodField()
+    puede_agregar_familiares = serializers.SerializerMethodField()
 
     class Meta(SolicitudReadSerializer.Meta):
-        fields = [*SolicitudReadSerializer.Meta.fields, "puede_agregar_personas"]
+        fields = [*SolicitudReadSerializer.Meta.fields, "puede_agregar_personas", "puede_agregar_familiares"]
 
     def get_puede_agregar_personas(self, obj):
         request = self.context.get("request")
         return puede_gestionar_admision(obj, request.user if request else None)
+
+    def get_puede_agregar_familiares(self, obj):
+        request = self.context.get("request")
+        return puede_agregar_familiares(obj, request.user if request else None)
 
 
 class SolicitudValidateSerializer(serializers.Serializer):

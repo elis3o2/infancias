@@ -30,7 +30,7 @@ export function ComentariosSolicitud({ solicitudId, iniciales, puedeComentar }: 
         <Stack spacing={0.5}>
           <Typography variant="h6">Registro de situaciones</Typography>
           <Typography variant="body2" color="text.secondary">
-            {puedeComentar ? "Entrada y Admisión pueden registrar situaciones incluso después de derivar la solicitud. Solo podés editar los comentarios que escribiste vos."
+            {puedeComentar ? "Admisión puede registrar situaciones incluso después de derivar la solicitud. Solo podés editar los comentarios que escribiste vos."
               : "Historial de situaciones registradas en la solicitud. Solo lectura."}
           </Typography>
         </Stack>

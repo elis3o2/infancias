@@ -4,11 +4,26 @@ from src.permissions import usuario_tiene_rol
 from .constantes import ID_ADMISION, ID_ENTRADA
 
 
-def puede_registrar_situaciones(usuario) -> bool:
+def puede_seguir_solicitudes(usuario) -> bool:
     return bool(
         usuario and usuario.is_authenticated
         and usuario.equipo_id in {ID_ENTRADA, ID_ADMISION}
         and (usuario_tiene_rol(usuario, "entrada") or usuario_tiene_rol(usuario, "admision"))
+    )
+
+
+def puede_registrar_situaciones(usuario) -> bool:
+    return bool(
+        puede_seguir_solicitudes(usuario)
+        and usuario.equipo_id == ID_ADMISION
+        and usuario_tiene_rol(usuario, "admision")
+    )
+
+
+def puede_agregar_familiares(solicitud, usuario) -> bool:
+    return bool(
+        puede_seguir_solicitudes(usuario)
+        and solicitud.validado and not solicitud.rechazado
     )
 
 
@@ -41,7 +56,10 @@ class SolicitudPermission(BasePermission):
         if view.action in {"comentar", "editar_comentario"}:
             return puede_registrar_situaciones(request.user)
 
-        if view.action in {"agregar_familiar", "agregar_adolescente"}:
+        if view.action == "agregar_familiar":
+            return puede_seguir_solicitudes(request.user)
+
+        if view.action == "agregar_adolescente":
             return es_admision
 
         # Entrada puede leer, modificar, validar y rechazar

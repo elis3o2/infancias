@@ -35,7 +35,7 @@ const persona = {
   domicilio: { nombre: "Domicilio", id_departamento: 1, observaciones: null, domicilio_validado: null }, legajo: null,
 }
 const render = (componente, props) => renderToStaticMarkup(createElement(componente, props))
-const props = { solicitud: { id: 7, puede_agregar_personas: true, adolescentes: [] },
+const props = { solicitud: { id: 7, puede_agregar_personas: true, puede_agregar_familiares: true, adolescentes: [] },
   bloqueado: false, onActualizar: () => {}, onGuardando: () => {} }
 
 test("después de validar usa el nombre de Persona en títulos y vínculos, sin modificar el original", () => {
@@ -92,7 +92,7 @@ test("el alta envía persona completa y contacto, sin id, letras ni salud duplic
 })
 
 test("requiere adolescente, vínculo y domicilio solo para adolescentes", () => {
-  assert.throws(() => familiarAdmisionInput(0, persona), /Seleccioná un adolescente/)
+  assert.throws(() => familiarAdmisionInput(0, persona), /Seleccioná .*adolescente/)
   assert.throws(() => familiarAdmisionInput(10, { ...persona, vinculo: null }), /vínculo/)
   assert.throws(() => adolescenteAdmisionInput(10, { ...persona, domicilio: null }, false), /domicilio/)
   assert.equal(familiarAdmisionInput(10, { ...persona, domicilio: null }).domicilio, null)
@@ -138,12 +138,24 @@ test("ofrece ambos tipos de alta solo con permiso y bloquea mientras se deriva",
   const html = render(PersonasAdmision, props)
   assert.match(html, /Agregar familiar/)
   assert.match(html, /Agregar adolescente/)
-  assert.equal(render(PersonasAdmision, { ...props, solicitud: { ...props.solicitud, puede_agregar_personas: false } }), "")
+  assert.equal(render(PersonasAdmision, { ...props, solicitud: { ...props.solicitud,
+    puede_agregar_personas: false, puede_agregar_familiares: false } }), "")
   const bloqueado = render(PersonasAdmision, { ...props, bloqueado: true })
   assert.equal((bloqueado.match(/<button[^>]*disabled=""/g) ?? []).length, 2)
   const formulario = render(AltaPersonaAdmision, { ...props, tipo: "adolescente", onCancelar: () => {} })
   assert.match(formulario, /Seleccioná primero un adolescente/)
   assert.doesNotMatch(formulario, /Guardar adolescente/)
+})
+
+test("Entrada y Admisión después de derivar pueden agregar solo familiares", () => {
+  const solicitud = { ...props.solicitud, puede_agregar_personas: false, puede_agregar_familiares: true }
+  const html = render(PersonasAdmision, { ...props, solicitud })
+  assert.match(html, /Agregar familiar/)
+  assert.doesNotMatch(html, /Agregar adolescente|en admisión/)
+  assert.match(render(AltaPersonaAdmision, { ...props, solicitud, tipo: 'familiar', onCancelar: () => {} }), /Nuevo familiar/)
+  assert.equal(render(AltaPersonaAdmision, { ...props, solicitud, tipo: 'adolescente', onCancelar: () => {} }), '')
+  const bloqueado = render(PersonasAdmision, { ...props, solicitud, bloqueado: true })
+  assert.equal((bloqueado.match(/<button[^>]*disabled=""/g) ?? []).length, 1)
 })
 
 test("muestra salud completa de solo lectura y distingue legajos por tipo", () => {

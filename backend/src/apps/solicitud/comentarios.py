@@ -4,16 +4,11 @@ from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
 from .models import Solicitud, SolicitudComentario
-from .constantes import ID_ENTRADA
 from .permissions import puede_registrar_situaciones
 
 
 def puede_comentar_solicitud(solicitud, usuario) -> bool:
-    if not puede_registrar_situaciones(usuario) or solicitud.rechazado:
-        return False
-    if solicitud.equipo_id == usuario.equipo_id:
-        return bool(solicitud.validado or usuario.equipo_id == ID_ENTRADA)
-    return bool(solicitud.validado)
+    return bool(puede_registrar_situaciones(usuario) and solicitud.validado and not solicitud.rechazado)
 
 
 def puede_editar_comentario(comentario, usuario) -> bool:
@@ -26,7 +21,7 @@ def puede_editar_comentario(comentario, usuario) -> bool:
 def _solicitud_para_comentar(solicitud: Solicitud, usuario) -> Solicitud:
     solicitud = Solicitud.objects.select_for_update().get(pk=solicitud.pk)
     if not puede_comentar_solicitud(solicitud, usuario):
-        raise PermissionDenied("Solo Entrada y Admisión pueden registrar situaciones de solicitudes habilitadas y no rechazadas.")
+        raise PermissionDenied("Solo Admisión puede registrar situaciones de solicitudes validadas y no rechazadas.")
     return solicitud
 
 

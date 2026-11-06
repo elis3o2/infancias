@@ -283,8 +283,8 @@ class SolicitudAdmisionTests(TestCase):
             self.assertEqual(self._post(tipo, datos).status_code, 400)
         self.assertEqual(self._cantidades(), antes)
 
-    def test_solo_equipo_admision_puede_agregar(self):
-        for equipo in (self.entrada, self.territorial):
+    def test_territorial_y_anonimos_no_pueden_agregar(self):
+        for equipo in (self.territorial,):
             usuario = Usuario.objects.create(username=f"usuario{equipo.pk}", equipo=equipo)
             self.client.force_authenticate(usuario)
             for tipo in ("familiares", "adolescentes"):
@@ -294,18 +294,61 @@ class SolicitudAdmisionTests(TestCase):
             self.assertIn(self._post(tipo).status_code, (401, 403))
         self.assertEqual(Persona.objects.count(), 1)
 
-    def test_pendiente_rechazada_o_derivada_no_admite_altas(self):
-        for cambios in ({"validado": False}, {"validado": True, "rechazado": True},
-                        {"rechazado": False, "equipo": self.territorial}):
+    def test_pendiente_rechazada_no_admite_altas_y_derivada_solo_familiares(self):
+        for cambios in ({"validado": False}, {"validado": True, "rechazado": True}):
             Solicitud.objects.filter(pk=self.solicitud.pk).update(**cambios)
             for tipo in ("familiares", "adolescentes"):
                 self.assertIn(self._post(tipo).status_code, (403, 404))
+        Solicitud.objects.filter(pk=self.solicitud.pk).update(rechazado=False, equipo=self.territorial)
+        self.assertEqual(self._post().status_code, 201)
+        self.assertIn(self._post("adolescentes").status_code, (403, 404))
         self.usuario.equipo = self.territorial
         self.usuario.save(update_fields=["equipo"])
         self.assertFalse(self.client.get(self.url).data["puede_agregar_personas"])
+        self.assertFalse(self.client.get(self.url).data["puede_agregar_familiares"])
 
     def test_servicio_revisa_estado_actual_aunque_reciba_instancia_anterior(self):
         Solicitud.objects.filter(pk=self.solicitud.pk).update(equipo=self.territorial)
+        with self.assertRaises(PermissionDenied):
+            agregar_adolescente(self.solicitud, self.usuario, {})
+        Solicitud.objects.filter(pk=self.solicitud.pk).update(rechazado=True)
         for servicio in (agregar_adolescente, agregar_familiar):
             with self.assertRaises(PermissionDenied):
                 servicio(self.solicitud, self.usuario, {})
+
+    def test_entrada_y_admision_agregan_familiares_en_cualquier_equipo_sin_derivar(self):
+        entrada = Usuario.objects.create(username="entrada-familiares", equipo=self.entrada)
+        for indice, usuario in enumerate((entrada, self.usuario)):
+            self.client.force_authenticate(usuario)
+            for equipo in (self.entrada, self.admision, self.territorial):
+                with self.subTest(usuario=usuario.username, equipo=equipo.pk):
+                    Solicitud.objects.filter(pk=self.solicitud.pk).update(equipo=equipo)
+                    detalle = self.client.get(self.url)
+                    self.assertEqual(detalle.status_code, 200, detalle.data)
+                    self.assertTrue(detalle.data["puede_agregar_familiares"])
+                    self.assertEqual(detalle.data["puede_comentar"], usuario == self.usuario)
+                    respuesta = self._post(datos=self._datos(dni=f"600000{indice}{equipo.pk}"))
+                    self.assertEqual(respuesta.status_code, 201, respuesta.data)
+                    self.solicitud.refresh_from_db()
+                    self.assertEqual(self.solicitud.equipo_id, equipo.pk)
+                    self.assertTrue(self.solicitud.validado)
+                    self.assertIsNone(self.solicitud.fecha_hora_admision)
+                    self.assertIsNone(self.solicitud.fecha_hora_entrada)
+                    if usuario == entrada:
+                        self.assertFalse(respuesta.data["puede_agregar_personas"])
+                        self.assertEqual(self._post("adolescentes").status_code, 403)
+        self.assertEqual(Familiar.objects.count(), 6)
+        self.assertEqual(Relacion.objects.count(), 6)
+        self.red.assert_not_called()
+
+    def test_entrada_no_agrega_familiares_a_rechazadas_o_pendientes(self):
+        entrada = Usuario.objects.create(username="entrada-denegada", equipo=self.entrada)
+        self.client.force_authenticate(entrada)
+        antes = self._cantidades()
+        for equipo in (self.entrada, self.admision, self.territorial):
+            for validado, rechazado in ((False, False), (True, True)):
+                Solicitud.objects.filter(pk=self.solicitud.pk).update(equipo=equipo, validado=validado, rechazado=rechazado)
+                self.assertIn(self._post().status_code, (403, 404))
+                with self.assertRaises(PermissionDenied):
+                    agregar_familiar(self.solicitud, entrada, {})
+        self.assertEqual(self._cantidades(), antes)

@@ -15,7 +15,7 @@ from .serializers import SolicitudComentarioSerializer
 from .comentarios import crear_comentario, editar_comentario
 from .admision import agregar_adolescente, agregar_familiar
 from .admision_serializers import AdolescenteAdmisionSerializer, FamiliarAdmisionSerializer
-from .permissions import SolicitudPermission, puede_registrar_situaciones
+from .permissions import SolicitudPermission, puede_seguir_solicitudes
 from .services import crear_solicitud, validar_solicitud, derivar_solicitud, rechazar_solicitud
 from src.permissions import IsOperationalUser, ReadOnly
 from src.apps.persona.models import Adolescente
@@ -148,9 +148,10 @@ class SolicitudViewSet(viewsets.ModelViewSet):
             return qs.none()
 
         # Entrada y Admisión conservan seguimiento de todas las validadas no rechazadas.
-        # Las acciones de validar, derivar y agregar personas siguen limitadas al equipo actual.
-        acciones_seguimiento = {"list", "validados", "retrieve", "comentar", "editar_comentario"}
-        if self.action in acciones_seguimiento and puede_registrar_situaciones(user):
+        # Solo los familiares pueden agregarse después de derivar; las demás altas
+        # y las acciones de validar/derivar siguen limitadas al equipo actual.
+        acciones_seguimiento = {"list", "validados", "retrieve", "comentar", "editar_comentario", "agregar_familiar"}
+        if self.action in acciones_seguimiento and puede_seguir_solicitudes(user):
             qs = qs.filter(Q(equipo=user.equipo) | Q(validado=True, rechazado=False))
         else:
             qs = qs.filter(equipo=user.equipo)

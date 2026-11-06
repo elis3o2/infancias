@@ -1,9 +1,10 @@
-# Registro de situaciones de Entrada y Admisión
+# Registro de situaciones y carga de familiares
 
-Entrada puede registrar situaciones en las solicitudes pendientes que tiene a cargo.
-Entrada y Admisión pueden agregar comentarios a las solicitudes validadas y no
-rechazadas de cualquier equipo, incluso después de derivarlas y aunque no exista
-un paso previo registrado por su área. El texto es libre, sin límite de caracteres en la aplicación.
+Solo Admisión puede agregar comentarios a las solicitudes validadas y no rechazadas
+de cualquier equipo, incluso después de derivarlas y aunque no exista un paso previo
+registrado por su área. Entrada puede leer el historial, pero no crear ni editar
+comentarios, incluidos los propios anteriores al cambio de permisos.
+El texto es libre, sin límite de caracteres en la aplicación.
 Los comentarios vacíos o formados solo por espacios no se aceptan.
 
 El modelo usa `TextField`. La tabla `solicitud_comentario` es administrada
@@ -27,12 +28,19 @@ texto como texto plano, conserva saltos de línea e indica cuándo fue editado.
 Si la solicitud sale de admisión, Entrada y Admisión conservan el seguimiento.
 Todas las validadas no rechazadas están disponibles en sus listados y detalles,
 sin exigir fechas previas de paso por Entrada o Admisión.
-Ambas áreas pueden agregar comentarios y editar los propios. El equipo receptor
+Solo Admisión puede agregar comentarios y editar los propios. El equipo receptor
 mantiene el historial en solo lectura. Las rechazadas no permiten agregar ni editar.
 
-El permiso de seguimiento no autoriza a validar, rechazar, volver a derivar ni
-agregar personas a solicitudes de otros equipos. Admisión tampoco obtiene acceso
-a pendientes que aún están en Entrada. No se modifica el esquema de la base de datos.
+Entrada y Admisión pueden agregar familiares a las solicitudes validadas y no
+rechazadas de cualquier equipo mediante `POST /api/solicitud/solicitud/<id>/familiares/`.
+Debe seleccionarse un adolescente validado de esa misma solicitud. Se conserva la
+validación de identidad, vínculo y duplicados, sin cambiar el equipo ni las fechas
+de derivación. El detalle expone el permiso independiente `puede_agregar_familiares`.
+
+La carga de adolescentes y la derivación siguen restringidas a Admisión mientras
+la solicitud está en su equipo (`puede_agregar_personas`). El seguimiento no permite
+validar, rechazar ni volver a derivar solicitudes de otros equipos. Admisión tampoco
+obtiene acceso a pendientes que aún están en Entrada. No cambia la base de datos.
 
 Pruebas aisladas, sin acceder a la base de datos real:
 
