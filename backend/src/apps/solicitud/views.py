@@ -3,9 +3,11 @@ from pathlib import Path
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from django.http import HttpResponse
-from django.db.models import Prefetch, Q
+from django.db.models import Count, Prefetch, Q
 from django.utils.http import content_disposition_header
 from django.db.models.functions import Coalesce
 from .models import MotivoSolicitud, Solicitud, Archivo, SolicitudComentario
@@ -14,7 +16,11 @@ from .serializers import (MotivoSolicitudSerializer, ArchivoSerializer,
 from .serializers import SolicitudComentarioSerializer
 from .comentarios import crear_comentario, editar_comentario
 from .admision import agregar_adolescente, agregar_familiar
-from .admision_serializers import AdolescenteAdmisionSerializer, FamiliarAdmisionSerializer
+from .serializers import (
+    AdolescenteAdmisionSerializer, FamiliarAdmisionSerializer,
+    FiltrosReporteSerializer, SolicitudReporteSerializer,
+)
+from .reportes import fecha_actual, periodo_reporte, resumen_filtrado, resumen_general, solicitudes_reporte
 from .permissions import SolicitudPermission, puede_seguir_solicitudes
 from .services import crear_solicitud, validar_solicitud, derivar_solicitud, rechazar_solicitud
 from src.permissions import IsOperationalUser, ReadOnly
@@ -424,3 +430,35 @@ class ArchivoViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
         return response
+
+
+class ReportesSolicitudAPIView(APIView):
+    permission_classes = [IsOperationalUser]
+    http_method_names = ["get", "head", "options"]
+
+    def get(self, request):
+        filtros = FiltrosReporteSerializer(data=request.query_params)
+        filtros.is_valid(raise_exception=True)
+        hoy = fecha_actual()
+        desde, hasta = periodo_reporte(filtros.validated_data, hoy)
+        consulta = solicitudes_reporte(filtros.validated_data, desde, hasta)
+        paginador = PageNumberPagination()
+        paginador.page_size = 20
+        pagina = paginador.paginate_queryset(consulta.select_related("equipo", "motivo").annotate(
+            cantidad_adolescentes=Count("adolescentes", distinct=True),
+            cantidad_comentarios=Count("comentarios", distinct=True),
+        ).prefetch_related(Prefetch("adolescentes", queryset=Adolescente.objects.select_related(
+            "persona__legajo__carpeta",
+        ).order_by("id"))).order_by("-fecha_hora_creacion", "-id"), request)
+        return Response({
+            "general": resumen_general(hoy),
+            "periodo": {"desde": desde, "hasta": hasta},
+            "resumen": resumen_filtrado(consulta),
+            "solicitudes": {
+                "pagina": paginador.page.number,
+                "count": paginador.page.paginator.count,
+                "next": paginador.get_next_link(),
+                "previous": paginador.get_previous_link(),
+                "results": SolicitudReporteSerializer(pagina, many=True).data,
+            },
+        })

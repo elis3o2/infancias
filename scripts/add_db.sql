@@ -13,11 +13,18 @@ INSERT INTO vinculo (nombre, adolescente) VALUES
 
 
 INSERT INTO tipo_institucion (nombre) VALUES
-('Educativa'),
-('De Salud'),
-('Judicial'),
-('Otra');
-
+("DEFENSORÍA DE NIÑOS, NIÑAS Y ADOLESCENTES"),
+("CENTRO DE SALUD MUNICIPAL"),
+("CENTRO DE SALUD PROVINCIAL"),
+("Socioeducativo"),
+("CENTRO TERRITORIAL DE DENUNCIAS"),
+("MINISTERIO PÚBLICO DE LA ACUSACIÓN"),
+("SERVICIOS LOCALES"),
+("Dirección de Promoción y Protección de Derechos de Niñas, Niños y Adolescentes"),
+("Fortalecimiento Familiar"),
+("Hospital Provincial"),
+("Hospital Municipal"),
+("Otro");
 
 INSERT INTO motivo_solicitud (nombre) VALUES
 ("Educación"),
@@ -31,8 +38,6 @@ INSERT INTO motivo_solicitud (nombre) VALUES
 ("Niño/a o Adolescente víctima de violencia de género y/o violencia intrafamiliar"),
 ("Niño/a o Adolescente víctima de Violencia Sexual"),
 ("Niño/a o Adolescente víctima de Pornografía Infantil"),
-("Niño/a o Adolescente víctima de Prostitución Infantil"),
-("Niño/a o Adolescente víctima de Maltrato Infantil"),
 ("Maltrato físico"),
 ("Niño/a o Adolescente víctima de Maltrato Infantil"),
 ("Maltrato psicológico"),
@@ -48,7 +53,22 @@ INSERT INTO motivo_solicitud (nombre) VALUES
 INSERT INTO equipo(nombre) VALUES
 ("Entrada"),
 ("Admisión"),
-("Territorial");
+("SL Centro"),
+("SL Sur"),
+("SL Sudoeste"),
+("SL Oeste 1"),
+("SL Oeste 2"),
+("SL Norte"),
+("SL Noroeste"),
+("Equipo para Adolescentes en conflicto con la ley penal"),
+("Fortalecimiento Familiar"),
+("Coordinación"),
+("GUARDIA"),
+("EQUIPO DE ABORDAJE ESPECÍFICO"),
+("ARCHIVO");
+
+
+
 
 ALTER TABLE solicitud
 ADD CONSTRAINT fk_solicitud_usuario

@@ -12,3 +12,7 @@ env
 backend/staticfiles/
 backend/var/
 backend/certs/
+backend/src/apps/persona/services/__pycache__
+backend/src/apps/solicitud/services/__pycache__
+backend/src/apps/api_externa/services/__pycache__
+backend/src/apps/domicilio/services/__pycache__

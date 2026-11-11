@@ -1,7 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import MotivoSolicitudViewSet, SolicitudViewSet, ArchivoViewSet
-from .reportes_views import ReportesSolicitudAPIView
+from .views import MotivoSolicitudViewSet, SolicitudViewSet, ArchivoViewSet, ReportesSolicitudAPIView
 
 
 router = DefaultRouter()
@@ -12,4 +11,3 @@ urlpatterns = [
     path("reportes/", ReportesSolicitudAPIView.as_view(), name="reportes-solicitud"),
     path("", include(router.urls)),
 ]
-

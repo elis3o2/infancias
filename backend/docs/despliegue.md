@@ -2,11 +2,11 @@
 
 ## Direcciones y alcance
 
-- Público: `https://salud1.dyndns.org/infancias/`.
-- Interno: `http://192.168.64.49:7451/infancias/`.
-- La página de inicio siempre es `/infancias/buscar`: `/`, `/infancias` y
-  `/infancias/` redirigen allí sin exigir inicio de sesión.
-- La API publicada está en `/infancias/api/`; `/api/` se conserva para desarrollo.
+- Público: `https://salud1.dyndns.org/casainfancias/`.
+- Interno: `http://192.168.64.49:7451/casainfancias/`.
+- La página de inicio siempre es `/casainfancias/buscar`: `/`, `/casainfancias` y
+  `/casainfancias/` redirigen allí sin exigir inicio de sesión.
+- La API publicada está en `/casainfancias/api/`; `/api/` se conserva para desarrollo.
 - Gunicorn escucha solo en `127.0.0.1:8001`. Nginx recibe las conexiones externas.
 - El frontend compilado usa el origen de la página, no la URL de desarrollo
   de `frontend/.env`. No requiere CORS ni una compilación por cada dirección.
@@ -14,11 +14,31 @@
 Estos archivos son plantillas: todavía hay que configurar el servidor real.
 No se ejecutan migraciones, cambios de esquema ni modificaciones de archivos `.db`.
 
+### Cambio de prefijo en una instalación existente
+
+El prefijo publicado es `/casainfancias/`, tanto por HTTPS como por la IP interna.
+No cambia la carpeta `/home/rmdelfa/infancias/infancias`, el nombre del servicio
+instalado ni los puertos. No alcanza con modificar la regla de Nginx: después de
+actualizar el código en el servidor hay que recompilar y recopilar los estáticos:
+
+```bash
+cd /home/rmdelfa/infancias/infancias/frontend
+npm run build
+cd ../backend
+../env/bin/python manage.py collectstatic --noinput --settings=core.settings_production
+```
+
+Luego reiniciar el servicio Gunicorn existente (por ejemplo,
+`gunicorn-infancias.service` si fue instalado con ese nombre) y actualizar las
+reglas de Nginx que correspondan. El proxy debe conservar `/casainfancias/` al
+reenviar a `192.168.64.49:7451`. Los enlaces anteriores con `/infancias/` dejan
+de ser las rutas de la aplicación; actualizar marcadores y enlaces compartidos.
+
 ## Antes de publicar
 
 1. Ruta confirmada: `/home/rmdelfa/infancias/infancias`; usuario del servicio: `rmdelfa`.
 2. HTTPS termina en el Nginx de **otro equipo**, que debe reenviar a
-   `http://192.168.64.49:7451` sin eliminar `/infancias/`. Confirmar su IP de origen
+   `http://192.168.64.49:7451` sin eliminar `/casainfancias/`. Confirmar su IP de origen
    para reemplazar `REEMPLAZAR_IP_PROXY` en la configuración interna al habilitar el
    acceso público. Esto lo coordina el administrador del proxy; no bloquea las
    pruebas internas por IP. Solo se confía
@@ -126,7 +146,7 @@ concurrencia. Los tiempos de espera deben evaluarse con las APIs reales.
    sudo systemctl reload nginx
    ```
 
-El proxy conserva `/infancias/` al reenviar; no agregar una barra final a
+El proxy conserva `/casainfancias/` al reenviar; no agregar una barra final a
 `proxy_pass http://127.0.0.1:8001`. WhiteNoise sirve los estáticos recopilados.
 Nginx admite cuerpos de hasta 40 MB en total; revisar este límite si se necesitan
 varios adjuntos grandes. No se agrega ningún directorio de archivos privados como
@@ -137,13 +157,13 @@ documentos y otros datos de consulta en logs; restringir igualmente los logs de 
 
 ```bash
 curl -I http://192.168.64.49:7451/
-curl -I http://192.168.64.49:7451/infancias/login
-curl -I https://salud1.dyndns.org/infancias/login
+curl -I http://192.168.64.49:7451/casainfancias/login
+curl -I https://salud1.dyndns.org/casainfancias/login
 ```
 
-La primera respuesta debe redirigir a `/infancias/buscar`; las otras deben devolver HTML
+La primera respuesta debe redirigir a `/casainfancias/buscar`; las otras deben devolver HTML
 con estado 200. En un navegador, probar ambos accesos, recargar una ruta interna,
-comprobar logo/estilos y verificar que las consultas van a `/infancias/api/` en el
+comprobar logo/estilos y verificar que las consultas van a `/casainfancias/api/` en el
 mismo origen. Probar autenticación y servicios con cuentas/datos de prueba autorizados.
 No asumir que una página que carga implica que MySQL, LDAP, correo y las APIs funcionan.
 

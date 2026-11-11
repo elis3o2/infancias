@@ -10,10 +10,10 @@ api_patterns = [
 ]
 
 urlpatterns = [
-    path("", RedirectView.as_view(url="/infancias/buscar", permanent=False)),
+    path("", RedirectView.as_view(url="/casainfancias/buscar", permanent=False)),
     path("api/", include(api_patterns)),
-    path("infancias/api/", include((api_patterns, "infancias_api"))),
-    path("infancias", RedirectView.as_view(url="/infancias/buscar", permanent=False)),
-    path("infancias/", RedirectView.as_view(url="/infancias/buscar", permanent=False)),
-    re_path(r"^infancias/(?!(?:api|assets)(?:/|$))[^.]*$", frontend),
+    path("casainfancias/api/", include((api_patterns, "infancias_api"))),
+    path("casainfancias", RedirectView.as_view(url="/casainfancias/buscar", permanent=False)),
+    path("casainfancias/", RedirectView.as_view(url="/casainfancias/buscar", permanent=False)),
+    re_path(r"^casainfancias/(?!(?:api|assets)(?:/|$))[^.]*$", frontend),
 ]

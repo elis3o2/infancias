@@ -3,7 +3,8 @@ from unittest.mock import patch
 
 import requests
 
-from src.apps.api_externa import services, utils
+from src.apps.api_externa import utils
+from src.apps.api_externa.services import Ldap as services
 from src.apps.api_externa.types import ServicioExternoError, ServicioExternoNoConfigurado
 
 

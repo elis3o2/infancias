@@ -39,7 +39,7 @@ class FormularioPdfTests(TestCase):
         red = patch("requests.sessions.Session.request", side_effect=AssertionError("No debe haber HTTP real"))
         red.start()
         self.addCleanup(red.stop)
-        envio = patch("src.apps.solicitud.services.enviar_correo")
+        envio = patch("src.apps.solicitud.services.Notificaciones.enviar_correo")
         self.correo = envio.start()
         self.addCleanup(envio.stop)
         Equipo.objects.create(id=1, nombre="Entrada")
@@ -113,7 +113,7 @@ class FormularioPdfTests(TestCase):
         serializer.is_valid(raise_exception=True)
         # El formulario exige correo; el servicio conserva compatibilidad con altas sin él.
         serializer.validated_data["correo"] = ""
-        with patch("src.apps.solicitud.services.generar_formulario_pdf") as pdf, self.captureOnCommitCallbacks(execute=True):
+        with patch("src.apps.solicitud.services.Notificaciones.generar_formulario_pdf") as pdf, self.captureOnCommitCallbacks(execute=True):
             crear_solicitud(serializer.validated_data)
         self.correo.assert_not_called()
         pdf.assert_not_called()
@@ -127,7 +127,7 @@ class FormularioPdfTests(TestCase):
         self.assertFalse(Solicitud.objects.exists())
 
     def test_fallo_de_pdf_o_correo_no_revierte_solicitud(self):
-        with patch("src.apps.solicitud.services.generar_formulario_pdf", side_effect=RuntimeError("Fallo simulado")), \
+        with patch("src.apps.solicitud.services.Notificaciones.generar_formulario_pdf", side_effect=RuntimeError("Fallo simulado")), \
                 self.assertLogs("src.apps.solicitud.services", level="ERROR"), self.captureOnCommitCallbacks(execute=True):
             solicitud = self._crear()
         self.assertTrue(Solicitud.objects.filter(pk=solicitud.pk).exists())
@@ -158,7 +158,7 @@ class FormularioPdfTests(TestCase):
         self.assertNotIn("historia_clinica", texto)
 
     def test_api_correo_envia_pdf_como_archivo_multipart(self):
-        from src.apps.api_externa import services as api
+        from src.apps.api_externa.services import Correo as api
 
         contenido = generar_formulario_pdf(CopiaFormulario(123, "06-10-2026", ()))
         adjunto = SimpleUploadedFile("solicitud-123.pdf", contenido, content_type="application/pdf")

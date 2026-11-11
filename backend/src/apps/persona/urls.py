@@ -2,8 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from .views import (AdolescenteViewSet, ConsultaPersonasAPIView, FamiliarViewSet,
-                    VinculoViewSer, RelacionAdolescenteViewSet)
-from .historial_views import HistorialNinoViewSet
+                    VinculoViewSer, RelacionAdolescenteViewSet, HistorialNinoViewSet)
 
 router = DefaultRouter()
 router.register("historial", HistorialNinoViewSet, basename="historial-nino")

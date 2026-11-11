@@ -14,7 +14,7 @@ from src.apps.persona.views import ConsultaPersonasAPIView
 
 class ConsultaPersonasErroresTests(SimpleTestCase):
     def consultar(self, error):
-        request = APIRequestFactory().get("/infancias/api/persona/ciudadano/", {"adolescentes": "[]"})
+        request = APIRequestFactory().get("/casainfancias/api/persona/ciudadano/", {"adolescentes": "[]"})
         force_authenticate(request, user=SimpleNamespace(is_authenticated=True, is_superuser=True, equipo_id=1))
         with patch("src.apps.persona.views.consultar_personas", side_effect=error):
             return ConsultaPersonasAPIView.as_view()(request)
@@ -45,4 +45,3 @@ class ConsultaPersonasErroresTests(SimpleTestCase):
                 respuesta = self.consultar(error)
                 self.assertEqual(respuesta.status_code, 502)
                 self.assertEqual(set(respuesta.data), {"detail"})
-

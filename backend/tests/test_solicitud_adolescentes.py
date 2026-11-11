@@ -57,7 +57,7 @@ class SolicitudAdolescentesTests(TestCase):
             "src.apps.api_externa.services.consultar_ciudadano",
             side_effect=AssertionError("La validación no debe volver a consultar Ciudadano."),
         ).start()
-        self.correo = patch("src.apps.solicitud.services.enviar_correo").start()
+        self.correo = patch("src.apps.solicitud.services.Notificaciones.enviar_correo").start()
         self.addCleanup(patch.stopall)
 
         self.entrada = Equipo.objects.create(id=1, nombre="Entrada")

@@ -115,8 +115,8 @@ class SolicitudAdmisionTests(TestCase):
         self.red.assert_not_called()
 
     def test_lista_y_reporte_muestran_legajos_automaticos_o_manuales_sin_modificarlos(self):
-        from src.apps.solicitud.reportes_serializers import SolicitudReporteSerializer
-        from src.apps.persona.services import _serializar_persona_consulta
+        from src.apps.solicitud.serializers import SolicitudReporteSerializer
+        from src.apps.persona.services.Consulta import _serializar_persona_consulta
 
         for numero in (None, 900):
             self.legajo.id_insert = numero

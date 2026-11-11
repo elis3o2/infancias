@@ -1,11 +1,11 @@
+"""Traducción de la información geográfica externa a referencias locales."""
 import logging
-
 from django.db import transaction
-from .models import (DomicilioValidado, Distrito, Vecinal, Barrio, SeccionalPolicial,Institucion, IdentidadBarrial, Domicilio)
 from src.apps.api_externa.services import ServicioExternoError, obtener_direccion_geo
-
+from ..models import DomicilioValidado, Distrito, Vecinal, Barrio, SeccionalPolicial, IdentidadBarrial
 
 logger = logging.getLogger(__name__)
+
 
 @transaction.atomic
 def crear_domicilio_validado(datos: dict) -> DomicilioValidado:
@@ -71,41 +71,6 @@ def crear_domicilio_validado(datos: dict) -> DomicilioValidado:
         puntoX=informacion_geo.get("puntoX"),
         puntoY=informacion_geo.get("puntoY"),
     )
-
-@transaction.atomic
-def crear_domicilio(datos_domicilio: dict) -> Domicilio:
-    domicilio_validado_data = datos_domicilio.pop("domicilio_validado", None)
-    domicilio_validado_obj = None
-
-    if domicilio_validado_data is not None:
-        try:
-            # Buscamos si ya existe por sus campos únicos
-            domicilio_validado_obj = DomicilioValidado.objects.get(
-                codigo_calle=domicilio_validado_data["codigo_calle"],
-                altura=domicilio_validado_data["altura"],
-                bis=domicilio_validado_data["bis"],
-            )
-        except DomicilioValidado.DoesNotExist:
-            domicilio_validado_obj = crear_domicilio_validado(domicilio_validado_data)
-
-    # Creamos y retornamos el Domicilio
-    return Domicilio.objects.create(
-        domicilio_validado=domicilio_validado_obj,
-        **datos_domicilio,
-    )
-    
-
-@transaction.atomic
-def crear_institucion(datos_institucion: dict) -> Institucion:
-    domicilio_data = datos_institucion.pop("domicilio")
-    
-    domicilio_obj = crear_domicilio(domicilio_data)
-
-    return Institucion.objects.create(
-        domicilio=domicilio_obj,
-        **datos_institucion,
-    )
-
 
 
 def obtener_direccion(

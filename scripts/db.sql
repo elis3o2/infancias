@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS domicilio (
 
 CREATE TABLE IF NOT EXISTS tipo_institucion (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(32) NOT NULL
+    nombre VARCHAR(64) NOT NULL
 );
 
 
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS persona_telefono (
 
 CREATE TABLE IF NOT EXISTS motivo_solicitud (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(64) NOT NULL
+    nombre VARCHAR(128) NOT NULL
 );
 
 
@@ -195,7 +195,7 @@ CREATE TABLE IF NOT EXISTS prioridad_solicitud (
 
 CREATE TABLE IF NOT EXISTS equipo (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(32) NOT NULL
+    nombre VARCHAR(64) NOT NULL
 );
 
 

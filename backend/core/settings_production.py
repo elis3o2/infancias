@@ -22,7 +22,7 @@ CSRF_TRUSTED_ORIGINS = [
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 # Se admite HTTP interno. El dominio público debe exigir HTTPS en el proxy.
-# HSTS afecta todo el dominio, no solo /infancias/: no activarlo aquí.
+# HSTS afecta todo el dominio, no solo /casainfancias/: no activarlo aquí.
 SECURE_SSL_REDIRECT = False
 SECURE_HSTS_SECONDS = 0
 

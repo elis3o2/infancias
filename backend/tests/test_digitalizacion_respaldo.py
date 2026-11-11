@@ -2,7 +2,7 @@ from copy import deepcopy
 from unittest import TestCase
 from unittest.mock import patch
 
-from src.apps.api_externa import services
+from src.apps.api_externa.services import Digitalizacion as services
 from src.apps.api_externa.identidad_types import (
     IdentidadHTTPError, IdentidadLimiteExcedido, IdentidadRespuestaParcial,
     IdentidadRevisionRequerida, ResultadoIdentidad,
@@ -140,14 +140,15 @@ class DigitalizacionRespaldoTests(TestCase):
 
     def test_varias_personas_del_formulario_pueden_usar_el_respaldo(self):
         from src.apps.persona import services as personas
+        from src.apps.persona.services import Consulta as consulta, HistoriaClinica as historia
         self.digitalizacion.side_effect = ServicioExternoError()
         datos_familiar = deepcopy(self.datos_rnp)
         datos_familiar["persona"]["datos"]["dni"] = "87654321"
         self.identidad.side_effect = [ResultadoIdentidad(200, self.datos_rnp), IdentidadLimiteExcedido(3), ResultadoIdentidad(200, datos_familiar)]
         with (
-            patch.object(personas, "buscar_persona", return_value=None),
-            patch.object(personas, "consultar_solicitudes", return_value=[]),
-            patch.object(personas, "consultar_hcf", return_value=None) as hcf,
+            patch.object(consulta, "buscar_persona", return_value=None),
+            patch.object(consulta, "consultar_solicitudes", return_value=[]),
+            patch.object(historia, "consultar_hcf", return_value=None) as hcf,
         ):
             resultado = personas.consultar_personas(
                 [{"id": 1, "dni": "12345678", "sexo": "F"}],

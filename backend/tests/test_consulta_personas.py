@@ -6,6 +6,7 @@ from django.test import SimpleTestCase
 
 from src.apps.api_externa.types import HCFResultado
 from src.apps.persona import services
+from src.apps.persona.services import Consulta as consulta, HistoriaClinica as historia, Persona as personas
 from src.apps.persona.models import Persona
 from src.apps.persona.serializers import ConsultaPersonasSerializer, SaludDatosSerializer, PersonaValidateSerializer
 
@@ -44,14 +45,14 @@ class ConsultaPersonasTests(SimpleTestCase):
             {"hcf": "60", "resultados": [integrante(300, "30000001"), adicionales[1]]},
         ]
         with (
-            patch.object(services, "consultar_adolescente", side_effect=[
+            patch.object(historia, "consultar_adolescente", side_effect=[
                 {"id": 1, "persona": None, "ciudadano": {"hc": "100"}},
                 {"id": 2, "persona": {"hc": 200, "hcf": 50}, "ciudadano": None},
             ]),
-            patch.object(services, "consultar_familiar", return_value={
+            patch.object(historia, "consultar_familiar", return_value={
                 "id": 3, "persona": None, "ciudadano": {"hc": "300"},
             }),
-            patch.object(services, "consultar_hcf", side_effect=respuestas) as consultar,
+            patch.object(historia, "consultar_hcf", side_effect=respuestas) as consultar,
         ):
             resultado = services.consultar_personas(adolescentes, familiares)
 
@@ -74,8 +75,8 @@ class ConsultaPersonasTests(SimpleTestCase):
             with self.subTest(hc=hc):
                 datos = {"hc": hc, "hcf": 50, "violencias": True}
                 with (
-                    patch.object(services, "consultar_adolescente", return_value={"persona": datos.copy()}),
-                    patch.object(services, "consultar_hcf", return_value=None) as consultar,
+                    patch.object(historia, "consultar_adolescente", return_value={"persona": datos.copy()}),
+                    patch.object(historia, "consultar_hcf", return_value=None) as consultar,
                 ):
                     resultado = services.consultar_personas([{"dni": "50000001", "sexo": "M"}], [])
                 self.assertEqual(resultado["adolescentes"][0]["persona"], datos)
@@ -85,11 +86,11 @@ class ConsultaPersonasTests(SimpleTestCase):
     def test_no_duplica_hc_consultadas_o_integrantes_adicionales(self):
         adicional = integrante(400, "30000002")
         with (
-            patch.object(services, "consultar_adolescente", side_effect=[
+            patch.object(historia, "consultar_adolescente", side_effect=[
                 {"persona": {"hc": 100}}, {"ciudadano": {"hc": "100"}},
                 {"ciudadano": {"hc": "300"}},
             ]),
-            patch.object(services, "consultar_hcf", side_effect=[
+            patch.object(historia, "consultar_hcf", side_effect=[
                 {"hcf": "50", "resultados": [adicional]},
                 {"hcf": "50", "resultados": [adicional]},
             ]) as consultar,
@@ -103,8 +104,8 @@ class ConsultaPersonasTests(SimpleTestCase):
 
     def test_persona_original_sin_sexo_no_se_repite_como_adicional_si_coincide_hc(self):
         with (
-            patch.object(services, "consultar_adolescente", return_value={"persona": {"hc": 100}}),
-            patch.object(services, "consultar_hcf", return_value={
+            patch.object(historia, "consultar_adolescente", return_value={"persona": {"hc": 100}}),
+            patch.object(historia, "consultar_hcf", return_value={
                 "hcf": "50", "resultados": [integrante(100, "50000001")],
             }),
         ):
@@ -117,10 +118,10 @@ class ConsultaPersonasTests(SimpleTestCase):
             fecha_nacimiento=date(2008, 2, 18), hc=100, hcf=50, violencias=True,
         )
         with (
-            patch.object(services, "buscar_persona", return_value=persona),
-            patch.object(services, "consultar_relaciones", return_value=[]),
-            patch.object(services, "consultar_solicitudes", return_value=[]),
-            patch.object(services, "consultar_digitalizacion") as consultar,
+            patch.object(consulta, "buscar_persona", return_value=persona),
+            patch.object(consulta, "consultar_relaciones", return_value=[]),
+            patch.object(consulta, "consultar_solicitudes", return_value=[]),
+            patch.object(consulta, "consultar_digitalizacion") as consultar,
         ):
             resultado = services.consultar_adolescente({"id": 1, "dni": persona.dni, "sexo": persona.sexo})
         consultar.assert_not_called()
@@ -134,7 +135,7 @@ class ConsultaPersonasTests(SimpleTestCase):
             id=equipo, fecha_hora_creacion=None, equipo_id=equipo,
             equipo=SimpleNamespace(nombre=f"Equipo {equipo}"), motivo_id=None,
         ) for equipo in (1, 2)]
-        with patch.object(services.Solicitud.objects, "filter") as filtrar:
+        with patch.object(consulta.Solicitud.objects, "filter") as filtrar:
             filtrar.return_value.select_related.return_value.distinct.return_value = registros
             resultado = services.consultar_solicitudes(persona)
         filtrar.assert_called_once_with(adolescentes__persona=persona, rechazado=False)
@@ -162,7 +163,7 @@ class ConsultaPersonasTests(SimpleTestCase):
     def test_actualiza_hc_y_hcf_sin_confundirlos(self):
         persona = Persona(hc=100, hcf=50)
         with patch.object(persona, "save") as guardar:
-            services._actualizar_salud(persona, {"hc": 200, "hcf": 60})
+            personas._actualizar_salud(persona, {"hc": 200, "hcf": 60})
         self.assertEqual((persona.hc, persona.hcf), (200, 60))
         guardar.assert_called_once_with(update_fields=["hc", "hcf"])
 
@@ -172,9 +173,9 @@ class ConsultaPersonasTests(SimpleTestCase):
         for salud in ({}, {"hc": 100, "hcf": 50}):
             with (
                 self.subTest(salud=salud),
-                patch.object(services.Persona.objects, "create", side_effect=Persona) as crear,
+                patch.object(Persona.objects, "create", side_effect=Persona) as crear,
             ):
-                persona = services._crear_persona_validada({**identidad, **salud})
+                persona = personas._crear_persona_validada({**identidad, **salud})
                 self.assertEqual(persona.hc, salud.get("hc"))
                 self.assertEqual(persona.hcf, salud.get("hcf"))
                 self.assertFalse(persona.discapacidades)

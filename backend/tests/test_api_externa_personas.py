@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 import requests
 
 from src.apps.api_externa import services, utils
+from src.apps.api_externa.services import Ciudadano as ciudadano_api, Digitalizacion as digitalizacion, HistoriaClinica as hcf
 from src.apps.api_externa.types import Ciudadano, ServicioExternoError
 from src.apps.api_externa.identidad_types import ResultadoIdentidad
 
@@ -19,7 +20,7 @@ class ApiExternaPersonasTests(TestCase):
             "API_HCF": "https://hcf.example.test/", "HCF_PPVV_API_KEY": "prueba-hcf",
             "API_CIUDADANO": "https://ciudadano.example.test/", "KEY_CIUDADANO": "prueba-ciudadano",
         }
-        for modulo in (services, utils):
+        for modulo in (ciudadano_api, digitalizacion, hcf, utils):
             parche = patch.object(modulo, "config", side_effect=lambda nombre, default="": configuracion.get(nombre, default))
             parche.start()
             self.addCleanup(parche.stop)
@@ -54,7 +55,7 @@ class ApiExternaPersonasTests(TestCase):
         for resultados in (None, [], [{"hc": None}, {"hc": "200"}], [{"hcf": "50"}], [None]):
             with self.subTest(resultados=resultados):
                 data = {**self.digitalizacion, "results_query1": resultados}
-                with patch.object(services, "_obtener_json", return_value=data):
+                with patch.object(digitalizacion, "_obtener_json", return_value=data):
                     self.assertEqual(services.consultar_digitalizacion("50000001", "M"), {
                         **self.identidad, "hc": None,
                     })
@@ -67,15 +68,15 @@ class ApiExternaPersonasTests(TestCase):
                 ciudadano = data["sisa_data"]["ciudadano"]
                 ciudadano[alias] = ciudadano.pop(campo)
                 with (
-                    patch.object(services, "_obtener_json", return_value=data),
-                    patch.object(services, "consultar_identidad", return_value=ResultadoIdentidad(200, data)),
+                    patch.object(digitalizacion, "_obtener_json", return_value=data),
+                    patch.object(digitalizacion, "consultar_identidad", return_value=ResultadoIdentidad(200, data)),
                     self.assertRaises(ServicioExternoError),
                 ):
                     services.consultar_digitalizacion("50000001", "M")
         datos = {"ciudadano": self.identidad}
         with (
-            patch.object(services, "_obtener_json", return_value=datos),
-            patch.object(services, "consultar_identidad", return_value=ResultadoIdentidad(200, datos)),
+            patch.object(digitalizacion, "_obtener_json", return_value=datos),
+            patch.object(digitalizacion, "consultar_identidad", return_value=ResultadoIdentidad(200, datos)),
             self.assertRaises(ServicioExternoError),
         ):
             services.consultar_digitalizacion("50000001", "M")
@@ -97,7 +98,7 @@ class ApiExternaPersonasTests(TestCase):
         respuesta = Mock(status_code=200)
         respuesta.json.return_value = {"ciudadano": self.identidad}
         with (
-            patch.object(services.requests, "get", return_value=respuesta) as get,
+            patch.object(ciudadano_api.requests, "get", return_value=respuesta) as get,
             patch.object(utils.requests, "Session") as session,
         ):
             ciudadano = services.consultar_ciudadano("50000001", "M")
@@ -115,7 +116,7 @@ class ApiExternaPersonasTests(TestCase):
                 datos.pop(campo)
                 respuesta = Mock(status_code=200)
                 respuesta.json.return_value = {"ciudadano": datos}
-                with patch.object(services.requests, "get", return_value=respuesta):
+                with patch.object(ciudadano_api.requests, "get", return_value=respuesta):
                     self.assertIsNone(services.consultar_ciudadano("50000001", "M"))
 
     def test_fallas_http_e_invalid_json_no_se_confunden_con_datos(self):

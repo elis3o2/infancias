@@ -27,7 +27,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 # STATIC (VITE + WHITENOISE)
 # --------------------------------------------------
 
-STATIC_URL = "/infancias/"
+STATIC_URL = "/casainfancias/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [

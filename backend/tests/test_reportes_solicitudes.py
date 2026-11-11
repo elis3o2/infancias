@@ -32,7 +32,7 @@ class ReportesSolicitudTests(TestCase):
                 editor.delete_model(modelo)
 
     def setUp(self):
-        reloj = patch("src.apps.solicitud.reportes_views.fecha_actual", return_value=date(2026, 10, 7))
+        reloj = patch("src.apps.solicitud.views.fecha_actual", return_value=date(2026, 10, 7))
         reloj.start()
         self.addCleanup(reloj.stop)
         red = patch("requests.sessions.Session.request", side_effect=AssertionError("No debe consultar APIs externas"))
