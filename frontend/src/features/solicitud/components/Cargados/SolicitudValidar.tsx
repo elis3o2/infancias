@@ -31,9 +31,14 @@ export const SolicitudValidar = ({ solicitud }: { solicitud: SolicitudCrud }) =>
           </Stack>
           <Button variant="contained" onClick={validacion.buscar} disabled={buscando}
             startIcon={buscando ? <CircularProgress size={16} color="inherit" /> : <SearchRoundedIcon />}>
-            {buscando ? "Buscando..." : ciudadanos ? "Actualizar datos" : "Buscar datos"}
+            {buscando ? "Buscando..." : ciudadanos && validacion.hayPendientes ? "Continuar búsqueda" : ciudadanos ? "Actualizar datos" : "Buscar datos"}
           </Button>
         </Stack>
+        {validacion.errorBusqueda && <Alert severity="warning" sx={{ mt: 2 }}>{validacion.errorBusqueda}</Alert>}
+        {ciudadanos && validacion.hayPendientes && <Alert severity="info" sx={{ mt: 2 }}>
+          Los datos obtenidos se conservan mientras permanezcas en esta pantalla. Continuar consulta solamente
+          a las personas pendientes. Si se alcanzó el límite, esperá el tiempo indicado antes de continuar.
+        </Alert>}
       </Paper>
 
       <RelacionesAdolescentesCard adolescentes={solicitud.adolescentes} relaciones_adolescentes={solicitud.relaciones_adolescentes} />
@@ -43,7 +48,7 @@ export const SolicitudValidar = ({ solicitud }: { solicitud: SolicitudCrud }) =>
           revision={validacion.revisiones[adolescente.id]}
           onChange={(cambios) => validacion.actualizar(adolescente.id, cambios)}
           resultado={ciudadanos?.adolescentes.find((resultado) => resultado.id === adolescente.id) ?? null}
-          resultadosFamiliares={ciudadanos?.familiares ?? []} busquedaRealizada={ciudadanos !== null} />
+          resultadosFamiliares={ciudadanos?.familiares ?? []} />
       ))}
       <DatosSinAsignarSolicitud solicitud={solicitud} />
       <AgregarFamiliarValidacion adolescentes={solicitud.adolescentes} onAgregar={validacion.agregarFamiliar} />

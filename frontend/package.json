@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:solicitud": "node solicitud.test.mjs",
+    "test:consulta": "node consulta-progresiva.test.mjs",
     "test:comentarios": "node comentarios.test.mjs",
     "test:admision": "node admision.test.mjs",
     "test:sidebar": "node sidebar.test.mjs",

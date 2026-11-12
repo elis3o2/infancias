@@ -13,11 +13,10 @@ type Props = {
   revision: AdolescenteRevision
   resultado: AdolescenteResp | null
   resultadosFamiliares: FamiliarResp[]
-  busquedaRealizada: boolean
   onChange: (cambios: CambioRevision) => void
 }
 
-export function AdolescenteRevisionCard({ adolescente, revision, resultado, resultadosFamiliares, busquedaRealizada, onChange }: Props) {
+export function AdolescenteRevisionCard({ adolescente, revision, resultado, resultadosFamiliares, onChange }: Props) {
   const datosSalud = resultado?.persona ?? resultado?.ciudadano
   const actualizarLegajo = (cambios: { id_insert?: number | null; carpeta_id?: number | null } | null) => {
     onChange((prev) => ({ persona: prev.persona ? { ...prev.persona, legajo: cambios === null ? null : {
@@ -35,7 +34,7 @@ export function AdolescenteRevisionCard({ adolescente, revision, resultado, resu
         setPersona={(persona) => onChange({ persona, legajoRegistrado: resultado?.persona?.legajo != null || resultado?.persona?.carpeta != null })}
         personaresp={resultado?.persona ?? null} ciudadano={resultado?.ciudadano ?? null}
         relaciones={resultado?.relaciones ?? []} solicitudes={resultado?.solicitudes ?? []}
-        sinResultados={busquedaRealizada && !resultado?.persona && !resultado?.ciudadano} />
+        sinResultados={resultado !== null && !resultado.persona && !resultado.ciudadano} />
       {datosSalud && <DatosSalud persona={datosSalud} />}
       {revision.estado === "confirmado" && resultado?.persona && !revision.legajoRegistrado && (
         <LegajoForm tieneLegajo={revision.persona?.legajo != null}
@@ -55,7 +54,8 @@ export function AdolescenteRevisionCard({ adolescente, revision, resultado, resu
       {revision.familiares.map((familiar, index) => (
         <FamiliarRevisionCard key={familiar.original ? `original-${familiar.original.id}` : `nuevo-${familiar.persona?.dni}-${familiar.persona?.sexo}`}
           revision={familiar} resultado={resultadosFamiliares.find((item) => item.id === familiar.original?.id) ?? null}
-          busquedaRealizada={busquedaRealizada} onChange={(cambios) => cambiarFamiliar(index, cambios)}
+          busquedaRealizada={resultadosFamiliares.some((item) => item.id === familiar.original?.id)}
+          onChange={(cambios) => cambiarFamiliar(index, cambios)}
           onEliminar={() => onChange((prev) => ({ familiares: prev.familiares.filter((_, posicion) => posicion !== index) }))} />
       ))}
     </Stack>

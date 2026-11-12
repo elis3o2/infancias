@@ -12,12 +12,14 @@ export const getDic = (direccion: string) : Promise<Geolocalizacion[]> => {
 
 export const getCiudadanoData = (
     adolescentes: { id: number; sexo: "M" | "F"; dni: string }[],
-    familiares: { id: number; sexo: "M" | "F"; dni: string }[]
+    familiares: { id: number; sexo: "M" | "F"; dni: string }[],
+    signal?: AbortSignal,
 ): Promise<RespCiudadano> => {
 
     return http.get<RespCiudadano>(
         "persona/ciudadano/",
         {
+            signal,
             params: {
                 adolescentes: JSON.stringify(adolescentes),
                 familiares: JSON.stringify(familiares),

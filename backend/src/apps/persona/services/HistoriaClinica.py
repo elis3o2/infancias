@@ -1,19 +1,22 @@
 """Agrupación por HC/HCF y enriquecimiento de salud sin repetir consultas."""
 from src.apps.api_externa.services import consultar_hcf
 from src.apps.api_externa.types import HCFResponse, HCFResultado
-from .Consulta import consultar_adolescente, consultar_familiar
+from .Consulta import CiudadanosConsultados, consultar_adolescente, consultar_familiar
 
 
 def consultar_personas(adolescentes, familiares):
     """Consulta antecedentes sin filtrar solicitudes por equipo y agrupa por HCF."""
 
+    # Un familiar puede estar asociado a varios adolescentes del mismo formulario.
+    # Reutilizar solo dentro de esta búsqueda, sin persistir datos personales.
+    ciudadanos: CiudadanosConsultados = {}
     adolescentes_resp = [
-        consultar_adolescente(adolescente)
+        consultar_adolescente(adolescente, ciudadanos=ciudadanos)
         for adolescente in adolescentes
     ]
 
     familiares_resp = [
-        consultar_familiar(familiar)
+        consultar_familiar(familiar, ciudadanos=ciudadanos)
         for familiar in familiares
     ]
 

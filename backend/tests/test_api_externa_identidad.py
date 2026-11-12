@@ -149,8 +149,33 @@ class ConsultarIdentidadTests(TestCase):
         for valor in (None, "", "invalido", "-1"):
             self.assertEqual(identidad._retry_after(valor), 60)
 
+    def test_tercera_consulta_del_minuto_se_frena_antes_de_hacer_http(self):
+        self.consultar()
+        self.consultar()
+        with self.assertRaises(IdentidadLimiteExcedido) as error:
+            self.consultar()
+        self.assertFalse(error.exception.remoto)
+        self.assertEqual(error.exception.reintentar_en, 52)
+        self.assertEqual(self.session.request.call_count, 2)
+        self.reloj.return_value += 48
+        self.consultar()  # +4: exactamente 60 segundos desde la primera.
+        self.assertEqual(self.session.request.call_count, 3)
+
+    def test_un_404_cuenta_para_la_cuota_y_no_se_reintenta(self):
+        self.respuesta.status_code = 404
+        with self.assertRaises(IdentidadHTTPError) as error:
+            self.consultar()
+        self.assertEqual(error.exception.codigo_http, 404)
+        self.respuesta.json.assert_not_called()
+        self.respuesta.status_code = 200
+        self.consultar()
+        with self.assertRaises(IdentidadLimiteExcedido):
+            self.consultar()
+        self.assertEqual(self.session.request.call_count, 2)
+
     def test_errores_http_no_reintentan_ni_exponen_la_clave(self):
         for codigo in (401, 403, 502, 503, 504, 301, 302, 404, 405):
+            self.reloj.return_value += 60  # Probar HTTP sin agotar la cuota local.
             with self.subTest(codigo=codigo), self.assertRaises(IdentidadHTTPError) as error:
                 self.respuesta.status_code = codigo
                 self.consultar()
@@ -160,6 +185,7 @@ class ConsultarIdentidadTests(TestCase):
 
     def test_fallos_tls_y_conexion_no_desactivan_verificacion(self):
         for fallo in (requests.exceptions.SSLError(), requests.Timeout(), requests.ConnectionError()):
+            self.reloj.return_value += 60
             with self.subTest(fallo=type(fallo)), self.assertRaises(ServicioExternoError):
                 self.session.request.side_effect = fallo
                 self.consultar()

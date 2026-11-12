@@ -92,7 +92,9 @@ class DigitalizacionRespaldoTests(TestCase):
     def test_errores_del_respaldo_no_se_transforman_en_persona_inexistente(self):
         self.digitalizacion.side_effect = ServicioExternoError()
         for fallo in (ServicioExternoNoConfigurado(), ServicioExternoError("TLS"), IdentidadHTTPError(401, "Clave"),
-                      IdentidadLimiteExcedido(3, remoto=True), IdentidadLimiteExcedido(120)):
+                      IdentidadHTTPError(404, "Ruta o recurso no encontrado"),
+                      IdentidadLimiteExcedido(3, remoto=True), IdentidadLimiteExcedido(60),
+                      IdentidadLimiteExcedido(86400)):
             with self.subTest(fallo=fallo):
                 self.identidad.side_effect = fallo
                 with self.assertRaises(type(fallo)):

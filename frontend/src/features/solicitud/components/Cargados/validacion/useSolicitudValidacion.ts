@@ -1,7 +1,6 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { AlertSeverity } from "@/common/types"
-import { getCiudadanoData } from "@/features/api_externa/api"
 import type { RespCiudadano } from "@/features/api_externa/types"
 import type { PersonaCreate } from "@/features/persona/types"
 import { rechazarSolicitud, validarSolicitud } from "../../../api"
@@ -10,6 +9,7 @@ import { getSolicitudErrorMessage } from "../../../utils"
 import { datosSinAdolescente, familiaresDelAdolescente } from "../solicitudDetalle"
 import { crearPayloadValidacion } from "./payload"
 import type { CambioRevision, Revisiones } from "./types"
+import { consultarPorEtapas, obtenerPendientes, type PersonasConsulta } from "./consultaProgresiva"
 
 export function useSolicitudValidacion(solicitud: SolicitudCrud) {
   const navigate = useNavigate()
@@ -22,7 +22,17 @@ export function useSolicitudValidacion(solicitud: SolicitudCrud) {
   const [descripcion, setDescripcion] = useState("")
   const [ciudadanos, setCiudadanos] = useState<RespCiudadano | null>(null)
   const [buscando, setBuscando] = useState(false)
+  const [errorBusqueda, setErrorBusqueda] = useState<string | null>(null)
+  const consultaActiva = useRef<AbortController | null>(null)
   const [alerta, setAlerta] = useState<{ mensaje: string; severity: AlertSeverity } | null>(null)
+  useEffect(() => () => consultaActiva.current?.abort(), [])
+  const personasConsulta: PersonasConsulta = {
+    adolescentes: solicitud.adolescentes.map(({ id, dni, sexo }) => ({ id, dni, sexo })),
+    familiares: solicitud.adolescentes.flatMap((adolescente) => familiaresDelAdolescente(adolescente, solicitud.familiares))
+      .flatMap(({ id, dni, sexo }) => dni && sexo ? [{ id, dni, sexo }] : []),
+  }
+  const pendientes = obtenerPendientes(personasConsulta, ciudadanos)
+  const hayPendientes = pendientes.adolescentes.length + pendientes.familiares.length > 0
 
   const actualizar = (id: number, cambios: CambioRevision) => {
     setRevisiones((prev) => ({ ...prev, [id]: { ...prev[id], ...(typeof cambios === "function" ? cambios(prev[id]) : cambios) } }))
@@ -46,30 +56,36 @@ export function useSolicitudValidacion(solicitud: SolicitudCrud) {
   const hayRechazados = items.some((item) => item.estado === "rechazado" || item.familiares.some((familiar) => familiar.estado === "rechazado"))
   const todosRechazados = items.length > 0 && items.every((item) => item.estado === "rechazado")
   const familiaresSinAdolescente = datosSinAdolescente(solicitud).familiares
-  const puedeAceptar = items.length > 0 && !buscando && familiaresSinAdolescente.length === 0 && items.every((item) =>
+  const puedeAceptar = items.length > 0 && !buscando && !hayPendientes && familiaresSinAdolescente.length === 0 && items.every((item) =>
     item.estado === "confirmado" && item.persona && item.familiares.every((familiar) =>
       familiar.estado === "confirmado" && familiar.persona && (familiar.persona.id_vinculo ?? familiar.persona.vinculo?.id),
     ),
   )
 
   async function buscar() {
+    if (consultaActiva.current) return
+    const control = new AbortController()
+    consultaActiva.current = control
+    const anteriores = hayPendientes ? ciudadanos : null
     try {
       setBuscando(true)
-      const familiares = solicitud.adolescentes.flatMap((adolescente) => familiaresDelAdolescente(adolescente, solicitud.familiares))
-        .flatMap(({ id, dni, sexo }) => dni && sexo ? [{ id, dni, sexo }] : [])
-      const resultado = await getCiudadanoData(
-        solicitud.adolescentes.map(({ id, dni, sexo }) => ({ id, dni, sexo })), familiares,
-      )
-      setCiudadanos(resultado)
-      // Una nueva consulta necesita confirmar nuevamente la identidad, conservando el resto del borrador.
-      setRevisiones((prev) => Object.fromEntries(Object.entries(prev).map(([id, revision]) => [id, {
-        ...revision, estado: null,
-        familiares: revision.familiares.map((familiar) => familiar.original ? { ...familiar, estado: null } : familiar),
-      }])))
+      setErrorBusqueda(null)
+      if (!anteriores) {
+        setCiudadanos(null)
+        // Actualizar desde cero requiere confirmar otra vez; continuar conserva lo ya revisado.
+        setRevisiones((prev) => Object.fromEntries(Object.entries(prev).map(([id, revision]) => [id, {
+          ...revision, estado: null,
+          familiares: revision.familiares.map((familiar) => familiar.original ? { ...familiar, estado: null } : familiar),
+        }])))
+      }
+      await consultarPorEtapas(personasConsulta, anteriores, setCiudadanos, control.signal)
     } catch (error) {
-      setAlerta({ mensaje: getSolicitudErrorMessage(error, "No se pudieron consultar las identidades."), severity: "error" })
+      if (!control.signal.aborted) {
+        setErrorBusqueda(getSolicitudErrorMessage(error, "No se pudieron consultar las identidades."))
+      }
     } finally {
-      setBuscando(false)
+      consultaActiva.current = null
+      if (!control.signal.aborted) setBuscando(false)
     }
   }
 
@@ -100,6 +116,7 @@ export function useSolicitudValidacion(solicitud: SolicitudCrud) {
   }
 
   return { revisiones, actualizar, agregarFamiliar, descripcion, setDescripcion, ciudadanos, buscando, buscar,
+    hayPendientes, errorBusqueda,
     alerta, cerrarAlerta: () => setAlerta(null), puedeAceptar, hayRechazados, todosRechazados,
     familiaresSinAdolescente, aceptar, rechazar }
 }

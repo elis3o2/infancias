@@ -71,15 +71,27 @@ class LimitesIdentidadTests(TestCase):
                     proceso.terminate()
                     proceso.join(timeout=5)
 
-    def test_maximo_veinte_por_minuto(self):
-        self.archivo.write_text(json.dumps({"consultas": [199941.0 + indice * 2.8 for indice in range(20)], "bloqueado_hasta": 0}))
+    def test_maximo_dos_por_minuto_y_reapertura_en_el_limite(self):
+        for _ in range(2):
+            with limitar_consulta(self.archivo):
+                pass
+            self.reloj.return_value += 3
+        with self.assertRaises(IdentidadLimiteExcedido) as error:
+            with limitar_consulta(self.archivo):
+                self.fail("La tercera consulta no debe enviarse")
+        self.assertEqual(error.exception.reintentar_en, 54)
+        self.assertEqual(len(json.loads(self.archivo.read_text())["consultas"]), 2)
+        self.reloj.return_value += 53.5
         with self.assertRaises(IdentidadLimiteExcedido) as error:
             with limitar_consulta(self.archivo):
                 pass
         self.assertEqual(error.exception.reintentar_en, 1)
+        self.reloj.return_value += 0.5
+        with limitar_consulta(self.archivo):
+            pass
 
-    def test_maximo_diez_mil_en_veinticuatro_horas(self):
-        consultas = [113601.0 + indice * 8 for indice in range(10000)]
+    def test_maximo_cuarenta_y_ocho_en_veinticuatro_horas(self):
+        consultas = [113601.0 + indice * 1200 for indice in range(48)]
         self.archivo.write_text(json.dumps({"consultas": consultas, "bloqueado_hasta": 0}))
         with self.assertRaises(IdentidadLimiteExcedido) as error:
             with limitar_consulta(self.archivo):
@@ -88,7 +100,42 @@ class LimitesIdentidadTests(TestCase):
         self.reloj.return_value += 1
         with limitar_consulta(self.archivo):
             pass
-        self.assertEqual(len(json.loads(self.archivo.read_text())["consultas"]), 10000)
+        self.assertEqual(len(json.loads(self.archivo.read_text())["consultas"]), 48)
+
+    def test_estado_anterior_con_mas_de_dos_por_minuto_se_conserva(self):
+        consultas = [199941.0 + indice * 3 for indice in range(20)]
+        contenido = json.dumps({"consultas": consultas, "bloqueado_hasta": 0})
+        self.archivo.write_text(contenido)
+        with self.assertRaises(IdentidadLimiteExcedido) as error:
+            with limitar_consulta(self.archivo):
+                pass
+        self.assertEqual(error.exception.reintentar_en, 55)
+        self.assertEqual(self.archivo.read_text(), contenido)
+        self.reloj.return_value += 55
+        with limitar_consulta(self.archivo):
+            pass
+        recientes = [fecha for fecha in json.loads(self.archivo.read_text())["consultas"]
+                     if fecha > self.reloj.return_value - 60]
+        self.assertEqual(len(recientes), 2)
+
+    def test_estado_anterior_con_mas_de_cuarenta_y_ocho_espera_lo_necesario(self):
+        consultas = [113601.0 + indice * 1200 for indice in range(50)]
+        contenido = json.dumps({"consultas": consultas, "bloqueado_hasta": 0})
+        self.archivo.write_text(contenido)
+        with self.assertRaises(IdentidadLimiteExcedido) as error:
+            with limitar_consulta(self.archivo):
+                pass
+        self.assertEqual(error.exception.reintentar_en, 2401)
+        self.assertEqual(self.archivo.read_text(), contenido)
+        self.reloj.return_value += 1  # Expiró la primera, pero todavía quedan 49.
+        with self.assertRaises(IdentidadLimiteExcedido) as error:
+            with limitar_consulta(self.archivo):
+                pass
+        self.assertEqual(error.exception.reintentar_en, 2400)
+        self.reloj.return_value += 2400
+        with limitar_consulta(self.archivo):
+            pass
+        self.assertEqual(len(json.loads(self.archivo.read_text())["consultas"]), 48)
 
     def test_estado_danado_no_se_reinicia_para_evitar_el_limite(self):
         for contenido in ("", "invalido", "[]", '{"consultas": [true], "bloqueado_hasta": 0}', '{"consultas": [], "bloqueado_hasta": NaN}'):
@@ -104,4 +151,3 @@ class LimitesIdentidadTests(TestCase):
             with self.assertRaises(ServicioExternoError):
                 with limitar_consulta(self.archivo):
                     self.fail("No debe consultar sin guardar la reserva")
-

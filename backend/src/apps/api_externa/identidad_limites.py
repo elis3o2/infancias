@@ -19,6 +19,13 @@ from .identidad_types import IdentidadLimiteExcedido
 from .types import ServicioExternoError
 
 
+CONSULTAS_POR_MINUTO = 2
+CONSULTAS_POR_DIA = 48
+INTERVALO_CONSULTAS = 3
+# Conservar estados anteriores al cambio de cuota, sin reiniciar su consumo.
+MAX_REGISTROS_HISTORICOS = 10000
+
+
 @dataclass
 class EstadoLimites:
     consultas: list[float]
@@ -36,7 +43,7 @@ def _leer(archivo: Path) -> EstadoLimites:
         raise ValueError("Estado inválido")
     consultas = datos.get("consultas")
     bloqueo = datos.get("bloqueado_hasta")
-    if not isinstance(consultas, list) or len(consultas) > 10000:
+    if not isinstance(consultas, list) or len(consultas) > MAX_REGISTROS_HISTORICOS:
         raise ValueError("Estado inválido")
     for valor in [*consultas, bloqueo]:
         if type(valor) not in (float, int) or not math.isfinite(valor) or valor < 0:
@@ -65,16 +72,17 @@ def _reservar(estado: EstadoLimites, ahora: float) -> None:
     estado.consultas = [fecha for fecha in estado.consultas if fecha > ahora - 86400]
     disponible = estado.bloqueado_hasta
     if estado.consultas:
-        disponible = max(disponible, estado.consultas[-1] + 3)
+        disponible = max(disponible, estado.consultas[-1] + INTERVALO_CONSULTAS)
     minuto = [fecha for fecha in estado.consultas if fecha > ahora - 60]
-    if len(minuto) >= 20:
-        disponible = max(disponible, minuto[-20] + 60)
-    if len(estado.consultas) >= 10000:
-        disponible = max(disponible, estado.consultas[0] + 86400)
+    if len(minuto) >= CONSULTAS_POR_MINUTO:
+        disponible = max(disponible, minuto[-CONSULTAS_POR_MINUTO] + 60)
+    if len(estado.consultas) >= CONSULTAS_POR_DIA:
+        # Si el estado anterior supera la nueva cuota, esperar hasta que queden 47.
+        disponible = max(disponible, estado.consultas[-CONSULTAS_POR_DIA] + 86400)
     if disponible > ahora:
         raise IdentidadLimiteExcedido(math.ceil(disponible - ahora))
     estado.consultas.append(ahora)
-    estado.bloqueado_hasta = ahora + 3
+    estado.bloqueado_hasta = ahora + INTERVALO_CONSULTAS
 
 
 @contextmanager
@@ -86,7 +94,7 @@ def limitar_consulta(archivo: Path) -> Iterator[EstadoLimites]:
             try:
                 fcntl.flock(bloqueo, fcntl.LOCK_EX | fcntl.LOCK_NB)
             except BlockingIOError:
-                raise IdentidadLimiteExcedido(3) from None
+                raise IdentidadLimiteExcedido(INTERVALO_CONSULTAS) from None
             try:
                 estado = _leer(archivo)
                 _reservar(estado, time.time())
@@ -96,11 +104,10 @@ def limitar_consulta(archivo: Path) -> Iterator[EstadoLimites]:
                 finally:
                     # También separar tres segundos después de una consulta lenta.
                     estado.consultas[-1] = max(estado.consultas[-1], time.time())
-                    estado.pausar(3)
+                    estado.pausar(INTERVALO_CONSULTAS)
                     _guardar(archivo, estado)
             finally:
                 fcntl.flock(bloqueo, fcntl.LOCK_UN)
     except (OSError, ValueError) as exc:
         # Nunca continuar sin cuota si el archivo está dañado o no es escribible.
         raise ServicioExternoError("No se pudo verificar el límite compartido de Identidad.") from exc
-

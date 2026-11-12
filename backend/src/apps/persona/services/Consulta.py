@@ -1,9 +1,28 @@
 """Antecedentes locales e identidad externa, sin mutar personas ni filtrar por equipo."""
 from django.db.models import Q
 from src.apps.api_externa.services import consultar_digitalizacion
+from src.apps.api_externa.types import DatosDigitalizacion
 from src.apps.solicitud.models import Solicitud
 from ..models import Persona, Relacion
 from .Persona import buscar_persona
+
+
+CiudadanosConsultados = dict[tuple[str, str], DatosDigitalizacion | None]
+
+
+def _consultar_ciudadano(
+    dni: str, sexo: str, ciudadanos: CiudadanosConsultados | None,
+) -> DatosDigitalizacion | None:
+    if ciudadanos is None:
+        return consultar_digitalizacion(dni=dni, sexo=sexo)
+
+    clave = (dni, sexo)
+    if clave not in ciudadanos:
+        ciudadanos[clave] = consultar_digitalizacion(dni=dni, sexo=sexo)
+
+    datos = ciudadanos[clave]
+    # Cada registro se enriquece por separado, sin modificar el resultado guardado.
+    return datos.copy() if datos is not None else None
 
 
 def _serializar_persona_consulta(persona: Persona | None) -> dict | None:
@@ -32,7 +51,7 @@ def _serializar_persona_consulta(persona: Persona | None) -> dict | None:
     }
 
 
-def consultar_adolescente(data):
+def consultar_adolescente(data, *, ciudadanos: CiudadanosConsultados | None = None):
 
     dni = data["dni"]
     sexo = data["sexo"]
@@ -42,7 +61,7 @@ def consultar_adolescente(data):
     ciudadano = None
 
     if not persona:
-        ciudadano = consultar_digitalizacion(dni=dni, sexo=sexo)
+        ciudadano = _consultar_ciudadano(dni, sexo, ciudadanos)
 
     relaciones = []
 
@@ -127,7 +146,7 @@ def consultar_solicitudes(
     ]
 
 
-def consultar_familiar(data):
+def consultar_familiar(data, *, ciudadanos: CiudadanosConsultados | None = None):
 
     dni = data["dni"]
     sexo = data["sexo"]
@@ -136,7 +155,7 @@ def consultar_familiar(data):
     ciudadano = None
 
     if not persona:
-        ciudadano = consultar_digitalizacion(dni=dni, sexo=sexo)
+        ciudadano = _consultar_ciudadano(dni, sexo, ciudadanos)
 
     return {
         "id": data["id"],

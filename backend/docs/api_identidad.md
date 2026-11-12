@@ -98,6 +98,12 @@ no disponibles siguen sin informarse: no se inventan valores negativos. No se
 crean personas automáticamente por recibir la respuesta.
 
 - 401/403: `IdentidadHTTPError`, clave inválida o secciones no autorizadas.
+- 404 de API_RNP: `IdentidadHTTPError`, sin reintentos ni cambio automático de
+  método. La consulta de personas responde 502 e identifica el 404 del proveedor,
+  indicando revisar `API_RNP` e `IDENTIDAD_HTTP_METHOD`. No se interpreta como
+  límite de consultas ni como persona inexistente. Para determinar la causa hace
+  falta el contrato o la respuesta del proveedor; no se registra el cuerpo con
+  datos personales ni la clave en los logs.
 - 409: `IdentidadRevisionRequerida`, revisión humana obligatoria.
 - 429: `IdentidadLimiteExcedido`, con `reintentar_en` en segundos y `remoto=True`.
   Se interpreta `Retry-After` tanto en segundos como en fecha HTTP, y se bloquean
@@ -110,25 +116,49 @@ crean personas automáticamente por recibir la respuesta.
 ## Cuota y Gunicorn
 
 Se permite una consulta en curso, con al menos 3 segundos entre consultas
-(también después de terminar), máximo 20 por minuto y 10.000 en cualquier ventana
+(también después de terminar), máximo **2 por minuto y 48** en cualquier ventana
 de 24 horas. Esta última regla es conservadora respecto de un día calendario.
 Una llamada anticipada a `consultar_identidad` devuelve `IdentidadLimiteExcedido`
 con el tiempo de espera. El respaldo de Digitalización puede esperar una sola vez
 hasta 3 segundos si la consulta aún no fue enviada por el intervalo **local**;
-esto permite consultas consecutivas del mismo formulario. No reintenta respuestas
-429 del proveedor, esperas mayores ni errores de red. Los intentos fallidos cuentan.
+esto permite las dos primeras consultas consecutivas del mismo formulario si hay
+cupo disponible. No reintenta respuestas 429 del proveedor, esperas mayores ni
+errores de red. Los intentos fallidos cuentan, incluidos los HTTP 404.
+
+Si un familiar aparece varias veces en la misma búsqueda, se consulta una sola
+vez por DNI y sexo. Se conservan todos los registros e identificadores del
+formulario. Esta reutilización es solo en memoria durante esa búsqueda, no entre
+peticiones ni entre usuarios. Las personas ya existentes se resuelven localmente.
+La tercera identidad distinta que necesite API_RNP dentro del minuto se frena
+con 429 y `Retry-After`; no se deja un worker esperando un minuto o un día.
+La búsqueda por lote no devuelve resultados parciales si una consulta falla.
+Por eso la pantalla de validación consulta una identidad por petición (agrupando
+sus apariciones como adolescente/familiar), y conserva cada resultado exitoso
+en memoria. Ante un límite o un error, muestra lo obtenido y permite **Continuar
+búsqueda** solo con los pendientes, sin repetir los éxitos ni rechazar a quienes
+todavía no fueron consultados. No hay reintento automático: esperar el tiempo
+indicado antes de continuar. Al salir o recargar la pantalla esos resultados se
+pierden; no se guardan datos de personas en archivos ni en almacenamiento del
+navegador. **Actualizar datos**, una vez completada la búsqueda, comienza una
+consulta nueva y requiere volver a confirmar las identidades.
 
 Todos los procesos usan el mismo archivo persistente y un bloqueo de archivo en
 Linux. No se agregan tablas ni archivos `.db`. El estado contiene solo marcas de
 tiempo; no DNI, claves ni respuestas. Reiniciar Gunicorn conserva la cuota. No
 borrar el estado para resolver un límite, ni guardar este archivo en estáticos.
+Los archivos anteriores se respetan aunque superen los nuevos límites: se espera
+hasta que expiren suficientes consultas para volver a estar dentro de la cuota.
 Los archivos de estado y certificados quedan fuera de Git.
 
 El control cubre **este servidor y este archivo compartido**. Si la misma clave
-se usa desde otros servidores o aplicaciones, hace falta un contador compartido
-entre ellos antes de habilitar ese uso; no copiar el archivo como si fuera una
+se usa desde la terminal, otros servidores o aplicaciones, hace falta coordinar
+ese consumo con este contador (las consultas directas no quedan registradas aquí).
+Para varias instancias de la aplicación hace falta un contador compartido
+entre ellas antes de habilitar ese uso; no copiar el archivo como si fuera una
 cuota nueva. Si el estado es inválido o no puede guardarse, no se consulta la API.
 
 Al subir los cambios al servidor y completar la configuración, reiniciar
-`gunicorn-infancias.service`. Las pruebas locales usan respuestas simuladas; no
+`gunicorn-infancias.service`. Para la búsqueda progresiva también hay que volver
+a compilar el frontend y recopilar sus archivos estáticos, siguiendo
+[la guía de despliegue](despliegue.md). Las pruebas locales usan respuestas simuladas; no
 verifican que el método, certificado o clave sean aceptados por el proveedor real.

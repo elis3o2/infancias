@@ -45,3 +45,12 @@ class ConsultaPersonasErroresTests(SimpleTestCase):
                 respuesta = self.consultar(error)
                 self.assertEqual(respuesta.status_code, 502)
                 self.assertEqual(set(respuesta.data), {"detail"})
+
+    def test_404_remoto_no_es_limite_ni_persona_inexistente(self):
+        respuesta = self.consultar(IdentidadHTTPError(404, "Identidad respondió con HTTP 404."))
+        self.assertEqual(respuesta.status_code, 502)
+        self.assertNotIn("Retry-After", respuesta)
+        self.assertEqual(set(respuesta.data), {"detail"})
+        self.assertIn("HTTP 404", respuesta.data["detail"])
+        self.assertIn("API_RNP e IDENTIDAD_HTTP_METHOD", respuesta.data["detail"])
+        self.assertIn("no confirma que la persona no exista", respuesta.data["detail"])
