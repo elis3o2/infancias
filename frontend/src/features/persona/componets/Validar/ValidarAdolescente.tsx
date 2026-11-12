@@ -165,9 +165,8 @@ export const ValidarAdolescente = ({ adolescente, estado, setEstado, persona, se
               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                 Resultado de la verificación
               </Typography>
-              <Alert severity="info">
-                No se encontraron datos previos ni datos en RENAPER para esta persona. Queda pendiente
-                de validación; no fue rechazada automáticamente.
+              <Alert severity="warning">
+                Persona no validada. No se pudo verificar su identidad.
               </Alert>
               {estado !== null ? (
                 <Button size="small" onClick={() => setEstado(null)} sx={{ alignSelf: "flex-start" }}>

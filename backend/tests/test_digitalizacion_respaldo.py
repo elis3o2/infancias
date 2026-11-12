@@ -92,13 +92,19 @@ class DigitalizacionRespaldoTests(TestCase):
     def test_errores_del_respaldo_no_se_transforman_en_persona_inexistente(self):
         self.digitalizacion.side_effect = ServicioExternoError()
         for fallo in (ServicioExternoNoConfigurado(), ServicioExternoError("TLS"), IdentidadHTTPError(401, "Clave"),
-                      IdentidadHTTPError(404, "Ruta o recurso no encontrado"),
                       IdentidadLimiteExcedido(3, remoto=True), IdentidadLimiteExcedido(60),
                       IdentidadLimiteExcedido(86400)):
             with self.subTest(fallo=fallo):
                 self.identidad.side_effect = fallo
                 with self.assertRaises(type(fallo)):
                     self.consultar()
+        self.espera.assert_not_called()
+
+    def test_404_del_respaldo_deja_identidad_sin_validar_sin_reintentar(self):
+        self.digitalizacion.return_value = {}
+        self.identidad.side_effect = IdentidadHTTPError(404, "Identidad respondió HTTP 404.")
+        self.assertIsNone(self.consultar())
+        self.identidad.assert_called_once()
         self.espera.assert_not_called()
 
     def test_intervalo_local_espera_una_vez_sin_reintentar_peticiones_enviadas(self):

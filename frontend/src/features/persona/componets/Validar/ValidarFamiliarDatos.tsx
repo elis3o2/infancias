@@ -166,9 +166,8 @@ export const ValidarFamiliarDatos = ({
             </>
           ) : busquedaRealizada ? (
             <>
-              <Alert severity="info">
-                No se encontraron datos previos ni datos en RENAPER. Esta persona queda pendiente de
-                validación; no fue rechazada automáticamente.
+              <Alert severity="warning">
+                Persona no validada. No se pudo verificar su identidad.
               </Alert>
               {estado !== null ? (
                 <AccionesValidacion

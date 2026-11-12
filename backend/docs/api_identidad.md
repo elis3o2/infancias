@@ -15,8 +15,8 @@ Para sexo X el respaldo solicita `renaper` y `sisros`, nunca PUCO.
 El respaldo revisa `persona.estado` y `persona.datos.requiere_revision`, tanto con
 HTTP 200 como con 207. Solo usa la identidad si el bloque está `ok`, tiene los cinco
 datos obligatorios y `requiere_revision` es `false`. Un bloque SISROS `sin_datos`
-no invalida esa identidad. Si la persona no pudo verificarse, se informa un error
-de servicio, no que la persona no existe. Una revisión requerida devuelve 409;
+no invalida esa identidad. Una respuesta parcial que no permita verificar a la
+persona se informa como error de servicio, no como persona inexistente. Una revisión requerida devuelve 409;
 un límite devuelve 429 con `Retry-After`.
 
 ## Configuración
@@ -98,12 +98,13 @@ no disponibles siguen sin informarse: no se inventan valores negativos. No se
 crean personas automáticamente por recibir la respuesta.
 
 - 401/403: `IdentidadHTTPError`, clave inválida o secciones no autorizadas.
-- 404 de API_RNP: `IdentidadHTTPError`, sin reintentos ni cambio automático de
-  método. La consulta de personas responde 502 e identifica el 404 del proveedor,
-  indicando revisar `API_RNP` e `IDENTIDAD_HTTP_METHOD`. No se interpreta como
-  límite de consultas ni como persona inexistente. Para determinar la causa hace
-  falta el contrato o la respuesta del proveedor; no se registra el cuerpo con
-  datos personales ni la clave en los logs.
+- 404 de API_RNP: la función de transporte conserva `IdentidadHTTPError`, pero el
+  respaldo de Digitalización lo convierte en una consulta sin identidad validada
+  (`ciudadano: null`). La consulta de personas continúa con los demás registros y
+  la pantalla muestra **Persona no validada**, sin error técnico global ni
+  reintentos de esa persona al continuar. No se rechaza automáticamente ni se
+  afirma que no exista. El intento cuenta para la cuota; los límites 429, la
+  revisión 409 y los demás errores conservan su tratamiento específico.
 - 409: `IdentidadRevisionRequerida`, revisión humana obligatoria.
 - 429: `IdentidadLimiteExcedido`, con `reintentar_en` en segundos y `remoto=True`.
   Se interpreta `Retry-After` tanto en segundos como en fecha HTTP, y se bloquean

@@ -5,7 +5,7 @@ from typing import cast
 from decouple import config
 from ..identidad import consultar_identidad
 from ..identidad_normalizacion import normalizar_identidad
-from ..identidad_types import IdentidadLimiteExcedido, ResultadoIdentidad, SeccionIdentidad, SexoIdentidad
+from ..identidad_types import IdentidadHTTPError, IdentidadLimiteExcedido, ResultadoIdentidad, SeccionIdentidad, SexoIdentidad
 from ..types import DatosCiudadano, DatosDigitalizacion, RespuestaDigitalizacion, ServicioExternoError, RecursoExternoNoEncontrado
 from ..utils import _como_objeto, _como_texto, _obtener_json, _url_configurada
 from .Ciudadano import _crear_ciudadano
@@ -30,7 +30,7 @@ def _consultar_api_digitalizacion(dni: str, sexo: str) -> RespuestaDigitalizacio
 
 
 def consultar_digitalizacion(dni: str, sexo: str) -> DatosDigitalizacion | None:
-    """Digitalización primero; Identidad como respaldo ante fallas, no ante 404."""
+    """Digitalización primero; un 404 de cualquiera deja la identidad sin validar."""
     if not sexo:
         return None
 
@@ -47,7 +47,14 @@ def consultar_digitalizacion(dni: str, sexo: str) -> DatosDigitalizacion | None:
             return datos
         logger.warning("Digitalización devolvió datos incompletos; se consultará Identidad.")
 
-    respaldo = _consultar_identidad_respaldo(dni, sexo)
+    try:
+        respaldo = _consultar_identidad_respaldo(dni, sexo)
+    except IdentidadHTTPError as exc:
+        if exc.codigo_http != 404:
+            raise
+        # Sin identidad validada; no interrumpir la consulta de las otras personas.
+        logger.info("Identidad respondió HTTP 404; la persona queda sin validar.")
+        return None
     return normalizar_identidad(respaldo, dni, sexo)
 
 

@@ -74,9 +74,9 @@ test("agrupa familiares compartidos por DNI y sexo conservando sus identificador
   assert.deepEqual(resultado.familiares.map((item) => item.id), [2, 3, 4])
 })
 
-test("un 404 remoto detiene la búsqueda sin reintentos ni marcar a la persona como no encontrada", async () => {
+test("un error de servicio detiene la búsqueda sin reintentos ni marcar a la persona como no encontrada", async () => {
   const entrada = { adolescentes: [identidad(1), identidad(2)], familiares: [identidad(3)] }
-  const fallo = { response: { status: 502, data: { detail: "Identidad respondió HTTP 404." } } }
+  const fallo = { response: { status: 502, data: { detail: "No fue posible consultar el servicio externo." } } }
   let acumulado = null
   let llamadas = 0
   await assert.rejects(consultarPorEtapas(entrada, null, (datos) => { acumulado = datos }, undefined, async (adolescentes, familiares) => {
@@ -88,6 +88,24 @@ test("un 404 remoto detiene la búsqueda sin reintentos ni marcar a la persona c
   assert.deepEqual(acumulado.adolescentes.map((item) => item.id), [1])
   assert.deepEqual(obtenerPendientes(entrada, acumulado).adolescentes, [identidad(2)])
   assert.deepEqual(acumulado.familiares, [])
+})
+
+test("una persona sin validar tras un 404 no interrumpe la búsqueda de las demás", async () => {
+  const entrada = { adolescentes: [identidad(1), identidad(2)], familiares: [identidad(3)] }
+  const llamadas = []
+  const resultado = await consultarPorEtapas(entrada, null, () => {}, undefined, async (adolescentes, familiares) => {
+    llamadas.push([...adolescentes, ...familiares].map((item) => item.id))
+    const datos = respuesta(adolescentes, familiares)
+    if (adolescentes[0]?.id === 1) datos.adolescentes[0].ciudadano = null
+    return datos
+  })
+  assert.deepEqual(llamadas, [[1], [2], [3]])
+  assert.equal(resultado.adolescentes[0].ciudadano, null)
+  assert.equal(resultado.adolescentes[0].persona, null)
+  assert.ok(resultado.adolescentes[1].ciudadano)
+  assert.ok(resultado.familiares[0].ciudadano)
+  assert.deepEqual(obtenerPendientes(entrada, resultado), { adolescentes: [], familiares: [] })
+  await consultarPorEtapas(entrada, resultado, () => {}, undefined, () => assert.fail("No debe repetir consultas"))
 })
 
 test("la HCF combina grupos sin repetir integrantes ni incluir a personas del formulario", async () => {
