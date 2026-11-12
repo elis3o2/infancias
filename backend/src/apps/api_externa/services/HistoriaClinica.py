@@ -4,9 +4,10 @@ from typing import cast
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from decouple import config
 from ..types import HCFResponse, RecursoExternoNoEncontrado, ServicioExternoError, ServicioExternoNoConfigurado
-from ..utils import _como_objeto, _obtener_json, _url_configurada
+from ..utils import TIMEOUT_EXTERNO, _como_objeto, _obtener_json, _url_configurada
 
 logger = logging.getLogger(__name__)
+TIMEOUT_HCF = 60
 
 
 def _url_hcf() -> str:
@@ -24,6 +25,7 @@ def consultar_hcf(hci: int | str) -> HCFResponse | None:
             _url_hcf(),
             params={"hci": hci},
             headers={"HCF_PPVV_API_KEY": config("HCF_PPVV_API_KEY", default="")},
+            timeout=(TIMEOUT_EXTERNO, TIMEOUT_HCF),
         )
         respuesta = _como_objeto(data)
         if (

@@ -22,6 +22,7 @@ class ApiExternaPersonasTests(TestCase):
             "API_CIUDADANO": "https://ciudadano.example.test/", "KEY_CIUDADANO": "prueba-ciudadano",
         }
         self.configuracion = configuracion
+
         for modulo in (ciudadano_api, digitalizacion, hcf, utils):
             parche = patch.object(modulo, "config", side_effect=lambda nombre, default="": configuracion.get(nombre, default))
             parche.start()
@@ -93,8 +94,27 @@ class ApiExternaPersonasTests(TestCase):
         self.assertFalse(session.trust_env)
         session.get.assert_called_once_with(
             "https://hcf.example.test/hcf", params={"hci": "100"},
-            headers={"HCF_PPVV_API_KEY": "prueba-hcf"}, timeout=utils.TIMEOUT_EXTERNO,
+            headers={"HCF_PPVV_API_KEY": "prueba-hcf"}, timeout=(utils.TIMEOUT_EXTERNO, 60),
         )
+
+    def test_timeout_hcf_fijo_sin_modificar_el_de_las_otras_apis(self):
+        with patch.object(utils.requests, "Session") as session_class:
+            session = session_class.return_value.__enter__.return_value
+            session.get.return_value.status_code = 200
+            session.get.return_value.json.return_value = {"hcf": "50", "resultados": []}
+            self.assertIsNotNone(services.consultar_hcf("100"))
+            self.assertEqual(session.get.call_args.kwargs["timeout"], (10, 60))
+            session.get.return_value.json.return_value = self.digitalizacion
+            self.assertIsNotNone(services.consultar_digitalizacion("50000001", "M"))
+            self.assertEqual(session.get.call_args.kwargs["timeout"], 10)
+
+    def test_hcf_conserva_el_manejo_de_error_si_se_agota_el_nuevo_timeout(self):
+        with patch.object(utils.requests, "Session") as session_class:
+            session = session_class.return_value.__enter__.return_value
+            session.get.side_effect = requests.ReadTimeout()
+            self.assertIsNone(services.consultar_hcf("100"))
+            session.get.assert_called_once()
+            self.assertEqual(session.get.call_args.kwargs["timeout"], (10, 60))
 
     def test_hcf_envia_una_sola_hci_aunque_la_url_ya_la_incluya(self):
         for sufijo in ("", "?hci=", "?hci=999", "?hci=&hci=999", "?origen=prueba%20local&hci="):

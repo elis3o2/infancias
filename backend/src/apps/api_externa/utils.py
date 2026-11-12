@@ -27,7 +27,13 @@ def _url_configurada(nombre: str) -> str:
     return url
 
 
-def _obtener_json(url: str, *, params: ParametrosConsulta | None = None, headers: CabecerasHTTP | None = None) -> JsonValue:
+def _obtener_json(
+    url: str,
+    *,
+    params: ParametrosConsulta | None = None,
+    headers: CabecerasHTTP | None = None,
+    timeout: float | tuple[float, float] = TIMEOUT_EXTERNO,
+) -> JsonValue:
     """Hace un GET directo, sin heredar proxies del entorno de ejecución."""
     try:
         with requests.Session() as session:
@@ -36,7 +42,7 @@ def _obtener_json(url: str, *, params: ParametrosConsulta | None = None, headers
                 url,
                 params=params,
                 headers=headers,
-                timeout=TIMEOUT_EXTERNO,
+                timeout=timeout,
             )
     except requests.RequestException as exc:
         raise ServicioExternoError("No fue posible conectar con el servicio externo.") from exc

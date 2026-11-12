@@ -103,6 +103,11 @@ configurada con o sin `?hci=`. Si la URL ya incluye `hci`, se reemplaza por el
 número consultado, sin duplicar el parámetro ni enviar la HCF como número de
 entrada. La respuesta conserva el contrato `HCFResponse` (`hcf` y `resultados`).
 
+Para HCF, la conexión mantiene 10 segundos de espera y la lectura de la respuesta
+permite 60 segundos, fijados en el código. Los tiempos de las demás APIs no
+cambian y no se agrega ninguna variable al `.env`. Reiniciar Gunicorn después de
+desplegar los cambios; no hace falta recompilar el frontend.
+
 - 401/403: `IdentidadHTTPError`, clave inválida o secciones no autorizadas.
 - 404 de API_RNP: la función de transporte conserva `IdentidadHTTPError`, pero el
   respaldo de Digitalización lo convierte en una consulta sin identidad validada
