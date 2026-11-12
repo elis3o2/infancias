@@ -4,10 +4,34 @@ from datetime import date
 from typing import cast
 
 from .identidad_types import (
-    DatosPersonaRNP, IdentidadRespuestaParcial, IdentidadRevisionRequerida,
+    DatosPersonaRNP, DatosSisrosRNP, IdentidadRespuestaParcial, IdentidadRevisionRequerida,
     ResultadoIdentidad,
 )
-from .types import Ciudadano, DatosDigitalizacion, ServicioExternoError
+from .types import Ciudadano, DatosDigitalizacion, JsonObject, JsonValue, ServicioExternoError
+
+
+def _numero_historia(valor: JsonValue) -> str | None:
+    if isinstance(valor, bool) or not isinstance(valor, int) or valor <= 0:
+        return None
+    return str(valor)
+
+
+def _historias_sisros(respuesta: JsonObject) -> tuple[str | None, str | None]:
+    bloque = respuesta.get("sisros")
+    if not isinstance(bloque, dict) or bloque.get("estado") != "ok":
+        return None, None
+    coincidencia = bloque.get("match")
+    if (
+        not isinstance(coincidencia, dict)
+        or coincidencia.get("estado") != "VALIDADO_EXACTO"
+        or coincidencia.get("vinculado") is not True
+    ):
+        return None, None
+    datos = bloque.get("datos")
+    if not isinstance(datos, dict):
+        return None, None
+    historias = cast(DatosSisrosRNP, datos)
+    return _numero_historia(historias.get("numero_hci")), _numero_historia(historias.get("numero_hcf"))
 
 
 def normalizar_identidad(resultado: ResultadoIdentidad, dni: str, sexo: str) -> DatosDigitalizacion:
@@ -47,6 +71,8 @@ def normalizar_identidad(resultado: ResultadoIdentidad, dni: str, sexo: str) -> 
         nroDocumento=int(documento), sexo=persona["sexo"],
         fechaNacimiento=nacimiento.isoformat(),
     )
-    # RNP no proporciona la HC usada por esta aplicación. No inferirla de SISROS,
-    # ni conservar una HC de una respuesta incompleta de Digitalización.
-    return {**ciudadano.como_dict(), "hc": None}
+    hc, hcf = _historias_sisros(resultado.datos)
+    respuesta: DatosDigitalizacion = {**ciudadano.como_dict(), "hc": hc}
+    if hcf is not None:
+        respuesta["hcf"] = hcf
+    return respuesta

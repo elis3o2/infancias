@@ -8,7 +8,8 @@ No reemplaza Ciudadano ni HCF, no crea personas y no agrega una ruta pública.
 Digitalización conserva prioridad. Un 404 explícito no activa el respaldo; una
 identidad válida sin HC tampoco. Ante error HTTP, red, JSON inválido, falta de
 configuración o datos incompletos, se consulta Identidad y se devuelve el mismo
-formato habitual de identidad, con `hc: null`. Se comprueba que DNI y sexo coincidan.
+formato habitual de identidad, con HC/HCF de SISROS cuando su vinculación está
+validada. Se comprueba que DNI y sexo coincidan.
 Para sexo X el respaldo solicita `renaper` y `sisros`, nunca PUCO.
 
 El respaldo revisa `persona.estado` y `persona.datos.requiere_revision`, tanto con
@@ -76,12 +77,25 @@ distingue HTTP 207. El adaptador `normalizar_identidad` utiliza exclusivamente:
 | `sexo` | `sexo` |
 | `fecha_nacimiento` | `fechaNacimiento` |
 
-`hc` siempre es `null` para este proveedor. No se infiere de SISROS ni se mezcla
-con una HC proveniente de una respuesta incompleta de Digitalización. Por ello
-no se consulta HCF, no se agregan integrantes de una historia familiar y la
-interfaz indica «Sin historia clínica». Los datos de salud no disponibles siguen
-sin informarse: no se inventan valores negativos. No cambia el contrato del frontend
-ni se crean personas automáticamente por recibir la respuesta.
+Además se toman `sisros.datos.numero_hci` como `hc` y
+`sisros.datos.numero_hcf` como `hcf`. Se aceptan únicamente enteros positivos y
+solo si `sisros.estado` es `ok`, `sisros.match.estado` es `VALIDADO_EXACTO` y
+`sisros.match.vinculado` es `true`. No se buscan nombres alternativos ni se usan
+los números de una respuesta incompleta de Digitalización. Nombre, apellido,
+documento, sexo y nacimiento siguen saliendo exclusivamente de `persona.datos`.
+
+La consulta de respaldo ya incluye `sisros`; no es necesario omitir `secciones`.
+Los números se normalizan a texto, igual que la HC de Digitalización. Si no hay
+HC válida se devuelve `hc: null`; si no hay HCF válida no se agrega ese dato. Los
+dos números son independientes: la HCF nunca se utiliza como HC individual.
+
+Cuando hay HC, la consulta de personas la utiliza para consultar API_HCF y
+completar los integrantes e indicadores de salud, como con Digitalización. Si
+API_HCF no aporta una HCF, se conserva la recibida de SISROS. El frontend muestra
+ambos números como datos de solo lectura y los incluye en la persona enviada al
+validar. Si no hay HC, sigue indicando «Sin historia clínica». Los indicadores
+no disponibles siguen sin informarse: no se inventan valores negativos. No se
+crean personas automáticamente por recibir la respuesta.
 
 - 401/403: `IdentidadHTTPError`, clave inválida o secciones no autorizadas.
 - 409: `IdentidadRevisionRequerida`, revisión humana obligatoria.

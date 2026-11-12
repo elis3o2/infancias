@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Protocol, TypeAlias, TypedDict
+from typing import NotRequired, Protocol, TypeAlias, TypedDict
 
 
 
@@ -45,6 +45,7 @@ class DatosCiudadano(TypedDict):
 
 class DatosDigitalizacion(DatosCiudadano):
     hc: str | None
+    hcf: NotRequired[str | None]
 
 
 class RespuestaCiudadano(TypedDict):

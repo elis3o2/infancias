@@ -24,5 +24,5 @@ def _confirmar_solicitud_por_correo(datos: CopiaFormulario, correo: str) -> None
         logger.error("No se pudo generar la copia del formulario de la solicitud %s (%s).", datos.numero, type(exc).__name__)
         return
     _notificar_por_correo(subject="FORMULARIO PROBLEMÁTICA",
-        body=f"La solicitud #{datos.numero} fue enviada correctamente. Se adjunta una copia del formulario enviado.",
+        body=f"La solicitud fue enviada correctamente. Se adjunta una copia del formulario enviado.",
         correo=correo, attachments=[adjunto])

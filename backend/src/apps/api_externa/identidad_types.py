@@ -26,6 +26,13 @@ class DatosPersonaRNP(TypedDict):
     requiere_revision: bool
 
 
+class DatosSisrosRNP(TypedDict):
+    """Números de historia clínica de sisros.datos, sin nombres alternativos."""
+
+    numero_hci: int | None
+    numero_hcf: int | None
+
+
 @dataclass(frozen=True, slots=True)
 class ResultadoIdentidad:
     codigo_http: Literal[200, 207]

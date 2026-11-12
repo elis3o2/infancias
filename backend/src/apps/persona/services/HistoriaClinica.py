@@ -188,7 +188,7 @@ def consultar_personas(adolescentes, familiares):
 
             datos.update({
                 # HCF a la que pertenece la persona
-                "hcf": hcf_por_hc.get(hc),
+                "hcf": hcf_por_hc.get(hc, datos.get("hcf")),
 
                 "discapacidades":
                     resultado_hc["flag_discapacidades"],

@@ -277,6 +277,21 @@ test("conserva HC, HCF y los cinco indicadores desde las dos fuentes de personas
   assert.equal(ciudadano.violencias, false)
 })
 
+test("HC y HCF de RNP se muestran sin edición y se envían al validar sin inventar indicadores", () => {
+  const { solicitud, revisiones } = casoValidacion()
+  const consultada = ciudadanoToPersona({ nombre: "Persona", apellido: "Prueba", nroDocumento: 40000001,
+    sexo: "F", fechaNacimiento: "2001-01-01", hc: "173715", hcf: "3656" })
+  revisiones[1].persona = consultada
+  const persona = crearPayloadValidacion(solicitud, revisiones, "").adolescentes[0].persona
+  assert.equal(persona.hc, 173715)
+  assert.equal(persona.hcf, 3656)
+  assert.equal("discapacidades" in persona, false)
+  const html = renderToStaticMarkup(createElement(DatosSalud, { persona: consultada }))
+  assert.match(html, />173715</)
+  assert.match(html, />3656</)
+  assert.doesNotMatch(html, /Sin historia clínica|<(input|select|textarea|button)\b/)
+})
+
 test("salud se muestra completa como texto, sin controles editables", () => {
   const html = renderToStaticMarkup(createElement(DatosSalud, { persona: personaRevision("40000001") }))
   for (const etiqueta of ["Historia clínica individual (HC)", "Historia clínica familiar (HCF)", "Discapacidades",
