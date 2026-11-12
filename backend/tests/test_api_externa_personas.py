@@ -1,6 +1,7 @@
 from copy import deepcopy
 from unittest import TestCase
 from unittest.mock import Mock, patch
+from urllib.parse import parse_qs, urlsplit
 
 import requests
 
@@ -17,9 +18,10 @@ class ApiExternaPersonasTests(TestCase):
         configuracion = {
             "API_DIGITALIZACION": "https://digitalizacion.example.test/",
             "KEY_DIGITALIZACION": "prueba-digitalizacion",
-            "API_HCF": "https://hcf.example.test/", "HCF_PPVV_API_KEY": "prueba-hcf",
+            "API_HCF": "https://hcf.example.test/hcf", "HCF_PPVV_API_KEY": "prueba-hcf",
             "API_CIUDADANO": "https://ciudadano.example.test/", "KEY_CIUDADANO": "prueba-ciudadano",
         }
+        self.configuracion = configuracion
         for modulo in (ciudadano_api, digitalizacion, hcf, utils):
             parche = patch.object(modulo, "config", side_effect=lambda nombre, default="": configuracion.get(nombre, default))
             parche.start()
@@ -87,12 +89,36 @@ class ApiExternaPersonasTests(TestCase):
             session = session_class.return_value.__enter__.return_value
             session.get.return_value.status_code = 200
             session.get.return_value.json.return_value = respuesta
-            self.assertIs(services.consultar_hcf("100"), respuesta)
+            self.assertIs(services.consultar_hcf(hci="100"), respuesta)
         self.assertFalse(session.trust_env)
         session.get.assert_called_once_with(
-            "https://hcf.example.test/", params={"hcf": "100"},
+            "https://hcf.example.test/hcf", params={"hci": "100"},
             headers={"HCF_PPVV_API_KEY": "prueba-hcf"}, timeout=utils.TIMEOUT_EXTERNO,
         )
+
+    def test_hcf_envia_una_sola_hci_aunque_la_url_ya_la_incluya(self):
+        for sufijo in ("", "?hci=", "?hci=999", "?hci=&hci=999", "?origen=prueba%20local&hci="):
+            for numero in (100, "100"):
+                with self.subTest(sufijo=sufijo, numero=numero), patch.object(utils.requests, "Session") as session_class:
+                    self.configuracion["API_HCF"] = f"https://hcf.example.test/hcf{sufijo}"
+                    session = session_class.return_value.__enter__.return_value
+                    session.get.return_value.status_code = 200
+                    respuesta = {"hcf": "50", "resultados": []}
+                    session.get.return_value.json.return_value = respuesta
+                    self.assertIs(services.consultar_hcf(numero), respuesta)
+
+                    session.get.assert_called_once()
+                    llamada = session.get.call_args
+                    preparada = requests.Request("GET", llamada.args[0], params=llamada.kwargs["params"]).prepare()
+                    url = urlsplit(preparada.url)
+                    parametros = parse_qs(url.query, keep_blank_values=True)
+                    self.assertEqual(url.path, "/hcf")
+                    self.assertEqual(parametros["hci"], ["100"])
+                    self.assertNotIn("hcf", parametros)
+                    if "origen" in sufijo:
+                        self.assertEqual(parametros["origen"], ["prueba local"])
+                    self.assertEqual(llamada.kwargs["headers"], {"HCF_PPVV_API_KEY": "prueba-hcf"})
+                    self.assertFalse(session.trust_env)
 
     def test_ciudadano_devuelve_clase_y_conserva_transporte_con_proxy(self):
         respuesta = Mock(status_code=200)

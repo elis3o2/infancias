@@ -97,6 +97,12 @@ validar. Si no hay HC, sigue indicando «Sin historia clínica». Los indicadore
 no disponibles siguen sin informarse: no se inventan valores negativos. No se
 crean personas automáticamente por recibir la respuesta.
 
+La consulta de integrantes usa **GET `API_HCF?hci=<HC individual>`**, sin proxy,
+con la cabecera `HCF_PPVV_API_KEY`. `API_HCF` debe apuntar a `/hcf`; puede estar
+configurada con o sin `?hci=`. Si la URL ya incluye `hci`, se reemplaza por el
+número consultado, sin duplicar el parámetro ni enviar la HCF como número de
+entrada. La respuesta conserva el contrato `HCFResponse` (`hcf` y `resultados`).
+
 - 401/403: `IdentidadHTTPError`, clave inválida o secciones no autorizadas.
 - 404 de API_RNP: la función de transporte conserva `IdentidadHTTPError`, pero el
   respaldo de Digitalización lo convierte en una consulta sin identidad validada

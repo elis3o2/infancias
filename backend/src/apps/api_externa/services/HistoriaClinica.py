@@ -1,6 +1,7 @@
 """Cliente HCF: respuesta del proveedor a partir de una HC individual."""
 import logging
 from typing import cast
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from decouple import config
 from ..types import HCFResponse, RecursoExternoNoEncontrado, ServicioExternoError, ServicioExternoNoConfigurado
 from ..utils import _como_objeto, _obtener_json, _url_configurada
@@ -8,12 +9,20 @@ from ..utils import _como_objeto, _obtener_json, _url_configurada
 logger = logging.getLogger(__name__)
 
 
-def consultar_hcf(hcf: int | str) -> HCFResponse | None:
+def _url_hcf() -> str:
+    url = urlsplit(_url_configurada("API_HCF"))
+    # La configuración puede incluir ?hci=; el número se envía una sola vez en params.
+    parametros = [(nombre, valor) for nombre, valor in parse_qsl(url.query, keep_blank_values=True)
+                  if nombre != "hci"]
+    return urlunsplit(url._replace(query=urlencode(parametros)))
+
+
+def consultar_hcf(hci: int | str) -> HCFResponse | None:
     """Consulta la HCF y sus integrantes a partir de una HC individual."""
     try:
         data = _obtener_json(
-            _url_configurada("API_HCF"),
-            params={"hcf": hcf},
+            _url_hcf(),
+            params={"hci": hci},
             headers={"HCF_PPVV_API_KEY": config("HCF_PPVV_API_KEY", default="")},
         )
         respuesta = _como_objeto(data)
