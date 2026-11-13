@@ -325,7 +325,7 @@ test("no inventa indicadores de salud ausentes y rechaza identidad incompleta", 
 test("muestra identidad y salud de los integrantes adicionales de HCF con el contrato exacto", () => {
   const html = renderToStaticMarkup(createElement(HistoriaClinicaCard, { respuestas: [{
     idPersona: 20, nombre: "Integrante", apellido: "Prueba", DNI: "30000001", sexo: "F",
-    numeroHCI: 200, hcf: "50", fechaNacimiento: "1980-01-01", flag_discapacidades: 1,
+    numeroHCI: 200, numeroHCF: 50, hcf: 50, fechaNacimiento: "1980-01-01", flag_discapacidades: 1,
     flag_consumos_problematicos: 0, flag_intentos_de_suicidio: 0,
     flag_problemas_socioambientales: 1, flag_violencias: 0,
   }] }))

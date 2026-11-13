@@ -36,11 +36,11 @@ const persona = (hc, dni = String(50000000 + hc)) => ({
   legajo: null, domicilio: null, telefono: null, vinculo: { id: 3, nombre: "Referente" },
 })
 const integrante = (hc, dni = String(50000000 + hc)) => ({
-  idPersona: hc, numeroHCI: hc, DNI: dni, sexo: "F", nombre: "NO REEMPLAZAR", apellido: "Prueba",
+  idPersona: hc, numeroHCI: hc, numeroHCF: 50, DNI: dni, sexo: "F", nombre: "NO REEMPLAZAR", apellido: "Prueba",
   fechaNacimiento: "2001-01-01", flag_discapacidades: 1, flag_consumos_problematicos: 0,
   flag_intentos_de_suicidio: 1, flag_problemas_socioambientales: 0, flag_violencias: 1,
 })
-const hcf = (...hcis) => ({ hcf: "50", resultados: hcis.map((hc) => integrante(hc)) })
+const hcf = (...hcis) => ({ hcf: 50, resultados: hcis.map((hc) => integrante(hc)) })
 const cache = (respuesta) => new Map([[1, { datos: respuesta }]])
 
 test("las identidades se entregan antes de empezar la segunda etapa lenta", async () => {
@@ -63,6 +63,7 @@ test("las identidades se entregan antes de empezar la segunda etapa lenta", asyn
   assert.deepEqual(eventos, ["persona visible", "consulta HCF", "salud visible"])
   assert.equal(visible.adolescentes[0].persona.violencias, true)
   assert.deepEqual(visible.hcf.map((item) => item.numeroHCI), [8])
+  assert.equal(visible.hcf[0].hcf, 50)
 })
 
 test("una HCF resuelve varios integrantes y no consulta dos veces una misma HC", async () => {
@@ -134,7 +135,7 @@ test("no inventa salud si no hay historia o si falla, ni usa HCF como HCI", asyn
 
 test("conserva la HCF de RNP si el servicio HCF no aporta número", () => {
   const datos = persona(1)
-  const completa = aplicarSalud(datos, datos.dni, datos.sexo, cache({ ...hcf(1), hcf: "" }))
+  const completa = aplicarSalud(datos, datos.dni, datos.sexo, cache({ ...hcf(1), hcf: 0 }))
   assert.equal(completa.hcf, 50)
   assert.equal(completa.violencias, true)
 })
@@ -143,7 +144,7 @@ test("solo aplica salud cuando coinciden HCI, DNI y sexo", () => {
   const datos = persona(1)
   for (const cambios of [{ numeroHCI: 9 }, { DNI: "99999999" }, { sexo: "M" }]) {
     assert.strictEqual(aplicarSalud(datos, datos.dni, datos.sexo,
-      cache({ hcf: "50", resultados: [{ ...integrante(1), ...cambios }] })), datos)
+      cache({ hcf: 50, resultados: [{ ...integrante(1), ...cambios }] })), datos)
   }
 })
 

@@ -46,7 +46,7 @@ export function integrantesHistorias(consultas: HistoriasConsultadas): PersonaHi
     if (!("datos" in consulta) || !consulta.datos) continue
     for (const persona of consulta.datos.resultados) {
       if (numeroHC(persona.numeroHCI) !== null) {
-        integrantes.set(Number(persona.numeroHCI), { ...persona, hcf: consulta.datos.hcf.trim() || null })
+        integrantes.set(Number(persona.numeroHCI), { ...persona, hcf: numeroHC(consulta.datos.hcf) })
       }
     }
   }

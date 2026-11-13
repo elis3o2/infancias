@@ -85,7 +85,7 @@ class ApiExternaPersonasTests(TestCase):
             services.consultar_digitalizacion("50000001", "M")
 
     def test_hcf_devuelve_el_contrato_completo_y_consulta_sin_proxy(self):
-        respuesta = {"hcf": "50", "resultados": []}
+        respuesta = {"hcf": 50, "resultados": []}
         with patch.object(utils.requests, "Session") as session_class:
             session = session_class.return_value.__enter__.return_value
             session.get.return_value.status_code = 200
@@ -101,7 +101,7 @@ class ApiExternaPersonasTests(TestCase):
         with patch.object(utils.requests, "Session") as session_class:
             session = session_class.return_value.__enter__.return_value
             session.get.return_value.status_code = 200
-            session.get.return_value.json.return_value = {"hcf": "50", "resultados": []}
+            session.get.return_value.json.return_value = {"hcf": 50, "resultados": []}
             self.assertIsNotNone(services.consultar_hcf("100"))
             self.assertEqual(session.get.call_args.kwargs["timeout"], (10, 60))
             session.get.return_value.json.return_value = self.digitalizacion
@@ -124,7 +124,7 @@ class ApiExternaPersonasTests(TestCase):
                     self.configuracion["API_HCF"] = f"https://hcf.example.test/hcf{sufijo}"
                     session = session_class.return_value.__enter__.return_value
                     session.get.return_value.status_code = 200
-                    respuesta = {"hcf": "50", "resultados": []}
+                    respuesta = {"hcf": 50, "resultados": []}
                     session.get.return_value.json.return_value = respuesta
                     self.assertIs(services.consultar_hcf(numero), respuesta)
 

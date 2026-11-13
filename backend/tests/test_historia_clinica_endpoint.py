@@ -7,6 +7,7 @@ from django.urls import resolve
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from src.apps.api_externa.serializers import ConsultaHistoriaClinicaSerializer
+from src.apps.api_externa.services import HistoriaClinica as historia
 from src.apps.api_externa.types import ServicioExternoError, ServicioExternoNoConfigurado
 from src.apps.api_externa.views import HistoriaClinicaAPIView
 from tests.test_consulta_personas import integrante
@@ -29,7 +30,7 @@ class HistoriaClinicaEndpointTests(SimpleTestCase):
             self.assertIs(resolve(ruta, urlconf="core.urls").func.view_class, HistoriaClinicaAPIView)
 
     def test_consulta_hci_y_devuelve_salud_e_integrantes_sin_reconsultar_identidad(self):
-        datos = {"hcf": "50", "resultados": [integrante(100, "50000001"), integrante(200, "30000001")]}
+        datos = {"hcf": 50, "resultados": [integrante(100, "50000001"), integrante(200, "30000001")]}
         with (
             patch("src.apps.api_externa.views.consultar_hcf", return_value=datos) as hcf,
             patch("src.apps.persona.services.Consulta.consultar_digitalizacion") as identidad,
@@ -39,6 +40,25 @@ class HistoriaClinicaEndpointTests(SimpleTestCase):
         self.assertEqual(respuesta.data, datos)
         hcf.assert_called_once_with(hci=100)
         identidad.assert_not_called()
+
+    def test_respuesta_real_con_hcf_numerica_y_coordenadas_nulas(self):
+        # Mismo contrato que el proveedor, sin copiar identidades ni credenciales reales.
+        persona = integrante(100, "50000001")
+        persona.update(coordXPacienteUltimaAtencion=None, coordYPacienteUltimaAtencion=None,
+                       latitud_wgs84=None, longitud_wgs84=None)
+        datos = {"hcf": 50, "resultados": [persona]}
+        with (
+            patch.object(historia, "_url_hcf", return_value="https://hcf.example.test/hcf"),
+            patch.object(historia, "config", return_value="clave-de-prueba"),
+            patch.object(historia, "_obtener_json", return_value=datos) as proveedor,
+        ):
+            respuesta = self.consultar({"hci": 100})
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.data, datos)
+        self.assertIsInstance(respuesta.data["hcf"], int)
+        self.assertIsNone(respuesta.data["resultados"][0]["latitud_wgs84"])
+        self.assertEqual(proveedor.call_args.kwargs["params"], {"hci": 100})
+        self.assertEqual(proveedor.call_args.kwargs["timeout"], (10, 60))
 
     def test_sin_historia_es_distinto_de_error_del_proveedor(self):
         with patch("src.apps.api_externa.views.consultar_hcf", return_value=None):

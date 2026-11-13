@@ -13,7 +13,7 @@ from src.apps.persona.serializers import ConsultaPersonasSerializer, SaludDatosS
 
 def integrante(hc: int, dni: str, sexo: str = "M") -> HCFResultado:
     return {
-        "idPersona": hc, "DNI": dni, "numeroHCI": hc,
+        "idPersona": hc, "DNI": dni, "numeroHCI": hc, "numeroHCF": 50,
         "apellido": "Prueba", "nombre": "Integrante", "sexo": sexo,
         "fechaNacimiento": "2008-02-18", "codigoCalle": 1,
         "nombreCalle": "Calle de prueba", "numCalle": "100",

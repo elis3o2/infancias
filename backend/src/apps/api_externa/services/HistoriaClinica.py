@@ -28,7 +28,8 @@ def consultar_hcf(hci: int | str) -> HCFResponse | None:
         respuesta = _como_objeto(data)
         if (
             respuesta is None
-            or not isinstance(respuesta.get("hcf"), str)
+            or not isinstance(respuesta.get("hcf"), int)
+            or isinstance(respuesta.get("hcf"), bool)
             or not isinstance(respuesta.get("resultados"), list)
         ):
             raise ServicioExternoError("API_HCF devolvió una respuesta inesperada.")

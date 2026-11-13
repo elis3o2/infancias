@@ -70,6 +70,7 @@ class HCFResultado(TypedDict):
     idPersona: int
     DNI: str
     numeroHCI: int
+    numeroHCF: int
     apellido: str
     nombre: str
     sexo: str
@@ -79,8 +80,8 @@ class HCFResultado(TypedDict):
     nombreCalle: str
     numCalle: str
 
-    coordXPacienteUltimaAtencion: float
-    coordYPacienteUltimaAtencion: float
+    coordXPacienteUltimaAtencion: float | None
+    coordYPacienteUltimaAtencion: float | None
 
     fecha_insert: str
     fechaFallecido: str | None
@@ -88,8 +89,8 @@ class HCFResultado(TypedDict):
 
     validated_at: str
 
-    latitud_wgs84: float
-    longitud_wgs84: float
+    latitud_wgs84: float | None
+    longitud_wgs84: float | None
 
     flag_discapacidades: int
     flag_consumos_problematicos: int
@@ -99,7 +100,7 @@ class HCFResultado(TypedDict):
 
 
 class HCFResponse(TypedDict):
-    hcf: str
+    hcf: int
     resultados: list[HCFResultado]
 
 

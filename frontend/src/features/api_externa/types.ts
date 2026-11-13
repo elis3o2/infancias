@@ -74,6 +74,7 @@ export type HCFResultado = {
     idPersona: number
     DNI: string
     numeroHCI: number
+    numeroHCF: number
     apellido: string
     nombre: string
     sexo: "M" | "F"
@@ -85,10 +86,10 @@ export type HCFResultado = {
     flag_violencias: 0 | 1
 }
 
-export type HCFResponse = { hcf: string; resultados: HCFResultado[] }
+export type HCFResponse = { hcf: number; resultados: HCFResultado[] }
 
 /** Miembro adicional obtenido en la segunda etapa de consulta. */
-export type PersonaHistoriaFamiliar = HCFResultado & { hcf: string | null }
+export type PersonaHistoriaFamiliar = HCFResultado & { hcf: number | null }
 
 
 export type RelacionResp = {
