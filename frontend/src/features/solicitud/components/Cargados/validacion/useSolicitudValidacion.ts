@@ -12,6 +12,7 @@ import type { CambioRevision, Revisiones } from "./types"
 import { consultarPorEtapas, obtenerPendientes, type PersonasConsulta } from "./consultaProgresiva"
 import { useHistoriasClinicas } from "@/features/api_externa/useHistoriasClinicas"
 import { completarConsulta, completarRevisiones } from "./historiasValidacion"
+import { puedeAgregarFamiliar } from "./familiaresHistoria"
 
 export function useSolicitudValidacion(solicitud: SolicitudCrud) {
   const navigate = useNavigate()
@@ -47,12 +48,8 @@ export function useSolicitudValidacion(solicitud: SolicitudCrud) {
   }
   const agregarFamiliar = (id: number, persona: PersonaCreate): boolean => {
     const revision = revisiones[id]
-    const repetido = revision.familiares.some((familiar) => {
-      const datos = familiar.persona ?? familiar.original
-      return datos?.dni === persona.dni && datos?.sexo === persona.sexo
-    })
     const adolescente = solicitud.adolescentes.find((item) => item.id === id)
-    if (repetido || (adolescente?.dni === persona.dni && adolescente.sexo === persona.sexo)) {
+    if (!adolescente || !puedeAgregarFamiliar(adolescente, revision, persona)) {
       setAlerta({ mensaje: "Esta persona ya está asociada a ese adolescente o es el mismo adolescente.", severity: "warning" })
       return false
     }

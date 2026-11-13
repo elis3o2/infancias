@@ -55,6 +55,7 @@ export const SolicitudValidar = ({ solicitud }: { solicitud: SolicitudCrud }) =>
       <DatosSinAsignarSolicitud solicitud={solicitud} />
       <AgregarFamiliarValidacion adolescentes={solicitud.adolescentes} onAgregar={validacion.agregarFamiliar} />
       {ciudadanos && <HistoriaClinicaCard respuestas={ciudadanos.hcf}
+        altaFamiliar={{ adolescentes: solicitud.adolescentes, revisiones: validacion.revisiones, onAgregar: validacion.agregarFamiliar }}
         pendiente={buscando || validacion.historias.cargando || validacion.historias.error || validacion.hayPendientes} />}
       <DescripcionCard nombre="Descripción" texto={solicitud.descripcion} />
       <TextField label="Agregar más información" value={validacion.descripcion}
