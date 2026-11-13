@@ -1,14 +1,17 @@
 import type { AdolescenteCrud, PersonaCreate } from "../../types"
-import type { Ciudadano, Salud } from "@/features/api_externa/types"
-import { Alert, Box, Button, Chip, CircularProgress, Collapse, Divider, Stack, Typography } from "@mui/material"
+import type { Ciudadano } from "@/features/api_externa/types"
+import { Alert, Box, Button, CircularProgress, Collapse, Divider, Stack, Typography } from "@mui/material"
 import FactCheckIcon from "@mui/icons-material/FactCheck"
-import { getSalud, getCiudadano } from "@/features/api_externa/api"
-import { useEffect, useState } from "react"
+import { getCiudadano } from "@/features/api_externa/api"
+import { useEffect, useMemo, useState } from "react"
 import { ValidarButtons } from "../Validacion/ValidarButtons"
 import type { Setter } from "@/common/types"
 import { AdolescenteList } from "../Adolescente/AdolescenteList"
 import { CiudadanoList } from "./CiudadanoList"
 import { ciudadanoToPersona } from "../../utils"
+import { useSaludPersona } from "@/features/api_externa/useSaludPersona"
+import { EstadoHistoriasClinicas } from "@/features/api_externa/EstadoHistoriasClinicas"
+import { DatosSalud } from "../DatosSalud"
 
 
 type Props = {
@@ -21,27 +24,26 @@ type Props = {
 export const ValidarAdolescenteDatos = ({ adolescente, estado, setEstado, setPersona }: Props) => {
     
     const [ciudadano, setCiudadano] = useState<Ciudadano | null>(null)
-    const [salud, setSalud] = useState<Salud | null>(null)
+    const persona = useMemo(() => ciudadano ? ciudadanoToPersona(ciudadano) : null, [ciudadano])
+    const historias = useSaludPersona(persona)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
     useEffect(()=>  {
-      if (ciudadano && estado ==  "confirmado")
-        setPersona(ciudadanoToPersona(ciudadano))
+      if (historias.persona && !historias.cargando && estado == "confirmado")
+        setPersona(historias.persona)
       else
         setPersona(null)
-    }, [ciudadano, estado, setPersona])
+    }, [historias.persona, historias.cargando, estado, setPersona])
 
     const handleValidar = async () => {
     setLoading(true)
     setError(null)
+    setCiudadano(null)
+    setEstado(null)
     try {
-        const [ciudadanoRes, saludRes] = await Promise.all([
-        getCiudadano(adolescente.dni, adolescente.sexo),
-        getSalud(adolescente.dni, adolescente.sexo),
-        ])
+        const ciudadanoRes = await getCiudadano(adolescente.dni, adolescente.sexo)
         setCiudadano(ciudadanoRes)
-        setSalud(saludRes)
     } catch {
         setError("No se encontraron datos en RENAPER. La persona queda pendiente de validación.")
     } finally {
@@ -56,7 +58,7 @@ export const ValidarAdolescenteDatos = ({ adolescente, estado, setEstado, setPer
       >
 
         {/* Botones */}
-       {ciudadano != null &&
+       {ciudadano != null && !historias.cargando &&
        <ValidarButtons estado={estado} setEstado={setEstado}/> }
 
       </Stack>
@@ -108,25 +110,8 @@ export const ValidarAdolescenteDatos = ({ adolescente, estado, setEstado, setPer
                   </Alert>
                 )}
 
-                <Typography
-                  variant="subtitle1"
-                  sx={{ fontWeight: 600,mt: 3, mb: 1.5 }}
-                >
-                  Centro de salud adscripto
-                </Typography>
-
-
-                  {salud?.adscripcion?.length ? (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap"}} useFlexGap>
-                      {salud.adscripcion.map((a) => (
-                        <Chip key={a} label={a} size="small" />
-                      ))}
-                    </Stack>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      Niniguno.
-                    </Typography>
-                  )}
+                <EstadoHistoriasClinicas {...historias} />
+                {historias.persona && <DatosSalud persona={historias.persona} />}
               </Box>
             )}
           </Collapse>

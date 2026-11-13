@@ -8,6 +8,8 @@ import { getSolicitudErrorMessage } from "../../utils"
 import { BuscarPersonaAdmision } from "./BuscarPersonaAdmision"
 import { DatosPersonaAdmision } from "./DatosPersonaAdmision"
 import { nombreDelAdolescente } from "./solicitudDetalle"
+import { useSaludPersona } from "@/features/api_externa/useSaludPersona"
+import { EstadoHistoriasClinicas } from "@/features/api_externa/EstadoHistoriasClinicas"
 
 type Props = {
   solicitud: Solicitud
@@ -54,18 +56,19 @@ type AltaProps = Props & { tipo: TipoAltaAdmision; onCancelar: () => void }
 export function AltaPersonaAdmision({ solicitud, tipo, bloqueado, onActualizar, onGuardando, onCancelar }: AltaProps) {
   const [destino, setDestino] = useState<number | "">("")
   const [consulta, setConsulta] = useState<PersonaConsultada | null>(null)
+  const historias = useSaludPersona(consulta?.persona ?? null)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState("")
   const permitido = tipo === "familiar" ? solicitud.puede_agregar_familiares : solicitud.puede_agregar_personas
   const guardar = async () => {
-    if (!permitido || !consulta || destino === "" || guardando || bloqueado) return
+    if (!permitido || !consulta || !historias.persona || historias.cargando || destino === "" || guardando || bloqueado) return
     setGuardando(true)
     onGuardando(true)
     setError("")
     try {
       const actualizada = tipo === "adolescente"
-        ? await agregarAdolescenteSolicitud(solicitud.id, adolescenteAdmisionInput(destino, consulta.persona, consulta.legajoRegistrado))
-        : await agregarFamiliarSolicitud(solicitud.id, familiarAdmisionInput(destino, consulta.persona))
+        ? await agregarAdolescenteSolicitud(solicitud.id, adolescenteAdmisionInput(destino, historias.persona, consulta.legajoRegistrado))
+        : await agregarFamiliarSolicitud(solicitud.id, familiarAdmisionInput(destino, historias.persona))
       onActualizar(actualizada)
     } catch (error) {
       setError(getSolicitudErrorMessage(error, "No se pudo agregar la persona. Los datos se conservaron para reintentar."))
@@ -90,7 +93,8 @@ export function AltaPersonaAdmision({ solicitud, tipo, bloqueado, onActualizar, 
           {destino === "" ? <Alert severity="info">Seleccioná primero un adolescente de la solicitud.</Alert>
             : consulta ? (
               <>
-                <DatosPersonaAdmision tipo={tipo} persona={consulta.persona} legajoRegistrado={consulta.legajoRegistrado}
+                <EstadoHistoriasClinicas {...historias} />
+                <DatosPersonaAdmision tipo={tipo} persona={historias.persona ?? consulta.persona} legajoRegistrado={consulta.legajoRegistrado}
                   onChange={(persona) => { setConsulta({ ...consulta, persona }); setError("") }} />
                 <Button onClick={() => { setConsulta(null); setError("") }}>Buscar otra persona</Button>
               </>
@@ -100,7 +104,7 @@ export function AltaPersonaAdmision({ solicitud, tipo, bloqueado, onActualizar, 
       {error && <Alert severity="error">{error}</Alert>}
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
         {consulta && <Button variant="contained" onClick={guardar}
-          disabled={guardando || bloqueado || !consulta.persona.vinculo || destino === ""}>
+          disabled={guardando || bloqueado || historias.cargando || !consulta.persona.vinculo || destino === ""}>
           {guardando ? "Guardando..." : `Guardar ${tipo}`}
         </Button>}
         <Button disabled={guardando || bloqueado} onClick={onCancelar}>Cancelar</Button>

@@ -1,12 +1,10 @@
 """Cliente HCF: respuesta del proveedor a partir de una HC individual."""
-import logging
 from typing import cast
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from decouple import config
-from ..types import HCFResponse, RecursoExternoNoEncontrado, ServicioExternoError, ServicioExternoNoConfigurado
+from ..types import HCFResponse, RecursoExternoNoEncontrado, ServicioExternoError
 from ..utils import TIMEOUT_EXTERNO, _como_objeto, _obtener_json, _url_configurada
 
-logger = logging.getLogger(__name__)
 TIMEOUT_HCF = 60
 
 
@@ -36,10 +34,4 @@ def consultar_hcf(hci: int | str) -> HCFResponse | None:
             raise ServicioExternoError("API_HCF devolvió una respuesta inesperada.")
         return cast(HCFResponse, respuesta)
     except RecursoExternoNoEncontrado:
-        return None
-    except ServicioExternoNoConfigurado:
-        logger.warning("La consulta HCF no está configurada.")
-        return None
-    except ServicioExternoError as exc:
-        logger.warning("No fue posible consultar la historia clínica familiar: %s", exc)
         return None

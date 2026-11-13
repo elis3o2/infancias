@@ -3,9 +3,11 @@ import { TitledCard } from "@/common/components/TitleCard"
 import type { PersonaHistoriaFamiliar } from "@/features/api_externa/types"
 import { DatosSalud } from "@/features/persona/componets/DatosSalud"
 
-export function HistoriaClinicaCard({ respuestas }: { respuestas: PersonaHistoriaFamiliar[] }) {
+export function HistoriaClinicaCard({ respuestas, pendiente = false }: { respuestas: PersonaHistoriaFamiliar[]; pendiente?: boolean }) {
   return <TitledCard titulo="Personas de la historia clínica familiar" componente={
-    respuestas.length === 0 ? <Typography color="text.secondary">No se encontraron personas asociadas a una historia clínica familiar.</Typography> : (
+    respuestas.length === 0 ? <Typography color="text.secondary">{pendiente
+      ? "Los integrantes se mostrarán cuando finalice la consulta de historias clínicas."
+      : "No se encontraron integrantes adicionales en las historias clínicas consultadas."}</Typography> : (
       <Stack spacing={2}>
         {respuestas.map((persona) => <Stack key={persona.numeroHCI} spacing={1}>
           <Typography><strong>{persona.nombre} {persona.apellido}</strong> — DNI {persona.DNI} — Sexo {persona.sexo}</Typography>

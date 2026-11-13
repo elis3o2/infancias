@@ -11,7 +11,8 @@ from src.apps.api_externa.identidad_types import (
 )
 from src.apps.api_externa.services import Digitalizacion as digitalizacion
 from src.apps.api_externa.types import ServicioExternoError, ServicioExternoNoConfigurado
-from src.apps.persona.services import Consulta as consulta, HistoriaClinica as historia
+from src.apps.persona.services import Consulta as consulta
+from src.apps.api_externa.services import HistoriaClinica as historia
 from src.apps.persona.views import ConsultaPersonasAPIView
 
 

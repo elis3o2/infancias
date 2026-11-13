@@ -60,13 +60,6 @@ export type Ciudadano = SaludConsulta & {
 }
 
 
-export type Salud = {
-    adscripcion: string[]
-    efectores: string[]
-    obra_social: string[]
-}
-
-
 export type PersonaResp = SaludConsulta & {
     nombre: string
     apellido: string
@@ -92,7 +85,9 @@ export type HCFResultado = {
     flag_violencias: 0 | 1
 }
 
-/** Miembro adicional con la HCF resuelta durante la consulta de personas. */
+export type HCFResponse = { hcf: string; resultados: HCFResultado[] }
+
+/** Miembro adicional obtenido en la segunda etapa de consulta. */
 export type PersonaHistoriaFamiliar = HCFResultado & { hcf: string | null }
 
 

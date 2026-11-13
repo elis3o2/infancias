@@ -9,7 +9,8 @@ from src.apps.api_externa.identidad_types import ResultadoIdentidad
 from src.apps.api_externa.services import Digitalizacion
 from src.apps.api_externa.types import ServicioExternoError
 from src.apps.persona.services import consultar_personas
-from src.apps.persona.services import Consulta, HistoriaClinica
+from src.apps.persona.services import Consulta
+from src.apps.api_externa.services import HistoriaClinica
 
 
 class IdentidadHistoriasTests(SimpleTestCase):
@@ -102,23 +103,21 @@ class IdentidadHistoriasTests(SimpleTestCase):
             "flag_violencias": 0,
         }
 
-    def test_consulta_integrantes_con_hci_no_con_hcf(self):
+    def test_entrega_hci_y_hcf_antes_de_consultar_integrantes(self):
         respuesta, consulta_hcf = self.consultar({"hcf": "3656", "resultados": [
             self.integrante(173715, "12345678"), self.integrante(200000, "87654321"),
         ]})
-        consulta_hcf.assert_called_once_with("173715")
+        consulta_hcf.assert_not_called()
         persona = respuesta["adolescentes"][0]["ciudadano"]
         self.assertEqual((persona["hc"], persona["hcf"]), ("173715", "3656"))
-        self.assertEqual(persona["discapacidades"], 1)
-        self.assertEqual(len(respuesta["hcf"]), 1)
-        self.assertEqual(respuesta["hcf"][0]["numeroHCI"], 200000)
-        self.assertEqual(respuesta["hcf"][0]["hcf"], "3656")
+        self.assertNotIn("discapacidades", persona)
+        self.assertEqual(respuesta["hcf"], [])
 
     def test_conserva_los_numeros_si_api_hcf_no_aporta_la_historia_familiar(self):
         for respuesta_hcf in (None, {"hcf": "", "resultados": [self.integrante(173715, "12345678")]}):
             with self.subTest(respuesta_hcf=respuesta_hcf):
                 respuesta, consulta_hcf = self.consultar(respuesta_hcf)
-                consulta_hcf.assert_called_once_with("173715")
+                consulta_hcf.assert_not_called()
                 persona = respuesta["adolescentes"][0]["ciudadano"]
                 self.assertEqual((persona["hc"], persona["hcf"]), ("173715", "3656"))
                 if respuesta_hcf is None:

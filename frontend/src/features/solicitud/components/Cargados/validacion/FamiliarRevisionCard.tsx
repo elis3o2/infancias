@@ -11,6 +11,9 @@ import type { FamiliarResp } from "@/features/api_externa/types"
 import { ContactoFamiliar } from "./ContactoFamiliar"
 import { DatosSalud } from "@/features/persona/componets/DatosSalud"
 import type { FamiliarRevision } from "./types"
+import { useHistoriasClinicas } from "@/features/api_externa/useHistoriasClinicas"
+import { EstadoHistoriasClinicas } from "@/features/api_externa/EstadoHistoriasClinicas"
+import { completarResultado } from "./historiasValidacion"
 
 type Props = {
   revision: FamiliarRevision
@@ -30,7 +33,8 @@ export function FamiliarRevisionCard({ revision, resultado, busquedaRealizada, o
   const [error, setError] = useState("")
   const identidadIncompleta = original && (!original.dni || !original.sexo)
   const familiar = original ? { ...original, dni: dni || null, sexo: sexo || null } : null
-  const consulta = identidadIncompleta ? respuesta : resultado
+  const historias = useHistoriasClinicas([(respuesta?.persona ?? respuesta?.ciudadano)?.hc], !buscando)
+  const consulta = identidadIncompleta ? (respuesta ? completarResultado(respuesta, historias.consultas) : null) : resultado
   const datosSalud = consulta?.persona ?? consulta?.ciudadano ?? persona
 
   async function buscar() {
@@ -38,6 +42,9 @@ export function FamiliarRevisionCard({ revision, resultado, busquedaRealizada, o
     try {
       setBuscando(true)
       setError("")
+      setRespuesta(null)
+      setConsultado(false)
+      onChange({ estado: null, persona: null })
       const datos = await getCiudadanoData([], [{ id: original.id, dni, sexo }])
       setRespuesta(datos.familiares.find((item) => item.id === original.id) ?? null)
       setConsultado(true)
@@ -64,13 +71,19 @@ export function FamiliarRevisionCard({ revision, resultado, busquedaRealizada, o
             {buscando ? "Buscando..." : "Verificar familiar"}
           </Button>
           {error && <Alert severity="error">{error}</Alert>}
+          <EstadoHistoriasClinicas {...historias} reintentar={() => {
+            onChange({ estado: null })
+            historias.reintentar()
+          }} />
         </Stack>
       )}
       {familiar ? (
+        <Box component="fieldset" disabled={Boolean(identidadIncompleta && historias.cargando)} sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}>
         <ValidarFamiliarDatos familiar={familiar} estado={revision.estado}
           setEstado={(estado) => onChange({ estado })} setPersona={(nuevaPersona) => onChange({ persona: nuevaPersona })}
           resultado={consulta}
           busquedaRealizada={identidadIncompleta ? consultado : busquedaRealizada} />
+        </Box>
       ) : persona && (
         <Stack spacing={1}>
           <Typography variant="subtitle2">Familiar incorporado durante la validación</Typography>

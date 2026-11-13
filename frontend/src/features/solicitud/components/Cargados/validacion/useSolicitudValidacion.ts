@@ -10,17 +10,19 @@ import { datosSinAdolescente, familiaresDelAdolescente } from "../solicitudDetal
 import { crearPayloadValidacion } from "./payload"
 import type { CambioRevision, Revisiones } from "./types"
 import { consultarPorEtapas, obtenerPendientes, type PersonasConsulta } from "./consultaProgresiva"
+import { useHistoriasClinicas } from "@/features/api_externa/useHistoriasClinicas"
+import { completarConsulta, completarRevisiones } from "./historiasValidacion"
 
 export function useSolicitudValidacion(solicitud: SolicitudCrud) {
   const navigate = useNavigate()
-  const [revisiones, setRevisiones] = useState<Revisiones>(() => Object.fromEntries(
+  const [revisionesBase, setRevisiones] = useState<Revisiones>(() => Object.fromEntries(
     solicitud.adolescentes.map((adolescente) => [adolescente.id, {
       estado: null, persona: null, legajoRegistrado: false,
       familiares: familiaresDelAdolescente(adolescente, solicitud.familiares).map((original) => ({ original, estado: null, persona: null })),
     }]),
   ))
   const [descripcion, setDescripcion] = useState("")
-  const [ciudadanos, setCiudadanos] = useState<RespCiudadano | null>(null)
+  const [identidades, setCiudadanos] = useState<RespCiudadano | null>(null)
   const [buscando, setBuscando] = useState(false)
   const [errorBusqueda, setErrorBusqueda] = useState<string | null>(null)
   const consultaActiva = useRef<AbortController | null>(null)
@@ -31,7 +33,13 @@ export function useSolicitudValidacion(solicitud: SolicitudCrud) {
     familiares: solicitud.adolescentes.flatMap((adolescente) => familiaresDelAdolescente(adolescente, solicitud.familiares))
       .flatMap(({ id, dni, sexo }) => dni && sexo ? [{ id, dni, sexo }] : []),
   }
-  const pendientes = obtenerPendientes(personasConsulta, ciudadanos)
+  const historias = useHistoriasClinicas(
+    [...(identidades?.adolescentes ?? []), ...(identidades?.familiares ?? [])].map((item) => (item.persona ?? item.ciudadano)?.hc),
+    !buscando,
+  )
+  const ciudadanos = identidades ? completarConsulta(identidades, personasConsulta, historias.consultas) : null
+  const revisiones = completarRevisiones(revisionesBase, historias.consultas)
+  const pendientes = obtenerPendientes(personasConsulta, identidades)
   const hayPendientes = pendientes.adolescentes.length + pendientes.familiares.length > 0
 
   const actualizar = (id: number, cambios: CambioRevision) => {
@@ -56,7 +64,7 @@ export function useSolicitudValidacion(solicitud: SolicitudCrud) {
   const hayRechazados = items.some((item) => item.estado === "rechazado" || item.familiares.some((familiar) => familiar.estado === "rechazado"))
   const todosRechazados = items.length > 0 && items.every((item) => item.estado === "rechazado")
   const familiaresSinAdolescente = datosSinAdolescente(solicitud).familiares
-  const puedeAceptar = items.length > 0 && !buscando && !hayPendientes && familiaresSinAdolescente.length === 0 && items.every((item) =>
+  const puedeAceptar = items.length > 0 && !buscando && !historias.cargando && !hayPendientes && familiaresSinAdolescente.length === 0 && items.every((item) =>
     item.estado === "confirmado" && item.persona && item.familiares.every((familiar) =>
       familiar.estado === "confirmado" && familiar.persona && (familiar.persona.id_vinculo ?? familiar.persona.vinculo?.id),
     ),
@@ -66,11 +74,12 @@ export function useSolicitudValidacion(solicitud: SolicitudCrud) {
     if (consultaActiva.current) return
     const control = new AbortController()
     consultaActiva.current = control
-    const anteriores = hayPendientes ? ciudadanos : null
+    const anteriores = hayPendientes ? identidades : null
     try {
       setBuscando(true)
       setErrorBusqueda(null)
       if (!anteriores) {
+        historias.reiniciar()
         setCiudadanos(null)
         // Actualizar desde cero requiere confirmar otra vez; continuar conserva lo ya revisado.
         setRevisiones((prev) => Object.fromEntries(Object.entries(prev).map(([id, revision]) => [id, {
@@ -116,7 +125,7 @@ export function useSolicitudValidacion(solicitud: SolicitudCrud) {
   }
 
   return { revisiones, actualizar, agregarFamiliar, descripcion, setDescripcion, ciudadanos, buscando, buscar,
-    hayPendientes, errorBusqueda,
+    hayPendientes, errorBusqueda, historias,
     alerta, cerrarAlerta: () => setAlerta(null), puedeAceptar, hayRechazados, todosRechazados,
     familiaresSinAdolescente, aceptar, rechazar }
 }

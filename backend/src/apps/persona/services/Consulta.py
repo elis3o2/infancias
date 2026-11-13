@@ -10,6 +10,16 @@ from .Persona import buscar_persona
 CiudadanosConsultados = dict[tuple[str, str], DatosDigitalizacion | None]
 
 
+def consultar_personas(adolescentes, familiares):
+    """Devuelve identidad y antecedentes sin esperar al servicio de HCF."""
+    ciudadanos: CiudadanosConsultados = {}
+    return {
+        "adolescentes": [consultar_adolescente(item, ciudadanos=ciudadanos) for item in adolescentes],
+        "familiares": [consultar_familiar(item, ciudadanos=ciudadanos) for item in familiares],
+        "hcf": [],
+    }
+
+
 def _consultar_ciudadano(
     dni: str, sexo: str, ciudadanos: CiudadanosConsultados | None,
 ) -> DatosDigitalizacion | None:

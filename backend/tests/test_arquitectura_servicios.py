@@ -16,8 +16,7 @@ CONTRATOS = {
         "ReglasNNyA": ["crear_adolescente", "validar_adolescente"],
         "ReglasFamiliar": ["crear_familiar", "validar_familiar"],
         "CarpetaLegajo": ["resolver_legajo", "resolver_legajos_solicitud"],
-        "Consulta": ["consultar_adolescente", "consultar_familiar", "consultar_relaciones", "consultar_solicitudes"],
-        "HistoriaClinica": ["consultar_personas"],
+        "Consulta": ["consultar_adolescente", "consultar_familiar", "consultar_relaciones", "consultar_solicitudes", "consultar_personas"],
     },
     "solicitud": {
         "Creacion": ["crear_solicitud"],

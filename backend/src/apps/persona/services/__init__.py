@@ -6,9 +6,8 @@ from .ReglasFamiliar import crear_familiar, validar_familiar
 from .ReglasNNyA import crear_adolescente, validar_adolescente
 from .CarpetaLegajo import resolver_legajo, resolver_legajos_solicitud
 from .Consulta import (
-    consultar_adolescente, consultar_familiar, consultar_relaciones, consultar_solicitudes,
+    consultar_adolescente, consultar_familiar, consultar_relaciones, consultar_solicitudes, consultar_personas,
 )
-from .HistoriaClinica import consultar_personas
 
 __all__ = [
     "buscar_persona",

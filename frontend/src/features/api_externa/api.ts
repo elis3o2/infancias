@@ -1,5 +1,5 @@
 import http from '@/common/api/client'
-import type { APIGeo1, RespCiudadano, Salud, Ciudadano, Geolocalizacion } from './types'
+import type { APIGeo1, RespCiudadano, Ciudadano, Geolocalizacion, HCFResponse } from './types'
 
 
 export const getGeo = (direccion: string) : Promise<APIGeo1[]> => {
@@ -39,7 +39,6 @@ export const getCiudadano = async (dni: string, sexo: "M" | "F"): Promise<Ciudad
   return ciudadano
 }
 
-export const getSalud = (dni: string, sexo: string): Promise<Salud> =>
-  http
-    .get<Salud>("externa/historia-clinica/", { params: { dni, sexo } })
-    .then((response) => response.data)
+export const getHistoriaClinica = (hci: number, signal?: AbortSignal): Promise<HCFResponse | null> =>
+  http.get<HCFResponse | null>("externa/historia-clinica/", { params: { hci }, signal })
+    .then((response) => response.data || null)

@@ -13,6 +13,7 @@ import { AdolescenteRevisionCard } from "./validacion/AdolescenteRevisionCard"
 import { AgregarFamiliarValidacion } from "./validacion/AgregarFamiliarValidacion"
 import { HistoriaClinicaCard } from "./validacion/HistoriaClinicaCard"
 import { useSolicitudValidacion } from "./validacion/useSolicitudValidacion"
+import { EstadoHistoriasClinicas } from "@/features/api_externa/EstadoHistoriasClinicas"
 
 export const SolicitudValidar = ({ solicitud }: { solicitud: SolicitudCrud }) => {
   const validacion = useSolicitudValidacion(solicitud)
@@ -40,6 +41,7 @@ export const SolicitudValidar = ({ solicitud }: { solicitud: SolicitudCrud }) =>
           a las personas pendientes. Si se alcanzó el límite, esperá el tiempo indicado antes de continuar.
         </Alert>}
       </Paper>
+      <EstadoHistoriasClinicas {...validacion.historias} />
 
       <RelacionesAdolescentesCard adolescentes={solicitud.adolescentes} relaciones_adolescentes={solicitud.relaciones_adolescentes} />
 
@@ -52,7 +54,8 @@ export const SolicitudValidar = ({ solicitud }: { solicitud: SolicitudCrud }) =>
       ))}
       <DatosSinAsignarSolicitud solicitud={solicitud} />
       <AgregarFamiliarValidacion adolescentes={solicitud.adolescentes} onAgregar={validacion.agregarFamiliar} />
-      {ciudadanos && <HistoriaClinicaCard respuestas={ciudadanos.hcf} />}
+      {ciudadanos && <HistoriaClinicaCard respuestas={ciudadanos.hcf}
+        pendiente={buscando || validacion.historias.cargando || validacion.historias.error || validacion.hayPendientes} />}
       <DescripcionCard nombre="Descripción" texto={solicitud.descripcion} />
       <TextField label="Agregar más información" value={validacion.descripcion}
         onChange={(event) => validacion.setDescripcion(event.target.value.slice(0, 256))}

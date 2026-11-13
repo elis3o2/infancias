@@ -1,12 +1,12 @@
 from datetime import date
 from types import SimpleNamespace
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
 from src.apps.api_externa.types import HCFResultado
 from src.apps.persona import services
-from src.apps.persona.services import Consulta as consulta, HistoriaClinica as historia, Persona as personas
+from src.apps.persona.services import Consulta as consulta, Persona as personas
 from src.apps.persona.models import Persona
 from src.apps.persona.serializers import ConsultaPersonasSerializer, SaludDatosSerializer, PersonaValidateSerializer
 
@@ -34,83 +34,19 @@ class ConsultaPersonasTests(SimpleTestCase):
         red.start()
         self.addCleanup(red.stop)
 
-    def test_agrupa_por_hcf_sin_reconsultar_integrantes_ya_encontrados(self):
-        adolescentes = [{"id": 1, "dni": "50000001", "sexo": "M"},
-                        {"id": 2, "dni": "50000002", "sexo": "F"}]
-        familiares = [{"id": 3, "dni": "30000001", "sexo": "M"}]
-        adicionales = [integrante(400, "30000002"), integrante(500, "30000003")]
-        respuestas = [
-            {"hcf": "50", "resultados": [integrante(100, "50000001"),
-                                          integrante(200, "50000002", "F"), adicionales[0]]},
-            {"hcf": "60", "resultados": [integrante(300, "30000001"), adicionales[1]]},
-        ]
+    def test_identidades_no_esperan_ni_consultan_hcf(self):
+        datos = {"hc": 100, "hcf": 50, "violencias": True}
         with (
-            patch.object(historia, "consultar_adolescente", side_effect=[
-                {"id": 1, "persona": None, "ciudadano": {"hc": "100"}},
-                {"id": 2, "persona": {"hc": 200, "hcf": 50}, "ciudadano": None},
-            ]),
-            patch.object(historia, "consultar_familiar", return_value={
-                "id": 3, "persona": None, "ciudadano": {"hc": "300"},
-            }),
-            patch.object(historia, "consultar_hcf", side_effect=respuestas) as consultar,
+            patch.object(consulta, "consultar_adolescente", return_value={"id": 1, "persona": datos.copy()}),
+            patch.object(consulta, "consultar_familiar", return_value={"id": 2, "ciudadano": {"hc": "200"}}),
+            patch("src.apps.api_externa.services.HistoriaClinica.consultar_hcf",
+                  side_effect=AssertionError("Las identidades no consultan HCF")) as hcf,
         ):
-            resultado = services.consultar_personas(adolescentes, familiares)
-
-        self.assertEqual(consultar.call_args_list, [call("100"), call("300")])
-        self.assertEqual(resultado["hcf"], [
-            {**adicionales[0], "hcf": "50"}, {**adicionales[1], "hcf": "60"},
-        ])
-        for item, origen, hc, hcf in (
-            (resultado["adolescentes"][0], "ciudadano", "100", "50"),
-            (resultado["adolescentes"][1], "persona", 200, "50"),
-            (resultado["familiares"][0], "ciudadano", "300", "60"),
-        ):
-            self.assertEqual(item[origen]["hc"], hc)
-            self.assertEqual(item[origen]["hcf"], hcf)
-            self.assertEqual(item[origen]["violencias"], 1)
-            self.assertEqual(item[origen]["discapacidades"], 1)
-
-    def test_no_usa_hcf_como_hc_ni_pierde_salud_local_si_no_hay_resultados(self):
-        for hc in (None, 100):
-            with self.subTest(hc=hc):
-                datos = {"hc": hc, "hcf": 50, "violencias": True}
-                with (
-                    patch.object(historia, "consultar_adolescente", return_value={"persona": datos.copy()}),
-                    patch.object(historia, "consultar_hcf", return_value=None) as consultar,
-                ):
-                    resultado = services.consultar_personas([{"dni": "50000001", "sexo": "M"}], [])
-                self.assertEqual(resultado["adolescentes"][0]["persona"], datos)
-                self.assertEqual(resultado["hcf"], [])
-                self.assertEqual(consultar.call_args_list, [] if hc is None else [call("100")])
-
-    def test_no_duplica_hc_consultadas_o_integrantes_adicionales(self):
-        adicional = integrante(400, "30000002")
-        with (
-            patch.object(historia, "consultar_adolescente", side_effect=[
-                {"persona": {"hc": 100}}, {"ciudadano": {"hc": "100"}},
-                {"ciudadano": {"hc": "300"}},
-            ]),
-            patch.object(historia, "consultar_hcf", side_effect=[
-                {"hcf": "50", "resultados": [adicional]},
-                {"hcf": "50", "resultados": [adicional]},
-            ]) as consultar,
-        ):
-            resultado = services.consultar_personas([
-                {"dni": "50000001", "sexo": "M"}, {"dni": "50000001", "sexo": "M"},
-                {"dni": "30000001", "sexo": "M"},
-            ], [])
-        self.assertEqual(consultar.call_args_list, [call("100"), call("300")])
-        self.assertEqual(resultado["hcf"], [{**adicional, "hcf": "50"}])
-
-    def test_persona_original_sin_sexo_no_se_repite_como_adicional_si_coincide_hc(self):
-        with (
-            patch.object(historia, "consultar_adolescente", return_value={"persona": {"hc": 100}}),
-            patch.object(historia, "consultar_hcf", return_value={
-                "hcf": "50", "resultados": [integrante(100, "50000001")],
-            }),
-        ):
-            resultado = services.consultar_personas([{"dni": "50000001", "sexo": None}], [])
+            resultado = services.consultar_personas([{"id": 1}], [{"id": 2}])
+        self.assertEqual(resultado["adolescentes"][0]["persona"], datos)
+        self.assertEqual(resultado["familiares"][0]["ciudadano"], {"hc": "200"})
         self.assertEqual(resultado["hcf"], [])
+        hcf.assert_not_called()
 
     def test_persona_local_expone_hc_y_hcf_sin_consultar_digitalizacion(self):
         persona = Persona(

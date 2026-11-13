@@ -11,6 +11,8 @@ import { VinculoForm } from "../VinculoForm"
 import { TelefonoOpcionalForm } from "../TelefonoOpcionalForm"
 import { DomicilioOpcionalForm } from "@/features/domicilio/components/DomicilioOpcionalForm"
 import type { Departamento, DomicilioFormData, Provincia } from "@/features/domicilio/types"
+import { useSaludPersona } from "@/features/api_externa/useSaludPersona"
+import { EstadoHistoriasClinicas } from "@/features/api_externa/EstadoHistoriasClinicas"
 
 
 type Props = {
@@ -24,6 +26,7 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const [persona, setPersona] = useState<PersonaCreate | null>(null)
+    const historias = useSaludPersona(persona)
     const [vinculo, setVinculo] = useState<Vinculo | null> (null)
     
     const dniValido = /^\d{7,9}$/.test(dni)
@@ -86,10 +89,10 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
     }
 
     const handleAgregar = () => {
-        if (!persona || !formCompleto) return
+        if (!historias.persona || !formCompleto || historias.cargando) return
 
         const personaActualizada: PersonaCreate = {
-            ...persona,
+            ...historias.persona,
             vinculo,
             telefono: camposVisibles.telefono ? telefono : null,
             domicilio: camposVisibles.domicilio ? domicilio : null,
@@ -140,7 +143,8 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
             <PersonaList
                 persona={persona}
             />
-            <DatosSalud persona={persona} />
+            <EstadoHistoriasClinicas {...historias} />
+            <DatosSalud persona={historias.persona ?? persona} />
             {datos_extra && (
                 <>
                     <VinculoForm
@@ -165,7 +169,7 @@ export const AgregarPersona = ({ onPersonaAgregado, datos_extra }: Props) => {
                     />
                 </>
             )}
-            <Button variant="contained" onClick={handleAgregar} disabled={!formCompleto}>
+            <Button variant="contained" onClick={handleAgregar} disabled={!formCompleto || historias.cargando}>
                 Agregar
             </Button>
 

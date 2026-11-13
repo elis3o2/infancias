@@ -148,7 +148,8 @@ class DigitalizacionRespaldoTests(TestCase):
 
     def test_varias_personas_del_formulario_pueden_usar_el_respaldo(self):
         from src.apps.persona import services as personas
-        from src.apps.persona.services import Consulta as consulta, HistoriaClinica as historia
+        from src.apps.persona.services import Consulta as consulta
+        from src.apps.api_externa.services import HistoriaClinica as historia
         self.digitalizacion.side_effect = ServicioExternoError()
         datos_familiar = deepcopy(self.datos_rnp)
         datos_familiar["persona"]["datos"]["dni"] = "87654321"

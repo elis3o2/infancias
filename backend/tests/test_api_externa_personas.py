@@ -112,7 +112,8 @@ class ApiExternaPersonasTests(TestCase):
         with patch.object(utils.requests, "Session") as session_class:
             session = session_class.return_value.__enter__.return_value
             session.get.side_effect = requests.ReadTimeout()
-            self.assertIsNone(services.consultar_hcf("100"))
+            with self.assertRaises(ServicioExternoError):
+                services.consultar_hcf("100")
             session.get.assert_called_once()
             self.assertEqual(session.get.call_args.kwargs["timeout"], (10, 60))
 
@@ -177,4 +178,8 @@ class ApiExternaPersonasTests(TestCase):
                     respuesta.json.side_effect = ValueError()
                 elif fallo == "conexion":
                     session.get.side_effect = requests.ConnectionError()
-                self.assertIsNone(services.consultar_hcf("100"))
+                if fallo == "404":
+                    self.assertIsNone(services.consultar_hcf("100"))
+                else:
+                    with self.assertRaises(ServicioExternoError):
+                        services.consultar_hcf("100")

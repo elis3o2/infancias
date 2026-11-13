@@ -24,6 +24,10 @@ class ConsultaPersonaExternaSerializer(serializers.Serializer):
         return attrs
 
 
+class ConsultaHistoriaClinicaSerializer(serializers.Serializer):
+    hci = serializers.IntegerField(min_value=1)
+
+
 class GeoFeaturesQuerySerializer(serializers.Serializer):
     domicilio = serializers.CharField(max_length=256)
 

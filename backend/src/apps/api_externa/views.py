@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from src.permissions import IsOperationalUser
 from .errores import respuesta_error_servicio as _respuesta_error_servicio
 from .serializers import (
+    ConsultaHistoriaClinicaSerializer,
     ConsultaPersonaExternaSerializer,
     GeoCoordenadasQuerySerializer,
     GeoDireccionQuerySerializer,
@@ -18,6 +19,7 @@ from .serializers import (
 from .services import (
     buscar_features_geo,
     consultar_ciudadano,
+    consultar_hcf,
     obtener_direccion_geo,
     obtener_latitud_longitud_geo,
 )
@@ -42,6 +44,20 @@ class CiudadanoAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         return Response(ciudadano.como_dict(), status=status.HTTP_200_OK)
+
+
+class HistoriaClinicaAPIView(APIView):
+    """Segunda etapa: salud e integrantes, sin volver a consultar la identidad."""
+
+    permission_classes = [IsOperationalUser]
+
+    def get(self, request: Request) -> Response:
+        serializer = ConsultaHistoriaClinicaSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        try:
+            return Response(consultar_hcf(**serializer.validated_data))
+        except ServicioExternoError as exc:
+            return _respuesta_error_servicio(exc)
 
 
 class GeoDataViewSet(ViewSet):
