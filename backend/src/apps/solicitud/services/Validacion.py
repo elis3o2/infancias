@@ -6,7 +6,7 @@ from src.apps.persona.models import Familiar
 from src.apps.persona.services import validar_adolescente, validar_familiar, resolver_legajos_solicitud
 from ..models import Solicitud
 from ..constantes import ID_ADMISION
-from .Notificaciones import _notificar_por_correo
+from .Notificaciones import notificar_validacion
 
 
 @transaction.atomic
@@ -89,12 +89,5 @@ def validar_solicitud(solicitud: Solicitud, data: dict) -> Solicitud:
         "descripcion_extra", "validado", "equipo", "fecha_hora_entrada",
     ])
 
-    if solicitud.correo:
-        transaction.on_commit(
-            lambda: _notificar_por_correo(
-                subject="FORMULARIO PROBLEMÁTICA",
-                body="Su solicitud fue derivada al equipo de admisión.",
-                correo=solicitud.correo,
-            )
-        )
+    notificar_validacion(solicitud)
     return solicitud

@@ -1,5 +1,4 @@
 """Creación transaccional de la solicitud y asociaciones del formulario."""
-from pathlib import Path
 from django.db import transaction
 from django.utils import timezone
 from django.core.files.uploadedfile import UploadedFile
@@ -8,10 +7,10 @@ from src.apps.persona.models import RelacionAdolescente
 from src.apps.persona.services import crear_adolescente
 from src.apps.domicilio.models import Institucion
 from src.apps.domicilio.services import crear_institucion
-from ..models import Solicitud, Archivo
+from ..models import Solicitud
 from ..constantes import ID_ENTRADA
-from ..copia_formulario import capturar_formulario
-from .Notificaciones import _confirmar_solicitud_por_correo
+from .ArchivoReglas import guardar_archivos
+from .Notificaciones import programar_confirmacion
 
 
 @transaction.atomic
@@ -67,20 +66,6 @@ def crear_solicitud(datos_solicitud: dict, archivos: list[UploadedFile] | None =
             vinculo=relacion_data["vinculo"],
         )
 
-    if archivos:
-        for file in archivos:
-            Archivo.objects.create(
-                solicitud=solicitud,
-                nombre=Path(file.name).name,
-                tipo_mime=file.content_type,
-                contenido=file.read(),
-            )
-
-    if solicitud.correo:
-        copia = capturar_formulario(solicitud)
-        correo = solicitud.correo
-        transaction.on_commit(
-            lambda: _confirmar_solicitud_por_correo(copia, correo)
-        )
-
+    guardar_archivos(solicitud, archivos or [])
+    programar_confirmacion(solicitud)
     return solicitud

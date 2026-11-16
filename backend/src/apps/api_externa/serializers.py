@@ -1,10 +1,6 @@
 from rest_framework import serializers
-from typing import TypedDict
 
-
-class ConsultaPersonaExternaDatos(TypedDict):
-    dni: str
-    sexo: str
+from .clases import ConsultaPersonaExternaDatos
 
 
 class ConsultaPersonaExternaSerializer(serializers.Serializer):
@@ -25,7 +21,7 @@ class ConsultaPersonaExternaSerializer(serializers.Serializer):
 
 
 class ConsultaHistoriaClinicaSerializer(serializers.Serializer):
-    hci = serializers.IntegerField(min_value=1)
+    hcf = serializers.IntegerField(min_value=1)
 
 
 class GeoFeaturesQuerySerializer(serializers.Serializer):

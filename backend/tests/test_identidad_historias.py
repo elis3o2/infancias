@@ -4,10 +4,9 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
-from src.apps.api_externa.identidad_normalizacion import normalizar_identidad
-from src.apps.api_externa.identidad_types import ResultadoIdentidad
-from src.apps.api_externa.services import Digitalizacion
-from src.apps.api_externa.types import ServicioExternoError
+from src.apps.api_externa.services.Renaper import normalizar_identidad
+from src.apps.api_externa.clases import ResultadoIdentidad, ServicioExternoError
+from src.apps.api_externa.services import Digitalizacion, Renaper
 from src.apps.persona.services import consultar_personas
 from src.apps.persona.services import Consulta
 from src.apps.api_externa.services import HistoriaClinica
@@ -37,7 +36,7 @@ class IdentidadHistoriasTests(SimpleTestCase):
     def consultar(self, respuesta_hcf):
         with (
             patch.object(Digitalizacion, "_consultar_api_digitalizacion", side_effect=ServicioExternoError()),
-            patch.object(Digitalizacion, "consultar_identidad", return_value=ResultadoIdentidad(200, self.datos)) as identidad,
+            patch.object(Renaper, "consultar_identidad", return_value=ResultadoIdentidad(200, self.datos)) as identidad,
             patch.object(Consulta, "buscar_persona", return_value=None),
             patch.object(Consulta, "consultar_solicitudes", return_value=[]),
             patch.object(HistoriaClinica, "consultar_hcf", return_value=respuesta_hcf) as hcf,

@@ -5,9 +5,8 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
 
-from src.apps.api_externa.identidad_limites import limitar_consulta
-from src.apps.api_externa.identidad_types import IdentidadLimiteExcedido
-from src.apps.api_externa.types import ServicioExternoError
+from src.apps.api_externa.services.Renaper import limitar_consulta
+from src.apps.api_externa.clases import IdentidadLimiteExcedido, ServicioExternoError
 
 
 def _consultar_desde_otro_proceso(archivo: str) -> None:
@@ -24,7 +23,7 @@ class LimitesIdentidadTests(TestCase):
         temporal = TemporaryDirectory()
         self.addCleanup(temporal.cleanup)
         self.archivo = Path(temporal.name) / "limites.json"
-        reloj = patch("src.apps.api_externa.identidad_limites.time.time", return_value=200000.0)
+        reloj = patch("src.apps.api_externa.services.Renaper.time.time", return_value=200000.0)
         self.reloj = reloj.start()
         self.addCleanup(reloj.stop)
 
@@ -147,7 +146,7 @@ class LimitesIdentidadTests(TestCase):
                 self.assertEqual(self.archivo.read_text(), contenido)
 
     def test_estado_no_escribible_no_permite_consultar(self):
-        with patch("src.apps.api_externa.identidad_limites.os.replace", side_effect=PermissionError()):
+        with patch("src.apps.api_externa.services.Renaper.os.replace", side_effect=PermissionError()):
             with self.assertRaises(ServicioExternoError):
                 with limitar_consulta(self.archivo):
                     self.fail("No debe consultar sin guardar la reserva")

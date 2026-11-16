@@ -8,9 +8,9 @@ from .Geografia import (
     obtener_direccion_geo, obtener_latitud_longitud_geo,
 )
 from .Correo import enviar_correo
-from .Ldap import consultar_ldap
-from ..identidad import consultar_identidad
-from ..types import (
+from .Ldap import autenticar_ldap
+from .Renaper import consultar_identidad, consultar_renaper
+from ..clases import (
     ServicioExternoError, ServicioExternoNoConfigurado, RecursoExternoNoEncontrado,
 )
 
@@ -24,8 +24,9 @@ __all__ = [
     "obtener_direccion_geo",
     "obtener_latitud_longitud_geo",
     "enviar_correo",
-    "consultar_ldap",
+    "autenticar_ldap",
     "consultar_identidad",
+    "consultar_renaper",
     "ServicioExternoError",
     "ServicioExternoNoConfigurado",
     "RecursoExternoNoEncontrado",

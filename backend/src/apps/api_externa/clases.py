@@ -7,9 +7,11 @@ propagar valores de tipo impreciso fuera del borde de integración.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import NotRequired, Protocol, TypeAlias, TypedDict
+from pathlib import Path
+from typing import Literal, NotRequired, Protocol, TypeAlias, TypedDict
 
 
 
@@ -125,6 +127,93 @@ class Ciudadano:
             "fechaNacimiento": self.fechaNacimiento,
         }
 
+
+
+SexoIdentidad = Literal["F", "M", "X"]
+SeccionIdentidad = Literal["renaper", "puco", "sisros"]
+
+
+class ConsultaIdentidad(TypedDict):
+    dni: str
+    sexo: SexoIdentidad
+    secciones: NotRequired[list[SeccionIdentidad]]
+
+
+class DatosPersonaRNP(TypedDict):
+    """Campos de persona.datos que consume Infancias, sin nombres alternativos."""
+
+    dni: str
+    sexo: SexoIdentidad
+    apellido: str
+    nombres: str
+    fecha_nacimiento: str
+    requiere_revision: bool
+
+
+class DatosSisrosRNP(TypedDict):
+    """Números de historia clínica de sisros.datos, sin nombres alternativos."""
+
+    numero_hci: int | None
+    numero_hcf: int | None
+
+
+@dataclass(frozen=True, slots=True)
+class ResultadoIdentidad:
+    codigo_http: Literal[200, 207]
+    # Se conserva el JSON original, incluidos los estados de cada bloque.
+    # Se valida el bloque persona antes de adaptarlo al contrato interno.
+    datos: JsonObject
+
+    @property
+    def parcial(self) -> bool:
+        return self.codigo_http == 207
+
+
+class IdentidadHTTPError(ServicioExternoError):
+    def __init__(self, codigo_http: int, mensaje: str) -> None:
+        super().__init__(mensaje)
+        self.codigo_http = codigo_http
+
+
+class IdentidadRevisionRequerida(IdentidadHTTPError):
+    def __init__(self) -> None:
+        super().__init__(409, "La coincidencia requiere revisión humana; no se puede validar automáticamente.")
+
+
+class IdentidadRespuestaParcial(ServicioExternoError):
+    def __init__(self) -> None:
+        super().__init__("Identidad devolvió datos parciales. No se pudo completar la verificación.")
+
+
+class IdentidadLimiteExcedido(ServicioExternoError):
+    def __init__(self, reintentar_en: int, *, remoto: bool = False) -> None:
+        super().__init__("Se alcanzó el límite de consultas de Identidad.")
+        self.reintentar_en = reintentar_en
+        self.remoto = remoto
+
+
+@dataclass(frozen=True, slots=True)
+class ConfiguracionIdentidad:
+    url: str
+    clave: str
+    certificado: Path
+    metodo: Literal["GET", "POST"]
+    usar_proxy: bool
+    archivo_limites: Path
+
+
+@dataclass
+class EstadoLimites:
+    consultas: list[float]
+    bloqueado_hasta: float = 0
+
+    def pausar(self, segundos: int) -> None:
+        self.bloqueado_hasta = max(self.bloqueado_hasta, time.time() + segundos)
+
+
+class ConsultaPersonaExternaDatos(TypedDict):
+    dni: str
+    sexo: str
 
 
 class FeatureGeografico(TypedDict):

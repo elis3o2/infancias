@@ -39,6 +39,6 @@ export const getCiudadano = async (dni: string, sexo: "M" | "F"): Promise<Ciudad
   return ciudadano
 }
 
-export const getHistoriaClinica = (hci: number, signal?: AbortSignal): Promise<HCFResponse | null> =>
-  http.get<HCFResponse | null>("externa/historia-clinica/", { params: { hci }, signal })
+export const getHistoriaClinica = (hcf: number, signal?: AbortSignal): Promise<HCFResponse | null> =>
+  http.get<HCFResponse | null>("externa/historia-clinica/", { params: { hcf }, signal })
     .then((response) => response.data || null)

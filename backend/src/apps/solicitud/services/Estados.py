@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from src.models import Equipo
 from ..models import Solicitud
-from .Notificaciones import _notificar_por_correo
+from .Notificaciones import notificar_derivacion, notificar_rechazo
 
 
 @transaction.atomic
@@ -28,18 +28,7 @@ def rechazar_solicitud(solicitud, motivo: str):
         ]
     )
 
-    if solicitud.correo:
-        transaction.on_commit(
-            lambda: _notificar_por_correo(
-                subject="FORMULARIO PROBLEMÁTICA",
-                body=(
-                    "Su solicitud fue rechazada. "
-                    "A continuación se detallan los motivos.\n\n"
-                    f"{motivo}"
-                ),
-                correo=solicitud.correo,
-            )
-        )
+    notificar_rechazo(solicitud, motivo)
 
     return solicitud
 
@@ -62,16 +51,5 @@ def derivar_solicitud(solicitud: Solicitud, equipo_id: str) -> Solicitud:
 
     solicitud.save(update_fields=["equipo", "fecha_hora_admision"])
 
-    if solicitud.correo:
-        transaction.on_commit(
-            lambda: _notificar_por_correo(
-                subject="FORMULARIO PROBLEMÁTICA",
-                body=(
-                    "Su solicitud fue derivada al siguiente equipo: "
-                    f"{equipo.nombre}"
-                ),
-                correo=solicitud.correo,
-            )
-        )
-
+    notificar_derivacion(solicitud, equipo.nombre)
     return solicitud

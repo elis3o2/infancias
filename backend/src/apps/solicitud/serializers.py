@@ -1,5 +1,3 @@
-from collections.abc import Mapping
-
 from rest_framework import serializers
 from .models import MotivoSolicitud, Solicitud, Archivo, SolicitudComentario
 from src.serializers import EquipoSerializer
@@ -15,25 +13,14 @@ from src.apps.persona.serializers import (
     RelacionAdolescenteCreateSerializer,
     RelacionAdolescenteSerializer,
 )
-from src.apps.persona.models import RelacionAdolescente
 from src.apps.domicilio.models import Institucion
 from src.apps.domicilio.serializers import DomicilioSerializer, InstitucionSerializer
-from .comentarios import puede_comentar_solicitud, puede_editar_comentario
-from .permissions import puede_agregar_familiares, puede_gestionar_admision
-from .legajos import legajos_solicitud
+from .services import (
+    familiares_validados_solicitud, legajos_solicitud, puede_agregar_familiares,
+    puede_comentar_solicitud, puede_editar_comentario, puede_gestionar_admision,
+    relaciones_solicitud, titulo_solicitud, validar_relaciones_formulario,
+)
 
-
-def _valor_comparable(valor):
-    """Convierte datos validados en una forma estable para compararlos."""
-    if hasattr(valor, "_meta") and hasattr(valor, "pk"):
-        return (valor._meta.label_lower, valor.pk)
-    if isinstance(valor, Mapping):
-        return tuple(
-            sorted((clave, _valor_comparable(dato)) for clave, dato in valor.items())
-        )
-    if isinstance(valor, (list, tuple)):
-        return tuple(_valor_comparable(dato) for dato in valor)
-    return valor
 
 class MotivoSolicitudSerializer(serializers.ModelSerializer):
 
@@ -83,16 +70,7 @@ class SolicitudListSerializer(serializers.ModelSerializer):
         return legajos_solicitud(solicitud)
 
     def get_titulo(self, solicitud):
-        if solicitud.fecha_hora_admision is None:
-            return solicitud.motivo.nombre
-        nombres = []
-        for adolescente in solicitud.adolescentes.all():
-            persona = adolescente.persona or adolescente
-            nombre = f"{persona.nombre} {persona.apellido}".strip()
-            dni = str(persona.dni).strip() if persona.dni else ""
-            if nombre or dni:
-                nombres.append(f"{nombre} (DNI: {dni})" if nombre and dni else nombre or f"DNI: {dni}")
-        return " · ".join(nombres) or f"Solicitud #{solicitud.pk}"
+        return titulo_solicitud(solicitud)
 
     class Meta:
         model = Solicitud
@@ -152,6 +130,12 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        campos_anteriores = {"familiares", "referencias_instituciones_data"} & self.initial_data.keys()
+        if campos_anteriores:
+            raise serializers.ValidationError({
+                campo: "Este campo debe enviarse dentro del adolescente, no de la solicitud."
+                for campo in sorted(campos_anteriores)
+            })
         if "institucion" in self.initial_data and "id_institucion" in self.initial_data:
             raise serializers.ValidationError({
                 "institucion": "Envíe institucion o id_institucion, no ambos."
@@ -161,45 +145,7 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
                 "institucion": "La institución solicitante es obligatoria."
             })
 
-        ids_temp = [adolescente["id_temp"] for adolescente in attrs["adolescentes"]]
-        if len(ids_temp) != len(set(ids_temp)):
-            raise serializers.ValidationError({"adolescentes": "Los id_temp no pueden repetirse."})
-
-        referencias_temporales = {}
-        for adolescente in attrs["adolescentes"]:
-            for referencia in adolescente.get("referencias_instituciones_data", []):
-                id_temp = referencia.get("id_temp")
-                if id_temp is None:
-                    continue
-                definicion = _valor_comparable({
-                    campo: valor
-                    for campo, valor in referencia.items()
-                    if campo != "id_temp"
-                })
-                anterior = referencias_temporales.setdefault(id_temp, definicion)
-                if anterior != definicion:
-                    raise serializers.ValidationError({
-                        "adolescentes": (
-                            "Una referencia con el mismo id_temp debe tener "
-                            "los mismos datos."
-                        )
-                    })
-
-        relaciones = set()
-        for relacion in attrs.get("relaciones_adolescentes", []):
-            primero, segundo = relacion["id_temp1"], relacion["id_temp2"]
-            if primero not in ids_temp or segundo not in ids_temp:
-                raise serializers.ValidationError({
-                    "relaciones_adolescentes": "Los id_temp deben pertenecer a esta solicitud."
-                })
-            if primero == segundo:
-                raise serializers.ValidationError({
-                    "relaciones_adolescentes": "Un adolescente no puede relacionarse consigo mismo."
-                })
-            clave = (primero, segundo, relacion["vinculo"].pk)
-            if clave in relaciones:
-                raise serializers.ValidationError({"relaciones_adolescentes": "Hay relaciones repetidas."})
-            relaciones.add(clave)
+        validar_relaciones_formulario(attrs)
         return attrs
 
 
@@ -249,26 +195,10 @@ class SolicitudReadSerializer(serializers.ModelSerializer):
         return puede_comentar_solicitud(obj, request.user if request else None)
 
     def get_relaciones_adolescentes(self, obj):
-        relaciones = RelacionAdolescente.objects.filter(
-            adolescente1__solicitud=obj, adolescente2__solicitud=obj,
-        ).select_related("vinculo").order_by("id")
-        return RelacionAdolescenteSerializer(relaciones, many=True).data
+        return RelacionAdolescenteSerializer(relaciones_solicitud(obj), many=True).data
 
     def get_familiares_validados(self, obj):
-        familiares = obj.familiares.filter(persona__isnull=False).select_related(
-            "persona__legajo__carpeta"
-        ).order_by("id")
-        personas = []
-        ids_personas = set()
-        for familiar in familiares:
-            if familiar.persona_id in ids_personas:
-                continue
-            ids_personas.add(familiar.persona_id)
-            personas.append(familiar.persona)
-        return PersonaSerializer(
-            personas,
-            many=True,
-        ).data
+        return PersonaSerializer(familiares_validados_solicitud(obj), many=True).data
 
 
 class SolicitudValReadSerializer(SolicitudReadSerializer):
@@ -375,3 +305,21 @@ class SolicitudReporteSerializer(serializers.ModelSerializer):
             "id", "equipo", "motivo", "fecha_hora_creacion", "validado", "rechazado",
             "cantidad_adolescentes", "cantidad_comentarios", "legajos",
         ]
+
+
+
+class SolicitudRechazarSerializer(serializers.Serializer):
+    motivo = serializers.CharField(max_length=256, error_messages={
+        "required": "El motivo es requerido.", "blank": "El motivo es requerido.",
+    })
+
+
+class SolicitudDerivarSerializer(serializers.Serializer):
+    equipo_id = serializers.IntegerField(min_value=1, max_value=2147483647, error_messages={
+        "required": "El ID del equipo es requerido para derivar.",
+    })
+
+
+class FiltrosSolicitudesSerializer(serializers.Serializer):
+    desde = serializers.DateField(required=False)
+    hasta = serializers.DateField(required=False)

@@ -186,7 +186,7 @@ class HistorialNinosTests(TestCase):
         self.assertEqual([item["id"] for item in comentarios], [nuevo.pk, self.comentario.pk])
         self.assertNotEqual(comentarios[0]["fecha_hora_creacion"], comentarios[0]["fecha_hora_ultmod"])
 
-    def test_solo_usuarios_operativos_y_solo_lectura(self):
+    def test_solo_usuarios_autenticados_y_solo_lectura(self):
         antes = SolicitudComentario.objects.count()
         for metodo in ("post", "put", "patch", "delete"):
             respuesta = getattr(self.client, metodo)(f"/historial/{self.adolescente.pk}/", {}, format="json")
@@ -196,8 +196,8 @@ class HistorialNinosTests(TestCase):
         no_operativo = Usuario.objects.create(username="ajeno", equipo=Equipo.objects.create(nombre="Otro"))
         for usuario in (sin_equipo, no_operativo):
             self.client.force_authenticate(usuario)
-            self.assertEqual(self.client.get("/historial/", {"dni": "50000001"}).status_code, 403)
-            self.assertEqual(self.client.get(f"/historial/{self.adolescente.pk}/").status_code, 403)
+            self.assertEqual(self.client.get("/historial/", {"dni": "50000001"}).status_code, 200)
+            self.assertEqual(self.client.get(f"/historial/{self.adolescente.pk}/").status_code, 200)
         cliente = APIClient()
         self.assertIn(cliente.get("/historial/", {"dni": "50000001"}).status_code, (401, 403))
         self.assertIn(cliente.get(f"/historial/{self.adolescente.pk}/").status_code, (401, 403))

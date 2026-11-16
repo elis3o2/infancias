@@ -5,6 +5,14 @@ Sigue disponible como función independiente, pero ahora `consultar_digitalizaci
 la usa como respaldo cuando Digitalización falla o devuelve identidad incompleta.
 No reemplaza Ciudadano ni HCF, no crea personas y no agrega una ruta pública.
 
+La integración completa de RENAPER está en `api_externa/services/Renaper.py`:
+configuración, certificado TLS, límites compartidos, consulta y normalización.
+`consultar_renaper` entrega los datos normalizados y es el punto de entrada del
+respaldo de Digitalización; `consultar_identidad` conserva la respuesta original.
+Las clases, contratos y excepciones están en `api_externa/clases.py`.
+La API de historia clínica familiar sigue separada en `services/HistoriaClinica.py`.
+Los antiguos archivos `identidad*.py` fueron reunidos en estas ubicaciones.
+
 Digitalización conserva prioridad. Un 404 explícito no activa el respaldo; una
 identidad válida sin HC tampoco. Ante error HTTP, red, JSON inválido, falta de
 configuración o datos incompletos, se consulta Identidad y se devuelve el mismo
@@ -89,24 +97,29 @@ Los números se normalizan a texto, igual que la HC de Digitalización. Si no ha
 HC válida se devuelve `hc: null`; si no hay HCF válida no se agrega ese dato. Los
 dos números son independientes: la HCF nunca se utiliza como HC individual.
 
-Cuando hay HC, la consulta de personas la utiliza para consultar API_HCF y
-completar los integrantes e indicadores de salud, como con Digitalización. Si
-API_HCF no aporta una HCF, se conserva la recibida de SISROS. El frontend muestra
-ambos números como datos de solo lectura y los incluye en la persona enviada al
-validar. Si no hay HC, sigue indicando «Sin historia clínica». Los indicadores
-no disponibles siguen sin informarse: no se inventan valores negativos. No se
-crean personas automáticamente por recibir la respuesta.
+Primero se muestran las identidades obtenidas en `persona/ciudadano/`. Después,
+el frontend consulta `externa/historia-clinica/?hcf=<HCF>` para completar los
+integrantes e indicadores de salud. Agrupa las HCF de adolescentes y familiares:
+cada número familiar se consulta una sola vez y se conserva en la pantalla,
+incluso si hay varias HC individuales distintas. Los errores solo se reintentan
+al solicitarlo. Si no hay HCF, no se consulta usando la HC individual.
 
-La consulta de integrantes usa **GET `API_HCF?hci=<HC individual>`**, sin proxy,
-con la cabecera `HCF_PPVV_API_KEY`. `API_HCF` debe apuntar a `/hcf`; puede estar
-configurada con o sin `?hci=`. Si la URL ya incluye `hci`, se reemplaza por el
-número consultado, sin duplicar el parámetro ni enviar la HCF como número de
-entrada. La respuesta conserva el contrato `HCFResponse` (`hcf` y `resultados`).
+El frontend muestra ambos números como datos de solo lectura y los incluye en
+la persona enviada al validar. Los indicadores no disponibles siguen sin
+informarse: no se inventan valores negativos. No se crean personas
+automáticamente por recibir la respuesta.
+
+La consulta de integrantes usa **GET `API_HCF?hcf=<HC familiar>`**, sin proxy,
+con la cabecera `HCF_PPVV_API_KEY`. `API_HCF` debe apuntar a `/hcf`; por ejemplo,
+`http://192.168.64.41:4020/hcf`. Puede estar configurada con o sin `?hcf=`.
+Se eliminan los parámetros `hcf` y el antiguo `hci` de la URL configurada antes
+de enviar un único `hcf` con el número consultado. La respuesta conserva el
+contrato `HCFResponse` (`hcf` y `resultados`).
 
 Para HCF, la conexión mantiene 10 segundos de espera y la lectura de la respuesta
 permite 60 segundos, fijados en el código. Los tiempos de las demás APIs no
 cambian y no se agrega ninguna variable al `.env`. Reiniciar Gunicorn después de
-desplegar los cambios; no hace falta recompilar el frontend.
+desplegar los cambios y recompilar el frontend para enviar el nuevo parámetro.
 
 - 401/403: `IdentidadHTTPError`, clave inválida o secciones no autorizadas.
 - 404 de API_RNP: la función de transporte conserva `IdentidadHTTPError`, pero el

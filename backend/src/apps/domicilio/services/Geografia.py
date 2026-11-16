@@ -73,12 +73,7 @@ def crear_domicilio_validado(datos: dict) -> DomicilioValidado:
     )
 
 
-def obtener_direccion(
-    codigo_calle: int,
-    altura: int,
-    bis: bool,
-    letra: str | None = None,
-) -> dict:
+def obtener_direccion(codigo_calle: int, altura: int, bis: bool, letra: str | None = None) -> dict:
     """Compatibilidad para llamados antiguos del módulo domicilio."""
     try:
         return obtener_direccion_geo(

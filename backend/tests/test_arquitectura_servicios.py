@@ -22,6 +22,14 @@ CONTRATOS = {
         "Creacion": ["crear_solicitud"],
         "Validacion": ["validar_solicitud"],
         "Estados": ["rechazar_solicitud", "derivar_solicitud"],
+        "Acceso": ["puede_agregar_familiares", "puede_ejecutar_accion", "puede_gestionar_admision"],
+        "Admision": ["agregar_adolescente", "agregar_familiar"],
+        "ArchivoReglas": ["archivos_visibles", "validar_archivos"],
+        "Comentarios": ["crear_comentario", "editar_comentario", "puede_comentar_solicitud", "puede_editar_comentario"],
+        "Consultas": ["obtener_solicitudes", "relaciones_solicitud", "familiares_validados_solicitud", "titulo_solicitud", "legajos_solicitud"],
+        "Formulario": ["validar_relaciones_formulario"],
+        "Estadisticas": ["generar_reporte"],
+        "Reporte": ["obtener_reporte_solicitudes"],
     },
     "domicilio": {
         "Domicilio": ["crear_domicilio"],
@@ -31,16 +39,55 @@ CONTRATOS = {
     "api_externa": {
         "Ciudadano": ["consultar_ciudadano"],
         "Digitalizacion": ["consultar_digitalizacion"],
+        "Renaper": ["consultar_identidad", "consultar_renaper"],
         "HistoriaClinica": ["consultar_hcf"],
         "Geografia": ["transformar_coordenadas", "buscar_features_geo", "normalizar_direccion_geo",
                       "obtener_direccion_geo", "obtener_latitud_longitud_geo"],
         "Correo": ["enviar_correo"],
-        "Ldap": ["consultar_ldap"],
+        "Ldap": ["autenticar_ldap"],
     },
 }
 
 
 class ArquitecturaServiciosTests(SimpleTestCase):
+    def test_solicitud_expone_operaciones_y_oculta_sus_decisiones_internas(self):
+        servicios = import_module("src.apps.solicitud.services")
+        for nombre in servicios.__all__:
+            self.assertTrue(callable(getattr(servicios, nombre)), nombre)
+        for nombre in ("MAX_ARCHIVOS", "MAX_TAMANO_TOTAL", "capturar_formulario", "generar_formulario_pdf"):
+            self.assertNotIn(nombre, servicios.__all__)
+        for nombre in ("admision", "comentarios", "reportes", "legajos", "copia_formulario", "formulario_pdf"):
+            self.assertFalse((APPS / "solicitud" / f"{nombre}.py").exists())
+
+    def test_adaptadores_solicitud_no_implementan_consultas_ni_envios(self):
+        operaciones_internas = {"filter", "annotate", "aggregate", "select_related", "prefetch_related",
+                               "select_for_update", "on_commit", "enviar_correo", "generar_formulario_pdf"}
+        for archivo in ("views.py", "serializers.py"):
+            arbol = ast.parse((APPS / "solicitud" / archivo).read_text())
+            for funcion in (nodo for nodo in ast.walk(arbol) if isinstance(nodo, ast.FunctionDef)):
+                for llamada in (nodo for nodo in ast.walk(funcion) if isinstance(nodo, ast.Call)):
+                    nombre = llamada.func.attr if isinstance(llamada.func, ast.Attribute) else getattr(llamada.func, "id", "")
+                    with self.subTest(archivo=archivo, funcion=funcion.name, llamada=nombre):
+                        self.assertNotIn(nombre, operaciones_internas)
+
+    def test_renaper_y_hcf_tienen_servicios_propios_y_clases_centralizadas(self):
+        carpeta = APPS / "api_externa"
+        self.assertEqual(list(carpeta.glob("identidad*.py")), [])
+        self.assertFalse((carpeta / "types.py").exists())
+        for nombre in ("Renaper", "HistoriaClinica"):
+            with self.subTest(servicio=nombre):
+                archivo = carpeta / "services" / f"{nombre}.py"
+                self.assertTrue(archivo.is_file())
+                self.assertFalse(any(isinstance(nodo, ast.ClassDef)
+                                     for nodo in ast.walk(ast.parse(archivo.read_text()))))
+        clases = import_module("src.apps.api_externa.clases")
+        for nombre in ("Ciudadano", "ConfiguracionIdentidad", "EstadoLimites", "ResultadoIdentidad",
+                       "ConsultaIdentidad", "DatosPersonaRNP", "DatosSisrosRNP", "HCFResponse", "HCFResultado",
+                       "ConsultaPersonaExternaDatos", "IdentidadHTTPError", "IdentidadRevisionRequerida",
+                       "IdentidadRespuestaParcial", "IdentidadLimiteExcedido"):
+            with self.subTest(clase=nombre):
+                self.assertEqual(getattr(clases, nombre).__module__, clases.__name__)
+
     def test_cada_aplicacion_tiene_un_solo_archivo_views_y_serializers(self):
         for app in CONTRATOS:
             carpeta = APPS / app

@@ -5,11 +5,11 @@ from unittest.mock import patch
 
 import requests
 
-from src.apps.api_externa import identidad, identidad_config
-from src.apps.api_externa.identidad_types import (
+from src.apps.api_externa.services import Renaper as identidad
+from src.apps.api_externa.clases import (
     IdentidadHTTPError, IdentidadLimiteExcedido, IdentidadRevisionRequerida,
+    ServicioExternoError, ServicioExternoNoConfigurado,
 )
-from src.apps.api_externa.types import ServicioExternoError, ServicioExternoNoConfigurado
 
 
 class ConsultarIdentidadTests(TestCase):
@@ -27,7 +27,7 @@ class ConsultarIdentidadTests(TestCase):
             "IDENTIDAD_HTTP_METHOD": "POST",
             "IDENTIDAD_USE_PROXY": False,
         }
-        configuracion = patch.object(identidad_config, "config", side_effect=lambda nombre, default=None, **kwargs: self.variables.get(nombre, default))
+        configuracion = patch.object(identidad, "config", side_effect=lambda nombre, default=None, **kwargs: self.variables.get(nombre, default))
         configuracion.start()
         self.addCleanup(configuracion.stop)
         red = patch("requests.sessions.Session.request", side_effect=AssertionError("No se permite HTTP real"))
@@ -49,7 +49,7 @@ class ConsultarIdentidadTests(TestCase):
             "sisros": {"estado": "sin_datos", "datos": None},
         }
         self.respuesta.json.return_value = self.cuerpo
-        reloj = patch("src.apps.api_externa.identidad_limites.time.time", return_value=200000.0)
+        reloj = patch("src.apps.api_externa.services.Renaper.time.time", return_value=200000.0)
         self.reloj = reloj.start()
         self.addCleanup(reloj.stop)
 
@@ -76,6 +76,19 @@ class ConsultarIdentidadTests(TestCase):
         self.consultar()
         self.assertEqual(self.session.request.call_args.args[0], "GET")
         self.assertEqual(self.session.request.call_args.kwargs["json"], {"dni": "12345678", "sexo": "F"})
+
+    def test_consultar_renaper_normaliza_sin_consultar_otros_proveedores(self):
+        self.cuerpo["sisros"] = {
+            "estado": "ok", "match": {"estado": "VALIDADO_EXACTO", "vinculado": True},
+            "datos": {"numero_hci": 100, "numero_hcf": 50},
+        }
+        resultado = identidad.consultar_renaper("12345678", "F")
+        self.assertEqual(resultado, {
+            "nombre": "PRUEBA", "apellido": "FICTICIA", "nroDocumento": 12345678,
+            "sexo": "F", "fechaNacimiento": "2000-01-01", "hc": "100", "hcf": "50",
+        })
+        self.session.request.assert_called_once()
+        self.assertEqual(self.session.request.call_args.args[1], self.variables["IDENTIDAD_API_URL"])
 
     def test_respuesta_parcial_conserva_todos_los_datos_sin_crear_personas(self):
         self.respuesta.status_code = 207
@@ -118,7 +131,10 @@ class ConsultarIdentidadTests(TestCase):
         self.session_class.assert_not_called()
 
     def test_rutas_relativas_son_relativas_al_backend(self):
-        self.assertEqual(identidad_config._ruta("certs/app1-identidad.crt"), identidad_config.BACKEND_DIR / "certs/app1-identidad.crt")
+        backend = Path(__file__).resolve().parents[1]
+        self.assertEqual(identidad.BACKEND_DIR, backend)
+        self.assertEqual(identidad._ruta("certs/app1-identidad.crt"), backend / "certs/app1-identidad.crt")
+        self.assertEqual(identidad._ruta("var/identidad-limites.json"), backend / "var/identidad-limites.json")
 
     def test_409_exige_revision_humana_sin_reintentos(self):
         self.respuesta.status_code = 409

@@ -299,3 +299,43 @@ class SolicitudComentariosTests(TestCase):
         self.assertEqual(response.data["comentarios"][0]["comentario"], "Texto editado")
         self.assertIn(cliente.delete(f"{url}comentarios/{comentario_id}/").status_code, (403, 405))
         self.assertTrue(SolicitudComentario.objects.filter(pk=comentario_id).exists())
+
+    @override_settings(ROOT_URLCONF="src.apps.solicitud.urls")
+    def test_rechazo_valida_motivo_y_conserva_el_parametro_de_la_url(self):
+        solicitud = self._solicitud(equipo=self.entrada, validado=False)
+        cliente = APIClient()
+        cliente.force_authenticate(user=self.usuario_entrada)
+        url = f"/solicitud/{solicitud.pk}/rechazar/"
+        for datos in ({}, {"motivo": "  "}, {"motivo": "a" * 257}):
+            with self.subTest(datos=datos):
+                self.assertEqual(cliente.put(url, datos, format="json").status_code, 400)
+        solicitud.refresh_from_db()
+        self.assertFalse(solicitud.rechazado)
+        respuesta = cliente.put(url + "?motivo=Rechazo%20de%20prueba", {}, format="json")
+        self.assertEqual(respuesta.status_code, 200, respuesta.data)
+        solicitud.refresh_from_db()
+        self.assertEqual(solicitud.motivo_rechazo, "Rechazo de prueba")
+        self.assertTrue(solicitud.rechazado)
+
+    @override_settings(ROOT_URLCONF="src.apps.solicitud.urls")
+    def test_derivacion_valida_el_equipo_antes_de_modificar_la_solicitud(self):
+        cliente = APIClient()
+        cliente.force_authenticate(user=self.autor)
+        url = f"/solicitud/{self.solicitud.pk}/derivar/"
+        for datos in ({}, {"equipo_id": "incorrecto"}, {"equipo_id": -1}, {"equipo_id": 99999}):
+            with self.subTest(datos=datos):
+                self.assertEqual(cliente.put(url, datos, format="json").status_code, 400)
+        self.solicitud.refresh_from_db()
+        self.assertEqual(self.solicitud.equipo_id, self.admision.pk)
+        respuesta = cliente.put(url, {"equipo_id": self.territorial.pk}, format="json")
+        self.assertEqual(respuesta.status_code, 200, respuesta.data)
+        self.solicitud.refresh_from_db()
+        self.assertEqual(self.solicitud.equipo_id, self.territorial.pk)
+
+    @override_settings(ROOT_URLCONF="src.apps.solicitud.urls")
+    def test_fechas_invalidas_del_listado_devuelven_400(self):
+        cliente = APIClient()
+        cliente.force_authenticate(user=self.usuario_entrada)
+        for filtros in ({"desde": "2026-02-31"}, {"hasta": "incorrecto"}):
+            with self.subTest(filtros=filtros):
+                self.assertEqual(cliente.get("/solicitud/", filtros).status_code, 400)

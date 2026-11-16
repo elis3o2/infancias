@@ -38,11 +38,7 @@ def crear_familiar(datos_familiar: dict, adolescente: Adolescente) -> Familiar:
 
 
 @transaction.atomic
-def validar_familiar(
-    familiar: Familiar,
-    datos: dict,
-    adolescente: Persona,
-) -> Persona:
+def validar_familiar(familiar: Familiar, datos: dict, adolescente: Persona) -> Persona:
     if familiar.adolescente_id is None or familiar.adolescente.persona_id != adolescente.id:
         raise ValidationError({"familiares": "El familiar no pertenece al adolescente indicado."})
     if familiar.solicitud_id != familiar.adolescente.solicitud_id:

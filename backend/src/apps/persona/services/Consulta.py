@@ -1,7 +1,7 @@
 """Antecedentes locales e identidad externa, sin mutar personas ni filtrar por equipo."""
 from django.db.models import Q
 from src.apps.api_externa.services import consultar_digitalizacion
-from src.apps.api_externa.types import DatosDigitalizacion
+from src.apps.api_externa.clases import DatosDigitalizacion
 from src.apps.solicitud.models import Solicitud
 from ..models import Persona, Relacion
 from .Persona import buscar_persona

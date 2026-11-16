@@ -3,8 +3,8 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
-from .models import Solicitud, SolicitudComentario
-from .permissions import puede_registrar_situaciones
+from ..models import Solicitud, SolicitudComentario
+from .Acceso import puede_registrar_situaciones
 
 
 def puede_comentar_solicitud(solicitud, usuario) -> bool:
@@ -36,9 +36,8 @@ def crear_comentario(solicitud: Solicitud, usuario, texto: str) -> SolicitudCome
 
 
 @transaction.atomic
-def editar_comentario(
-    solicitud: Solicitud, comentario_id: int, usuario, texto: str,
-) -> SolicitudComentario:
+def editar_comentario(solicitud: Solicitud, comentario_id: int, usuario, texto: str,) -> SolicitudComentario:
+    
     solicitud = _solicitud_para_comentar(solicitud, usuario)
     comentario = get_object_or_404(
         SolicitudComentario.objects.select_for_update().select_related("usuario", "solicitud"),

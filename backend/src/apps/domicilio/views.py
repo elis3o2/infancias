@@ -9,7 +9,8 @@ from rest_framework.exceptions import NotFound, APIException
 from .models import Institucion, TipoInstitucion, Provincia, Departamento, Domicilio
 from .serializers import (ProvinciaSerializer, DepartamentoSerializer, InstitucionSerializer, TipoInstitucionSerializer,
                         DomicilioSerializer)
-from src.permissions import IsOperationalUser, ReadOnly
+from rest_framework.permissions import IsAuthenticated
+from src.permissions import ReadOnly
 
 class ProvinciaViewSet(viewsets.ModelViewSet):
     queryset = Provincia.objects.all()
@@ -55,23 +56,9 @@ class InstitucionViewSet(viewsets.ModelViewSet):
 
         return qs
 
-    @action(detail=False, methods=["get"], url_path="educacion")
-    def educacion(self, request):
-        qs = self.get_queryset().filter(tipo__nombre__iexact="Educativa")
-        serializer = self.get_serializer(qs, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=["get"], url_path="territorial")
-    def territorial(self, request):
-        # La categoría es un registro de catálogo, no un campo booleano del
-        # modelo. Si el catálogo no tiene este tipo, la respuesta es una lista
-        # vacía en lugar de un FieldError.
-        qs = self.get_queryset().filter(tipo__nombre__iexact="Territorial")
-        serializer = self.get_serializer(qs, many=True)
-        return Response(serializer.data)
 
 
 class DomicilioViewSet(viewsets.ModelViewSet):
     queryset = Domicilio.objects.all()
     serializer_class = DomicilioSerializer
-    permission_classes = [IsOperationalUser, ReadOnly]
+    permission_classes = [IsAuthenticated, ReadOnly]

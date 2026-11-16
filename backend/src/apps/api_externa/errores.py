@@ -4,11 +4,10 @@ import logging
 
 from rest_framework.response import Response
 
-from .identidad_types import (
+from .clases import (
     IdentidadLimiteExcedido, IdentidadRespuestaParcial,
-    IdentidadRevisionRequerida,
+    IdentidadRevisionRequerida, ServicioExternoError, ServicioExternoNoConfigurado,
 )
-from .types import ServicioExternoError, ServicioExternoNoConfigurado
 
 logger = logging.getLogger(__name__)
 

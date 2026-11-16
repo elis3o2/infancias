@@ -1,14 +1,11 @@
 """Contrato de Digitalización y política de respaldo mediante Identidad/RNP."""
 import logging
-import time
 from typing import cast
 from decouple import config
-from ..identidad import consultar_identidad
-from ..identidad_normalizacion import normalizar_identidad
-from ..identidad_types import IdentidadHTTPError, IdentidadLimiteExcedido, ResultadoIdentidad, SeccionIdentidad, SexoIdentidad
-from ..types import DatosCiudadano, DatosDigitalizacion, RespuestaDigitalizacion, ServicioExternoError, RecursoExternoNoEncontrado
+from ..clases import DatosCiudadano, DatosDigitalizacion, RespuestaDigitalizacion, ServicioExternoError, RecursoExternoNoEncontrado
 from ..utils import _como_objeto, _como_texto, _obtener_json, _url_configurada
 from .Ciudadano import _crear_ciudadano
+from .Renaper import consultar_renaper
 
 logger = logging.getLogger(__name__)
 
@@ -47,31 +44,7 @@ def consultar_digitalizacion(dni: str, sexo: str) -> DatosDigitalizacion | None:
             return datos
         logger.warning("Digitalización devolvió datos incompletos; se consultará Identidad.")
 
-    try:
-        respaldo = _consultar_identidad_respaldo(dni, sexo)
-    except IdentidadHTTPError as exc:
-        if exc.codigo_http != 404:
-            raise
-        # Sin identidad validada; no interrumpir la consulta de las otras personas.
-        logger.info("Identidad respondió HTTP 404; la persona queda sin validar.")
-        return None
-    return normalizar_identidad(respaldo, dni, sexo)
-
-
-def _consultar_identidad_respaldo(dni: str, sexo: str) -> ResultadoIdentidad:
-    try:
-        secciones: list[SeccionIdentidad] = ["renaper", "sisros"] if sexo == "X" else ["renaper", "puco", "sisros"]
-        try:
-            return consultar_identidad(dni, cast(SexoIdentidad, sexo), secciones=secciones)
-        except IdentidadLimiteExcedido as exc:
-            if exc.remoto or exc.reintentar_en > 3:
-                raise
-            # Consultas consecutivas del mismo formulario: esperar el intervalo
-            # local una sola vez. No reintentar una petición HTTP ya enviada.
-            time.sleep(exc.reintentar_en)
-            return consultar_identidad(dni, cast(SexoIdentidad, sexo), secciones=secciones)
-    except ValueError as exc:
-        raise ServicioExternoError("Los datos de consulta no son válidos para Identidad.") from exc
+    return consultar_renaper(dni, sexo)
 
 
 def _normalizar_digitalizacion(data: RespuestaDigitalizacion) -> DatosDigitalizacion | None:

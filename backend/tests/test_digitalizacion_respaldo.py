@@ -3,11 +3,10 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from src.apps.api_externa.services import Digitalizacion as services
-from src.apps.api_externa.identidad_types import (
+from src.apps.api_externa.services import Renaper as renaper
+from src.apps.api_externa.clases import (
     IdentidadHTTPError, IdentidadLimiteExcedido, IdentidadRespuestaParcial,
     IdentidadRevisionRequerida, ResultadoIdentidad,
-)
-from src.apps.api_externa.types import (
     RecursoExternoNoEncontrado, ServicioExternoError, ServicioExternoNoConfigurado,
 )
 
@@ -29,10 +28,10 @@ class DigitalizacionRespaldoTests(TestCase):
         digitalizacion = patch.object(services, "_consultar_api_digitalizacion", return_value=self.datos)
         self.digitalizacion = digitalizacion.start()
         self.addCleanup(digitalizacion.stop)
-        identidad = patch.object(services, "consultar_identidad", return_value=ResultadoIdentidad(200, self.datos_rnp))
+        identidad = patch.object(renaper, "consultar_identidad", return_value=ResultadoIdentidad(200, self.datos_rnp))
         self.identidad = identidad.start()
         self.addCleanup(identidad.stop)
-        espera = patch.object(services.time, "sleep")
+        espera = patch.object(renaper.time, "sleep")
         self.espera = espera.start()
         self.addCleanup(espera.stop)
         red = patch("requests.sessions.Session.request", side_effect=AssertionError("HTTP real prohibido"))

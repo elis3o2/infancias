@@ -3,7 +3,7 @@ import logging
 from typing import cast
 import requests
 from decouple import config
-from ..types import Ciudadano, DatosCiudadano, JsonValue
+from ..clases import Ciudadano, DatosCiudadano, JsonValue
 from ..utils import TIMEOUT_EXTERNO, _como_objeto, _como_texto
 
 logger = logging.getLogger(__name__)

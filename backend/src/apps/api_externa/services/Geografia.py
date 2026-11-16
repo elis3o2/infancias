@@ -1,6 +1,6 @@
 """Contratos geográficos y conversión de coordenadas de los proveedores."""
 from urllib.parse import quote
-from ..types import CoordenadaEntrada, DireccionGeografica, FeatureGeografico, JsonObject, JsonValue, ParametrosConsulta, ServicioExternoError
+from ..clases import CoordenadaEntrada, DireccionGeografica, FeatureGeografico, JsonObject, JsonValue, ParametrosConsulta, ServicioExternoError
 from ..utils import _como_coordenada, _como_lista, _como_objeto, _como_texto, _numero, _obtener_json, _url_configurada
 
 

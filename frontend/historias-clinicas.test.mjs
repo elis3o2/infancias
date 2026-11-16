@@ -20,7 +20,7 @@ after(async () => {
   await server.close()
   await rm(cacheDir, { recursive: true, force: true })
 })
-const { consultarHistoriasPorEtapas, aplicarSalud, numeroHC, historiaResuelta, integrantesHistorias } =
+const { consultarHistoriasPorEtapas, aplicarSalud, numeroHC, historiaResuelta, historiasFamiliares, integrantesHistorias } =
   await server.ssrLoadModule("/src/features/api_externa/historiasClinicas.ts")
 const { completarConsulta, completarRevisiones } =
   await server.ssrLoadModule("/src/features/solicitud/components/Cargados/validacion/historiasValidacion.ts")
@@ -41,7 +41,7 @@ const integrante = (hc, dni = String(50000000 + hc)) => ({
   flag_intentos_de_suicidio: 1, flag_problemas_socioambientales: 0, flag_violencias: 1,
 })
 const hcf = (...hcis) => ({ hcf: 50, resultados: hcis.map((hc) => integrante(hc)) })
-const cache = (respuesta) => new Map([[1, { datos: respuesta }]])
+const cache = (respuesta) => new Map([[50, { datos: respuesta }]])
 
 test("las identidades se entregan antes de empezar la segunda etapa lenta", async () => {
   const personas = { adolescentes: [{ id: 1, dni: "50000001", sexo: "F" }], familiares: [] }
@@ -52,7 +52,7 @@ test("las identidades se entregan antes de empezar la segunda etapa lenta", asyn
   assert.equal(visible.adolescentes[0].persona.nombre, "Nombre")
   let resolver
   const lenta = new Promise((resolve) => { resolver = resolve })
-  const consulta = consultarHistoriasPorEtapas([1], new Map(), (historias) => {
+  const consulta = consultarHistoriasPorEtapas([50], new Map(), (historias) => {
     visible = completarConsulta(visible, personas, historias)
     eventos.push("salud visible")
   }, signal(), async () => { eventos.push("consulta HCF"); return lenta })
@@ -66,39 +66,51 @@ test("las identidades se entregan antes de empezar la segunda etapa lenta", asyn
   assert.equal(visible.hcf[0].hcf, 50)
 })
 
-test("una HCF resuelve varios integrantes y no consulta dos veces una misma HC", async () => {
+test("adolescentes y familiares con distintas HCI comparten una sola consulta por HCF", async () => {
+  const adolescentes = [persona(1), { ...persona(2), hcf: "050" }]
+  const familiares = [persona(3), { ...persona(4), hcf: 60 }, { ...persona(5), hcf: 60 }]
+  const numeros = historiasFamiliares([...adolescentes, ...familiares])
+  assert.deepEqual(numeros, [50, 60])
   const llamadas = []
-  const resultados = await consultarHistoriasPorEtapas([1, 1, 2, 3], new Map(), () => {}, signal(), async (hc) => {
-    llamadas.push(hc)
-    return hc === 1 ? hcf(1, 2, 8) : hcf(3, 8)
+  const resultados = await consultarHistoriasPorEtapas([...numeros, 50, 60], new Map(), () => {}, signal(), async (numero) => {
+    llamadas.push(numero)
+    return numero === 50 ? hcf(1, 2, 3, 8) : {
+      hcf: 60, resultados: [4, 5, 9].map((hc) => ({ ...integrante(hc), numeroHCF: 60 })),
+    }
   })
-  assert.deepEqual(llamadas, [1, 3])
-  assert.equal(historiaResuelta(2, resultados), true)
-  assert.deepEqual(integrantesHistorias(resultados).map((item) => item.numeroHCI), [1, 2, 8, 3])
-  await consultarHistoriasPorEtapas([1, 2, 3], resultados, () => assert.fail("Sin resultados nuevos"), signal(),
+  assert.deepEqual(llamadas, [50, 60])
+  assert.equal(historiaResuelta(50, resultados), true)
+  assert.equal(historiaResuelta(60, resultados), true)
+  assert.equal(historiaResuelta(1, resultados), false) // Una HCI no es una clave de consulta.
+  assert.deepEqual(integrantesHistorias(resultados).map((item) => item.numeroHCI), [1, 2, 3, 8, 4, 5, 9])
+  for (const datos of [...adolescentes, ...familiares]) {
+    assert.equal(aplicarSalud(datos, datos.dni, datos.sexo, resultados).violencias, true)
+  }
+  await consultarHistoriasPorEtapas(numeros, resultados, () => assert.fail("Sin resultados nuevos"), signal(),
     () => assert.fail("No debe repetir consultas"))
 })
 
 test("una historia fallida no borra datos ni impide consultar las demás; reintenta solo la fallida", async () => {
   let intentos = 0
-  const parcial = await consultarHistoriasPorEtapas([1, 2, 3], new Map(), () => {}, signal(), async (hc) => {
+  const numeros = [50, 60, 60, 70]
+  const parcial = await consultarHistoriasPorEtapas(numeros, new Map(), () => {}, signal(), async (numero) => {
     intentos += 1
-    if (hc === 2) throw new Error("Timeout")
-    return hcf(hc)
+    if (numero === 60) throw new Error("Timeout")
+    return { hcf: numero, resultados: [] }
   })
   assert.equal(intentos, 3)
-  assert.equal(historiaResuelta(2, parcial), false)
-  assert.deepEqual(parcial.get(2), { error: true })
-  await consultarHistoriasPorEtapas([1, 2, 3], parcial, () => {}, signal(), () => assert.fail("Sin reintentos automáticos"))
+  assert.equal(historiaResuelta(60, parcial), false)
+  assert.deepEqual(parcial.get(60), { error: true })
+  await consultarHistoriasPorEtapas(numeros, parcial, () => {}, signal(), () => assert.fail("Sin reintentos automáticos"))
   const exitosas = new Map([...parcial].filter(([, item]) => "datos" in item))
   const llamadas = []
-  const completo = await consultarHistoriasPorEtapas([1, 2, 3], exitosas, () => {}, signal(), async (hc) => {
-    llamadas.push(hc)
-    return hcf(hc)
+  const completo = await consultarHistoriasPorEtapas(numeros, exitosas, () => {}, signal(), async (numero) => {
+    llamadas.push(numero)
+    return { hcf: numero, resultados: [] }
   })
-  assert.deepEqual(llamadas, [2])
-  assert.equal(historiaResuelta(2, completo), true)
-  assert.deepEqual(parcial.get(2), { error: true })
+  assert.deepEqual(llamadas, [60])
+  assert.equal(historiaResuelta(60, completo), true)
+  assert.deepEqual(parcial.get(60), { error: true })
 })
 
 test("la salud tardía entra en el payload sin cambiar confirmaciones ni datos editados", () => {
@@ -125,12 +137,26 @@ test("no inventa salud si no hay historia o si falla, ni usa HCF como HCI", asyn
   for (const valor of [null, undefined, "", " ", 0, -1, "no", 1.5]) assert.equal(numeroHC(valor), null)
   assert.equal(numeroHC("001"), 1)
   const datos = { ...persona(null), hcf: 50, violencias: true }
-  for (const consultas of [new Map(), cache(null), new Map([[1, { error: true }]])]) {
+  for (const consultas of [new Map(), cache(null), new Map([[50, { error: true }]])]) {
     assert.strictEqual(aplicarSalud(datos, datos.dni, datos.sexo, consultas), datos)
   }
-  const resultados = await consultarHistoriasPorEtapas([1], new Map(), () => {}, signal(), async () => null)
-  assert.equal(historiaResuelta(1, resultados), true)
+  let llamadas = 0
+  const resultados = await consultarHistoriasPorEtapas([50, 50], new Map(), () => {}, signal(), async () => {
+    llamadas += 1
+    return null
+  })
+  assert.equal(llamadas, 1)
+  assert.equal(historiaResuelta(50, resultados), true)
   assert.deepEqual(integrantesHistorias(resultados), [])
+})
+
+test("consulta por HCF aunque no haya HCI y no usa HCI cuando falta HCF", async () => {
+  const sinHcf = [null, undefined, ...[null, undefined, "", " ", 0, -1, "no", 1.5].map((hcf) => ({ hc: 173715, hcf }))]
+  const numeros = historiasFamiliares(sinHcf)
+  assert.deepEqual(numeros, [])
+  await consultarHistoriasPorEtapas(numeros, new Map(), () => assert.fail("Sin resultados"), signal(),
+    () => assert.fail("Sin HCF no debe consultar"))
+  assert.deepEqual(historiasFamiliares([{ hc: null, hcf: 3656 }, { hc: 173715, hcf: "3656" }]), [3656])
 })
 
 test("conserva la HCF de RNP si el servicio HCF no aporta número", () => {
@@ -159,8 +185,8 @@ test("los integrantes excluyen a las personas originales, incluso si su identida
 test("salir de la pantalla cancela pendientes y no publica resultados tardíos", async () => {
   const control = new AbortController()
   let llamadas = 0
-  await assert.rejects(consultarHistoriasPorEtapas([1, 2], new Map(), () => assert.fail("No publicar"), control.signal,
-    async (_hc, signal) => {
+  await assert.rejects(consultarHistoriasPorEtapas([50, 60], new Map(), () => assert.fail("No publicar"), control.signal,
+    async (_hcf, signal) => {
       llamadas += 1
       assert.equal(signal, control.signal)
       control.abort()
@@ -169,18 +195,18 @@ test("salir de la pantalla cancela pendientes y no publica resultados tardíos",
   assert.equal(llamadas, 1)
 })
 
-test("el cliente usa el endpoint separado con solo hci y admite una respuesta vacía", async () => {
+test("el cliente usa el endpoint separado con solo hcf y admite una respuesta vacía", async () => {
   const anteriorStorage = globalThis.localStorage
   const anteriorAdapter = http.defaults.adapter
   globalThis.localStorage = { getItem: () => null }
   const control = new AbortController()
   http.defaults.adapter = async (config) => {
     assert.equal(config.url, "externa/historia-clinica/")
-    assert.deepEqual(config.params, { hci: 100 })
+    assert.deepEqual(config.params, { hcf: 3656 })
     assert.equal(config.signal, control.signal)
     return { data: "", status: 200, statusText: "OK", headers: {}, config }
   }
-  try { assert.equal(await getHistoriaClinica(100, control.signal), null) } finally {
+  try { assert.equal(await getHistoriaClinica(3656, control.signal), null) } finally {
     http.defaults.adapter = anteriorAdapter
     if (anteriorStorage === undefined) delete globalThis.localStorage
     else globalThis.localStorage = anteriorStorage

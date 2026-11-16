@@ -2,7 +2,7 @@
 from typing import cast
 import requests
 from decouple import config
-from ..types import ArchivosAdjuntos, DestinatariosCorreo, JsonValue, RespuestaCorreo, ServicioExternoError
+from ..clases import ArchivosAdjuntos, DestinatariosCorreo, JsonValue, RespuestaCorreo, ServicioExternoError
 from ..utils import _como_objeto, _url_configurada
 
 

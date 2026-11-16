@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
-from src.apps.api_externa.types import HCFResultado
+from src.apps.api_externa.clases import HCFResultado
 from src.apps.persona import services
 from src.apps.persona.services import Consulta as consulta, Persona as personas
 from src.apps.persona.models import Persona

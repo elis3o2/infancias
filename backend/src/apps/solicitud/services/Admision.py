@@ -7,8 +7,8 @@ from src.apps.persona.services import (
     actualizar_telefono, crear_adolescente, resolver_legajos_solicitud,
     validar_adolescente, validar_familiar,
 )
-from .models import Solicitud
-from .permissions import puede_agregar_familiares, puede_gestionar_admision
+from ..models import Solicitud
+from .Acceso import puede_agregar_familiares, puede_gestionar_admision
 
 
 def _solicitud_en_admision(solicitud: Solicitud, usuario) -> Solicitud:

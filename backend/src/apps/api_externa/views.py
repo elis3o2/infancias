@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 
-from src.permissions import IsOperationalUser
+from rest_framework.permissions import IsAuthenticated
 from .errores import respuesta_error_servicio as _respuesta_error_servicio
 from .serializers import (
     ConsultaHistoriaClinicaSerializer,
@@ -23,7 +23,7 @@ from .services import (
     obtener_direccion_geo,
     obtener_latitud_longitud_geo,
 )
-from .types import (
+from .clases import (
     RecursoExternoNoEncontrado,
     ServicioExternoError,
 )
@@ -32,7 +32,7 @@ from .types import (
 class CiudadanoAPIView(APIView):
     """Consulta individual del servicio de ciudadano."""
 
-    permission_classes = [IsOperationalUser]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, *args: object, **kwargs: object) -> Response:
         serializer = ConsultaPersonaExternaSerializer(data=request.query_params)
@@ -49,7 +49,7 @@ class CiudadanoAPIView(APIView):
 class HistoriaClinicaAPIView(APIView):
     """Segunda etapa: salud e integrantes, sin volver a consultar la identidad."""
 
-    permission_classes = [IsOperationalUser]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
         serializer = ConsultaHistoriaClinicaSerializer(data=request.query_params)

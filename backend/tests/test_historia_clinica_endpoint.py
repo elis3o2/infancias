@@ -1,4 +1,4 @@
-"""La segunda etapa consulta solo HCI, sin repetir identidad ni acceder a la BD."""
+"""La segunda etapa consulta solo HCF, sin repetir identidad ni acceder a la BD."""
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -8,7 +8,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from src.apps.api_externa.serializers import ConsultaHistoriaClinicaSerializer
 from src.apps.api_externa.services import HistoriaClinica as historia
-from src.apps.api_externa.types import ServicioExternoError, ServicioExternoNoConfigurado
+from src.apps.api_externa.clases import ServicioExternoError, ServicioExternoNoConfigurado
 from src.apps.api_externa.views import HistoriaClinicaAPIView
 from tests.test_consulta_personas import integrante
 
@@ -29,16 +29,16 @@ class HistoriaClinicaEndpointTests(SimpleTestCase):
         for ruta in ("/api/externa/historia-clinica/", "/casainfancias/api/externa/historia-clinica/"):
             self.assertIs(resolve(ruta, urlconf="core.urls").func.view_class, HistoriaClinicaAPIView)
 
-    def test_consulta_hci_y_devuelve_salud_e_integrantes_sin_reconsultar_identidad(self):
+    def test_consulta_hcf_y_devuelve_salud_e_integrantes_sin_reconsultar_identidad(self):
         datos = {"hcf": 50, "resultados": [integrante(100, "50000001"), integrante(200, "30000001")]}
         with (
             patch("src.apps.api_externa.views.consultar_hcf", return_value=datos) as hcf,
             patch("src.apps.persona.services.Consulta.consultar_digitalizacion") as identidad,
         ):
-            respuesta = self.consultar({"hci": "100"})
+            respuesta = self.consultar({"hcf": "50"})
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(respuesta.data, datos)
-        hcf.assert_called_once_with(hci=100)
+        hcf.assert_called_once_with(hcf=50)
         identidad.assert_not_called()
 
     def test_respuesta_real_con_hcf_numerica_y_coordenadas_nulas(self):
@@ -52,33 +52,34 @@ class HistoriaClinicaEndpointTests(SimpleTestCase):
             patch.object(historia, "config", return_value="clave-de-prueba"),
             patch.object(historia, "_obtener_json", return_value=datos) as proveedor,
         ):
-            respuesta = self.consultar({"hci": 100})
+            respuesta = self.consultar({"hcf": 50})
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(respuesta.data, datos)
         self.assertIsInstance(respuesta.data["hcf"], int)
         self.assertIsNone(respuesta.data["resultados"][0]["latitud_wgs84"])
-        self.assertEqual(proveedor.call_args.kwargs["params"], {"hci": 100})
+        self.assertEqual(proveedor.call_args.kwargs["params"], {"hcf": 50})
         self.assertEqual(proveedor.call_args.kwargs["timeout"], (10, 60))
 
     def test_sin_historia_es_distinto_de_error_del_proveedor(self):
         with patch("src.apps.api_externa.views.consultar_hcf", return_value=None):
-            respuesta = self.consultar({"hci": 100})
+            respuesta = self.consultar({"hcf": 50})
         self.assertEqual(respuesta.status_code, 200)
         self.assertIsNone(respuesta.data)
         for error, estado in ((ServicioExternoError("Timeout"), 502), (ServicioExternoNoConfigurado(), 503)):
             with self.subTest(error=error), patch("src.apps.api_externa.views.consultar_hcf", side_effect=error):
-                respuesta = self.consultar({"hci": 100})
+                respuesta = self.consultar({"hcf": 50})
                 self.assertEqual(respuesta.status_code, estado)
                 self.assertEqual(set(respuesta.data), {"detail"})
 
-    def test_valida_hci_sin_campos_innecesarios(self):
-        self.assertEqual(set(ConsultaHistoriaClinicaSerializer().fields), {"hci"})
-        for datos in ({}, {"hci": 0}, {"hci": -1}, {"hci": "incorrecto"}, {"hci": "1.5"}, {"dni": "50000001", "sexo": "M"}):
+    def test_valida_hcf_sin_usar_hci_como_sustituto(self):
+        self.assertEqual(set(ConsultaHistoriaClinicaSerializer().fields), {"hcf"})
+        for datos in ({}, {"hcf": 0}, {"hcf": -1}, {"hcf": "incorrecto"}, {"hcf": "1.5"},
+                      {"hci": 100}, {"dni": "50000001", "sexo": "M"}):
             with self.subTest(datos=datos), patch("src.apps.api_externa.views.consultar_hcf") as hcf:
                 self.assertEqual(self.consultar(datos).status_code, 400)
                 hcf.assert_not_called()
 
     def test_no_expone_datos_sin_autenticacion(self):
         with patch("src.apps.api_externa.views.consultar_hcf") as hcf:
-            self.assertIn(self.consultar({"hci": 100}, autenticado=False).status_code, (401, 403))
+            self.assertIn(self.consultar({"hcf": 50}, autenticado=False).status_code, (401, 403))
             hcf.assert_not_called()

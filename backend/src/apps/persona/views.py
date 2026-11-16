@@ -18,8 +18,9 @@ from .serializers import (
 from .services import consultar_personas
 from .historial import buscar_ninos, datos_nino, ninos_historial, registros_identificados, solicitudes_del_nino
 from src.apps.api_externa.errores import respuesta_error_servicio
-from src.apps.api_externa.types import ServicioExternoError
-from src.permissions import IsOperationalUser, ReadOnly
+from src.apps.api_externa.clases import ServicioExternoError
+from rest_framework.permissions import IsAuthenticated
+from src.permissions import ReadOnly
 import json
 
 
@@ -27,7 +28,7 @@ import json
 
 class AdolescenteViewSet(viewsets.ModelViewSet):
     serializer_class = AdolescenteReadSerializer
-    permission_classes = [IsOperationalUser, ReadOnly]
+    permission_classes = [IsAuthenticated, ReadOnly]
 
     def get_queryset(self):
         user = self.request.user
@@ -38,7 +39,7 @@ class AdolescenteViewSet(viewsets.ModelViewSet):
 
 class FamiliarViewSet(viewsets.ModelViewSet):
     serializer_class = FamiliarSerializer
-    permission_classes = [IsOperationalUser, ReadOnly]
+    permission_classes = [IsAuthenticated, ReadOnly]
 
     def get_queryset(self):
         user = self.request.user
@@ -78,7 +79,7 @@ class VinculoViewSer(viewsets.ModelViewSet):
 
 class RelacionAdolescenteViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RelacionAdolescenteSerializer
-    permission_classes = [IsOperationalUser, ReadOnly]
+    permission_classes = [IsAuthenticated, ReadOnly]
 
     def get_queryset(self):
         equipo_id = getattr(self.request.user, "equipo_id", None)
@@ -91,7 +92,7 @@ class RelacionAdolescenteViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ConsultaPersonasAPIView(APIView):
-    permission_classes = [IsOperationalUser]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
         try:
@@ -115,7 +116,7 @@ class HistorialPagination(PageNumberPagination):
 
 class HistorialNinoViewSet(viewsets.GenericViewSet):
     lookup_value_regex = "[0-9]+"
-    permission_classes = [IsOperationalUser]
+    permission_classes = [IsAuthenticated]
     pagination_class = HistorialPagination
     serializer_class = NinoHistorialSerializer
     http_method_names = ["get", "head", "options"]

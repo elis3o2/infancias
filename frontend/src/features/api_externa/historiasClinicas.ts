@@ -10,30 +10,34 @@ export function numeroHC(valor: SaludConsulta["hc"]): number | null {
   return Number.isSafeInteger(numero) && numero > 0 ? numero : null
 }
 
-export function historiaResuelta(hci: number, consultas: HistoriasConsultadas): boolean {
-  const consulta = consultas.get(hci)
-  return [...consultas.values()].some((item) => "datos" in item &&
-    item.datos?.resultados.some((persona) => numeroHC(persona.numeroHCI) === hci)) ||
-    Boolean(consulta && "datos" in consulta)
+/** Adolescentes y familiares comparten una consulta por número de HCF. */
+export function historiasFamiliares(personas: readonly (SaludConsulta | null | undefined)[]): number[] {
+  return [...new Set(personas.map((persona) => numeroHC(persona?.hcf))
+    .filter((hcf): hcf is number => hcf !== null))]
 }
 
-/** Peticiones secuenciales; una HCF puede resolver varias HC individuales. */
+export function historiaResuelta(hcf: number, consultas: HistoriasConsultadas): boolean {
+  const consulta = consultas.get(hcf)
+  return Boolean(consulta && "datos" in consulta)
+}
+
+/** Peticiones secuenciales, sin repetir las HCF ya consultadas en esta pantalla. */
 export async function consultarHistoriasPorEtapas(
-  hcis: number[], anteriores: HistoriasConsultadas,
+  hcfs: number[], anteriores: HistoriasConsultadas,
   onResultado: (datos: HistoriasConsultadas) => void, signal: AbortSignal,
   consultar = getHistoriaClinica,
 ): Promise<HistoriasConsultadas> {
   const acumulado = new Map(anteriores)
-  for (const hci of new Set(hcis)) {
+  for (const hcf of new Set(hcfs)) {
     signal.throwIfAborted()
-    if (historiaResuelta(hci, acumulado) || acumulado.has(hci)) continue
+    if (acumulado.has(hcf)) continue
     try {
-      const datos = await consultar(hci, signal)
+      const datos = await consultar(hcf, signal)
       signal.throwIfAborted()
-      acumulado.set(hci, { datos })
+      acumulado.set(hcf, { datos })
     } catch {
       signal.throwIfAborted()
-      acumulado.set(hci, { error: true })
+      acumulado.set(hcf, { error: true })
     }
     onResultado(new Map(acumulado))
   }

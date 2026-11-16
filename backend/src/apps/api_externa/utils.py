@@ -3,7 +3,7 @@ from typing import cast
 import requests
 from decouple import config
 
-from .types import (
+from .clases import (
     CabecerasHTTP,
     CoordenadaEntrada,
     JsonArray,

@@ -5,12 +5,12 @@ from unittest.mock import patch
 from django.test import SimpleTestCase
 from rest_framework.test import APIRequestFactory, force_authenticate
 
-from src.apps.api_externa.identidad_types import (
+from src.apps.api_externa.clases import (
     IdentidadHTTPError, IdentidadLimiteExcedido, IdentidadRespuestaParcial,
     IdentidadRevisionRequerida, ResultadoIdentidad,
+    ServicioExternoError, ServicioExternoNoConfigurado,
 )
-from src.apps.api_externa.services import Digitalizacion as digitalizacion
-from src.apps.api_externa.types import ServicioExternoError, ServicioExternoNoConfigurado
+from src.apps.api_externa.services import Digitalizacion as digitalizacion, Renaper as renaper
 from src.apps.persona.services import Consulta as consulta
 from src.apps.api_externa.services import HistoriaClinica as historia
 from src.apps.persona.views import ConsultaPersonasAPIView
@@ -68,7 +68,7 @@ class ConsultaPersonasErroresTests(SimpleTestCase):
                 force_authenticate(request, user=SimpleNamespace(is_authenticated=True, is_superuser=True, equipo_id=1))
                 with (
                     patch.object(digitalizacion, "_consultar_api_digitalizacion", return_value={}),
-                    patch.object(digitalizacion, "consultar_identidad", side_effect=consultar_identidad) as proveedor,
+                    patch.object(renaper, "consultar_identidad", side_effect=consultar_identidad) as proveedor,
                     patch.object(consulta, "buscar_persona", return_value=None),
                     patch.object(consulta, "consultar_solicitudes", return_value=[]),
                     patch.object(historia, "consultar_hcf") as hcf,

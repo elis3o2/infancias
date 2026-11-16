@@ -9,7 +9,7 @@ from rest_framework.test import APIClient
 from src.models import Equipo, Usuario
 from src.apps.persona.models import Adolescente
 from src.apps.solicitud.models import MotivoSolicitud, Solicitud, SolicitudComentario
-from src.apps.solicitud.reportes import fecha_actual, periodo_reporte
+from src.apps.solicitud.services.Reporte import _fecha_actual as fecha_actual, _periodo_reporte as periodo_reporte
 
 
 @override_settings(ROOT_URLCONF="src.apps.solicitud.urls")
@@ -32,7 +32,7 @@ class ReportesSolicitudTests(TestCase):
                 editor.delete_model(modelo)
 
     def setUp(self):
-        reloj = patch("src.apps.solicitud.views.fecha_actual", return_value=date(2026, 10, 7))
+        reloj = patch("src.apps.solicitud.services.Reporte._fecha_actual", return_value=date(2026, 10, 7))
         reloj.start()
         self.addCleanup(reloj.stop)
         red = patch("requests.sessions.Session.request", side_effect=AssertionError("No debe consultar APIs externas"))
@@ -165,17 +165,17 @@ class ReportesSolicitudTests(TestCase):
                 self.assertEqual(self.client.get("/reportes/", filtros).status_code, 400)
         self.assertEqual(self.client.get("/reportes/", {"page": 999}).status_code, 404)
 
-    def test_solo_lectura_y_solo_usuarios_operativos(self):
+    def test_solo_lectura_y_solo_usuarios_autenticados(self):
         for metodo in ("post", "put", "patch", "delete"):
             self.assertEqual(getattr(self.client, metodo)("/reportes/", {}, format="json").status_code, 405)
         self.assertEqual(Solicitud.objects.count(), 5)
         for equipo in (None, self.vacio):
             usuario = Usuario.objects.create(username=f"ajeno-{equipo}", equipo=equipo)
             self.client.force_authenticate(usuario)
-            self.assertEqual(self.client.get("/reportes/").status_code, 403)
+            self.assertEqual(self.client.get("/reportes/").status_code, 200)
         self.assertIn(APIClient().get("/reportes/").status_code, (401, 403))
 
     @override_settings(USE_TZ=True, TIME_ZONE="America/Argentina/Buenos_Aires")
     def test_fecha_actual_usa_zona_local_si_se_activa_timezone(self):
-        with patch("src.apps.solicitud.reportes.timezone.now", return_value=datetime(2026, 10, 5, 1, tzinfo=datetime_timezone.utc)):
+        with patch("src.apps.solicitud.services.Reporte.timezone.now", return_value=datetime(2026, 10, 5, 1, tzinfo=datetime_timezone.utc)):
             self.assertEqual(fecha_actual(), date(2026, 10, 4))

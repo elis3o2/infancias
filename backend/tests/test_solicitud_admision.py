@@ -13,7 +13,7 @@ from src.apps.persona.models import (
     Adolescente, Carpeta, Familiar, Legajo, Persona, PersonaDomicilio,
     PersonaTelefono, Relacion, RelacionAdolescente, Vinculo,
 )
-from src.apps.solicitud.admision import agregar_adolescente, agregar_familiar
+from src.apps.solicitud.services import agregar_adolescente, agregar_familiar
 from src.apps.solicitud.models import MotivoSolicitud, Solicitud
 from src.models import Equipo, Usuario
 

@@ -9,8 +9,8 @@ from django.test import TestCase
 
 from src.apps.domicilio.models import Provincia, Departamento, Domicilio, TipoInstitucion, Institucion
 from src.apps.persona.models import Vinculo
-from src.apps.solicitud.copia_formulario import CopiaFormulario, SeccionFormulario, capturar_formulario
-from src.apps.solicitud.formulario_pdf import generar_formulario_pdf
+from src.apps.solicitud.clases import CopiaFormulario, SeccionFormulario
+from src.apps.solicitud.services.CopiaSolicitud import capturar_formulario, generar_formulario_pdf
 from src.apps.solicitud.models import MotivoSolicitud, Solicitud
 from src.apps.solicitud.serializers import SolicitudCreateSerializer
 from src.apps.solicitud.services import crear_solicitud
@@ -113,7 +113,7 @@ class FormularioPdfTests(TestCase):
         serializer.is_valid(raise_exception=True)
         # El formulario exige correo; el servicio conserva compatibilidad con altas sin él.
         serializer.validated_data["correo"] = ""
-        with patch("src.apps.solicitud.services.Notificaciones.generar_formulario_pdf") as pdf, self.captureOnCommitCallbacks(execute=True):
+        with patch("src.apps.solicitud.services.CopiaSolicitud.generar_formulario_pdf") as pdf, self.captureOnCommitCallbacks(execute=True):
             crear_solicitud(serializer.validated_data)
         self.correo.assert_not_called()
         pdf.assert_not_called()
@@ -127,7 +127,7 @@ class FormularioPdfTests(TestCase):
         self.assertFalse(Solicitud.objects.exists())
 
     def test_fallo_de_pdf_o_correo_no_revierte_solicitud(self):
-        with patch("src.apps.solicitud.services.Notificaciones.generar_formulario_pdf", side_effect=RuntimeError("Fallo simulado")), \
+        with patch("src.apps.solicitud.services.CopiaSolicitud.generar_formulario_pdf", side_effect=RuntimeError("Fallo simulado")), \
                 self.assertLogs("src.apps.solicitud.services", level="ERROR"), self.captureOnCommitCallbacks(execute=True):
             solicitud = self._crear()
         self.assertTrue(Solicitud.objects.filter(pk=solicitud.pk).exists())

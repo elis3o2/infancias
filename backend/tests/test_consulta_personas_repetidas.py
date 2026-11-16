@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
-from src.apps.api_externa.types import DatosDigitalizacion
+from src.apps.api_externa.clases import DatosDigitalizacion
 from src.apps.persona.services import consultar_personas
 from src.apps.persona.services import Consulta as consulta
 from src.apps.api_externa.services import HistoriaClinica as historia

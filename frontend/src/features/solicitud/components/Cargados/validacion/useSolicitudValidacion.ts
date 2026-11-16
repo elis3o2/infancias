@@ -35,7 +35,7 @@ export function useSolicitudValidacion(solicitud: SolicitudCrud) {
       .flatMap(({ id, dni, sexo }) => dni && sexo ? [{ id, dni, sexo }] : []),
   }
   const historias = useHistoriasClinicas(
-    [...(identidades?.adolescentes ?? []), ...(identidades?.familiares ?? [])].map((item) => (item.persona ?? item.ciudadano)?.hc),
+    [...(identidades?.adolescentes ?? []), ...(identidades?.familiares ?? [])].map((item) => item.persona ?? item.ciudadano),
     !buscando,
   )
   const ciudadanos = identidades ? completarConsulta(identidades, personasConsulta, historias.consultas) : null

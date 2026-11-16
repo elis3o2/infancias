@@ -33,7 +33,7 @@ export function FamiliarRevisionCard({ revision, resultado, busquedaRealizada, o
   const [error, setError] = useState("")
   const identidadIncompleta = original && (!original.dni || !original.sexo)
   const familiar = original ? { ...original, dni: dni || null, sexo: sexo || null } : null
-  const historias = useHistoriasClinicas([(respuesta?.persona ?? respuesta?.ciudadano)?.hc], !buscando)
+  const historias = useHistoriasClinicas([respuesta?.persona ?? respuesta?.ciudadano], !buscando)
   const consulta = identidadIncompleta ? (respuesta ? completarResultado(respuesta, historias.consultas) : null) : resultado
   const datosSalud = consulta?.persona ?? consulta?.ciudadano ?? persona
 

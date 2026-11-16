@@ -7,8 +7,8 @@ import requests
 
 from src.apps.api_externa import services, utils
 from src.apps.api_externa.services import Ciudadano as ciudadano_api, Digitalizacion as digitalizacion, HistoriaClinica as hcf
-from src.apps.api_externa.types import Ciudadano, ServicioExternoError
-from src.apps.api_externa.identidad_types import ResultadoIdentidad
+from src.apps.api_externa.services import Renaper as renaper
+from src.apps.api_externa.clases import Ciudadano, ServicioExternoError, ResultadoIdentidad
 
 
 class ApiExternaPersonasTests(TestCase):
@@ -72,14 +72,14 @@ class ApiExternaPersonasTests(TestCase):
                 ciudadano[alias] = ciudadano.pop(campo)
                 with (
                     patch.object(digitalizacion, "_obtener_json", return_value=data),
-                    patch.object(digitalizacion, "consultar_identidad", return_value=ResultadoIdentidad(200, data)),
+                    patch.object(renaper, "consultar_identidad", return_value=ResultadoIdentidad(200, data)),
                     self.assertRaises(ServicioExternoError),
                 ):
                     services.consultar_digitalizacion("50000001", "M")
         datos = {"ciudadano": self.identidad}
         with (
             patch.object(digitalizacion, "_obtener_json", return_value=datos),
-            patch.object(digitalizacion, "consultar_identidad", return_value=ResultadoIdentidad(200, datos)),
+            patch.object(renaper, "consultar_identidad", return_value=ResultadoIdentidad(200, datos)),
             self.assertRaises(ServicioExternoError),
         ):
             services.consultar_digitalizacion("50000001", "M")
@@ -90,10 +90,10 @@ class ApiExternaPersonasTests(TestCase):
             session = session_class.return_value.__enter__.return_value
             session.get.return_value.status_code = 200
             session.get.return_value.json.return_value = respuesta
-            self.assertIs(services.consultar_hcf(hci="100"), respuesta)
+            self.assertIs(services.consultar_hcf(hcf="50"), respuesta)
         self.assertFalse(session.trust_env)
         session.get.assert_called_once_with(
-            "https://hcf.example.test/hcf", params={"hci": "100"},
+            "https://hcf.example.test/hcf", params={"hcf": "50"},
             headers={"HCF_PPVV_API_KEY": "prueba-hcf"}, timeout=(utils.TIMEOUT_EXTERNO, 60),
         )
 
@@ -117,9 +117,10 @@ class ApiExternaPersonasTests(TestCase):
             session.get.assert_called_once()
             self.assertEqual(session.get.call_args.kwargs["timeout"], (10, 60))
 
-    def test_hcf_envia_una_sola_hci_aunque_la_url_ya_la_incluya(self):
-        for sufijo in ("", "?hci=", "?hci=999", "?hci=&hci=999", "?origen=prueba%20local&hci="):
-            for numero in (100, "100"):
+    def test_hcf_envia_un_solo_numero_familiar_y_elimina_el_parametro_anterior(self):
+        for sufijo in ("", "?hcf=", "?hcf=999", "?hcf=&hcf=999", "?origen=prueba%20local&hcf=",
+                       "?hci=", "?hci=100&hcf=999", "?origen=prueba%20local&hci="):
+            for numero in (50, "50"):
                 with self.subTest(sufijo=sufijo, numero=numero), patch.object(utils.requests, "Session") as session_class:
                     self.configuracion["API_HCF"] = f"https://hcf.example.test/hcf{sufijo}"
                     session = session_class.return_value.__enter__.return_value
@@ -134,8 +135,8 @@ class ApiExternaPersonasTests(TestCase):
                     url = urlsplit(preparada.url)
                     parametros = parse_qs(url.query, keep_blank_values=True)
                     self.assertEqual(url.path, "/hcf")
-                    self.assertEqual(parametros["hci"], ["100"])
-                    self.assertNotIn("hcf", parametros)
+                    self.assertEqual(parametros["hcf"], ["50"])
+                    self.assertNotIn("hci", parametros)
                     if "origen" in sufijo:
                         self.assertEqual(parametros["origen"], ["prueba local"])
                     self.assertEqual(llamada.kwargs["headers"], {"HCF_PPVV_API_KEY": "prueba-hcf"})

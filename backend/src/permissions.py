@@ -39,29 +39,6 @@ def usuario_tiene_rol(user, rol: str) -> bool:
     return nombre_equipo in _EQUIPOS_COMPATIBLES_POR_ROL.get(rol, set())
 
 
-class IsOperationalUser(BasePermission):
-    """Requires an authenticated member of an operational team.
-
-    Endpoints that expose people, case files or stored addresses must not be
-    available merely because an account has a team assigned. The same group
-    names are used by the request workflow permission.
-    """
-
-    message = "Se requiere pertenecer a un equipo operativo."
-
-    def has_permission(self, request, view):
-        user = getattr(request, "user", None)
-        if not getattr(user, "is_authenticated", False):
-            return False
-
-        if not getattr(user, "equipo_id", None):
-            return False
-
-        return any(
-            usuario_tiene_rol(user, rol)
-            for rol in ("entrada", "guardia", "admision", "territorial")
-        )
-
 
 class ReadOnly(BasePermission):
 
