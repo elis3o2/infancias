@@ -74,7 +74,7 @@ export type HCFResultado = {
     idPersona: number
     DNI: string
     numeroHCI: number
-    numeroHCF: number
+    numeroHCF?: number
     apellido: string
     nombre: string
     sexo: "M" | "F"

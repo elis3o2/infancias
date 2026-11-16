@@ -36,7 +36,7 @@ const persona = (hc, dni = String(50000000 + hc)) => ({
   legajo: null, domicilio: null, telefono: null, vinculo: { id: 3, nombre: "Referente" },
 })
 const integrante = (hc, dni = String(50000000 + hc)) => ({
-  idPersona: hc, numeroHCI: hc, numeroHCF: 50, DNI: dni, sexo: "F", nombre: "NO REEMPLAZAR", apellido: "Prueba",
+  idPersona: hc, numeroHCI: hc, DNI: dni, sexo: "F", nombre: "NO REEMPLAZAR", apellido: "Prueba",
   fechaNacimiento: "2001-01-01", flag_discapacidades: 1, flag_consumos_problematicos: 0,
   flag_intentos_de_suicidio: 1, flag_problemas_socioambientales: 0, flag_violencias: 1,
 })
@@ -64,6 +64,7 @@ test("las identidades se entregan antes de empezar la segunda etapa lenta", asyn
   assert.equal(visible.adolescentes[0].persona.violencias, true)
   assert.deepEqual(visible.hcf.map((item) => item.numeroHCI), [8])
   assert.equal(visible.hcf[0].hcf, 50)
+  assert.equal("numeroHCF" in visible.hcf[0], false)
 })
 
 test("adolescentes y familiares con distintas HCI comparten una sola consulta por HCF", async () => {
@@ -75,7 +76,7 @@ test("adolescentes y familiares con distintas HCI comparten una sola consulta po
   const resultados = await consultarHistoriasPorEtapas([...numeros, 50, 60], new Map(), () => {}, signal(), async (numero) => {
     llamadas.push(numero)
     return numero === 50 ? hcf(1, 2, 3, 8) : {
-      hcf: 60, resultados: [4, 5, 9].map((hc) => ({ ...integrante(hc), numeroHCF: 60 })),
+      hcf: 60, resultados: [4, 5, 9].map((hc) => integrante(hc)),
     }
   })
   assert.deepEqual(llamadas, [50, 60])

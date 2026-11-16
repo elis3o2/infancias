@@ -29,7 +29,7 @@ const { completarRevisiones } = await server.ssrLoadModule(`${modulo}historiasVa
 const { default: http } = await server.ssrLoadModule("/src/common/api/client.ts")
 
 const integrante = {
-  idPersona: 900, numeroHCI: 200, numeroHCF: 50, hcf: 50, DNI: "30000001", sexo: "F",
+  idPersona: 900, numeroHCI: 200, hcf: 50, DNI: "30000001", sexo: "F",
   nombre: " Familiar ", apellido: " Prueba ", fechaNacimiento: "1980-01-02",
   flag_discapacidades: 1, flag_consumos_problematicos: 0, flag_intentos_de_suicidio: 0,
   flag_problemas_socioambientales: 1, flag_violencias: 0,

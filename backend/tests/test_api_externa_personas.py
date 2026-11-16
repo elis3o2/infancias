@@ -90,7 +90,7 @@ class ApiExternaPersonasTests(TestCase):
             session = session_class.return_value.__enter__.return_value
             session.get.return_value.status_code = 200
             session.get.return_value.json.return_value = respuesta
-            self.assertIs(services.consultar_hcf(hcf="50"), respuesta)
+            self.assertEqual(services.consultar_hcf(hcf="50"), respuesta)
         self.assertFalse(session.trust_env)
         session.get.assert_called_once_with(
             "https://hcf.example.test/hcf", params={"hcf": "50"},
@@ -107,6 +107,31 @@ class ApiExternaPersonasTests(TestCase):
             session.get.return_value.json.return_value = self.digitalizacion
             self.assertIsNotNone(services.consultar_digitalizacion("50000001", "M"))
             self.assertEqual(session.get.call_args.kwargs["timeout"], 10)
+
+    def test_hcf_normaliza_texto_decimal_y_conserva_enteros(self):
+        for numero in (3656, "3656", "03656"):
+            with self.subTest(numero=numero):
+                datos = {"hcf": numero, "resultados": []}
+                original = deepcopy(datos)
+                with patch.object(hcf, "_obtener_json", return_value=datos):
+                    resultado = services.consultar_hcf(3656)
+                self.assertEqual(resultado, {"hcf": 3656, "resultados": []})
+                self.assertIs(type(resultado["hcf"]), int)
+                self.assertEqual(datos, original)
+
+    def test_hcf_no_acepta_numeros_invalidos_ni_campos_alternativos(self):
+        invalidos = [None, True, False, 0, -1, 3656.5, 3656.0, "", "0", "-1",
+                     "3656.0", "3e3", "no", "٣٦٥٦", [], {}]
+        respuestas = [{"hcf": numero, "resultados": []} for numero in invalidos]
+        respuestas.extend([
+            None, [], {"resultados": []}, {"numeroHCF": 3656, "resultados": []},
+            {"hcf": "3656"}, {"hcf": "3656", "resultados": None},
+            {"hcf": "3656", "resultados": {}}, {"hcf": "3656", "results": []},
+        ])
+        for datos in respuestas:
+            with self.subTest(datos=datos), patch.object(hcf, "_obtener_json", return_value=datos):
+                with self.assertRaises(ServicioExternoError):
+                    services.consultar_hcf(3656)
 
     def test_hcf_conserva_el_manejo_de_error_si_se_agota_el_nuevo_timeout(self):
         with patch.object(utils.requests, "Session") as session_class:
@@ -127,7 +152,7 @@ class ApiExternaPersonasTests(TestCase):
                     session.get.return_value.status_code = 200
                     respuesta = {"hcf": 50, "resultados": []}
                     session.get.return_value.json.return_value = respuesta
-                    self.assertIs(services.consultar_hcf(numero), respuesta)
+                    self.assertEqual(services.consultar_hcf(numero), respuesta)
 
                     session.get.assert_called_once()
                     llamada = session.get.call_args

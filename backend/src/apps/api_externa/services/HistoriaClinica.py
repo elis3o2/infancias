@@ -2,10 +2,22 @@
 from typing import cast
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from decouple import config
-from ..clases import HCFResponse, RecursoExternoNoEncontrado, ServicioExternoError
+from ..clases import HCFResponse, JsonValue, RecursoExternoNoEncontrado, ServicioExternoError
 from ..utils import TIMEOUT_EXTERNO, _como_objeto, _obtener_json, _url_configurada
 
 TIMEOUT_HCF = 60
+
+
+def _numero_hcf(valor: JsonValue) -> int:
+    """El proveedor puede enviar el número familiar como texto decimal."""
+    if isinstance(valor, str) and valor.isascii() and valor.isdecimal():
+        try:
+            valor = int(valor)
+        except ValueError:
+            raise ServicioExternoError("API_HCF devolvió una respuesta inesperada.") from None
+    if isinstance(valor, bool) or not isinstance(valor, int) or valor <= 0:
+        raise ServicioExternoError("API_HCF devolvió una respuesta inesperada.")
+    return valor
 
 
 def _url_hcf() -> str:
@@ -26,13 +38,8 @@ def consultar_hcf(hcf: int | str) -> HCFResponse | None:
             timeout=(TIMEOUT_EXTERNO, TIMEOUT_HCF),
         )
         respuesta = _como_objeto(data)
-        if (
-            respuesta is None
-            or not isinstance(respuesta.get("hcf"), int)
-            or isinstance(respuesta.get("hcf"), bool)
-            or not isinstance(respuesta.get("resultados"), list)
-        ):
+        if respuesta is None or not isinstance(respuesta.get("resultados"), list):
             raise ServicioExternoError("API_HCF devolvió una respuesta inesperada.")
-        return cast(HCFResponse, respuesta)
+        return cast(HCFResponse, {**respuesta, "hcf": _numero_hcf(respuesta.get("hcf"))})
     except RecursoExternoNoEncontrado:
         return None

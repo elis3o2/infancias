@@ -60,6 +60,25 @@ class HistoriaClinicaEndpointTests(SimpleTestCase):
         self.assertEqual(proveedor.call_args.kwargs["params"], {"hcf": 50})
         self.assertEqual(proveedor.call_args.kwargs["timeout"], (10, 60))
 
+    def test_respuesta_con_hcf_texto_y_sin_numero_familiar_en_integrantes(self):
+        persona = integrante(100, "50000001")
+        persona.pop("numeroHCF")
+        persona.update(coordXPacienteUltimaAtencion=None, coordYPacienteUltimaAtencion=None,
+                       latitud_wgs84=None, longitud_wgs84=None)
+        datos = {"hcf": "3656", "resultados": [persona]}
+        with (
+            patch.object(historia, "_url_hcf", return_value="https://hcf.example.test/hcf"),
+            patch.object(historia, "config", return_value="clave-de-prueba"),
+            patch.object(historia, "_obtener_json", return_value=datos) as proveedor,
+        ):
+            respuesta = self.consultar({"hcf": 3656})
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.data, {"hcf": 3656, "resultados": [persona]})
+        self.assertIsInstance(respuesta.data["hcf"], int)
+        self.assertEqual(datos["hcf"], "3656")
+        self.assertNotIn("numeroHCF", respuesta.data["resultados"][0])
+        self.assertEqual(proveedor.call_args.kwargs["params"], {"hcf": 3656})
+
     def test_sin_historia_es_distinto_de_error_del_proveedor(self):
         with patch("src.apps.api_externa.views.consultar_hcf", return_value=None):
             respuesta = self.consultar({"hcf": 50})

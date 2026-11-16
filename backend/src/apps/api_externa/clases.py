@@ -72,7 +72,7 @@ class HCFResultado(TypedDict):
     idPersona: int
     DNI: str
     numeroHCI: int
-    numeroHCF: int
+    numeroHCF: NotRequired[int]
     apellido: str
     nombre: str
     sexo: str
@@ -102,6 +102,8 @@ class HCFResultado(TypedDict):
 
 
 class HCFResponse(TypedDict):
+    """Respuesta interna; el número familiar del proveedor se normaliza a entero."""
+
     hcf: int
     resultados: list[HCFResultado]
 

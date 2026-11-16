@@ -115,6 +115,9 @@ con la cabecera `HCF_PPVV_API_KEY`. `API_HCF` debe apuntar a `/hcf`; por ejemplo
 Se eliminan los parámetros `hcf` y el antiguo `hci` de la URL configurada antes
 de enviar un único `hcf` con el número consultado. La respuesta conserva el
 contrato `HCFResponse` (`hcf` y `resultados`).
+El proveedor puede devolver `hcf` como texto decimal (por ejemplo, `"3656"`);
+el servicio lo normaliza a entero para conservar el contrato del frontend.
+Los integrantes no necesitan incluir `numeroHCF`: comparten la HCF de la raíz.
 
 Para HCF, la conexión mantiene 10 segundos de espera y la lectura de la respuesta
 permite 60 segundos, fijados en el código. Los tiempos de las demás APIs no
